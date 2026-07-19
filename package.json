@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "e2e:report": "npx playwright show-report"
+    "e2e:report": "npx playwright show-report",
+    "generate:social-card": "node scripts/generate-social-card.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1",

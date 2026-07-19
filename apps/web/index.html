@@ -3,7 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manifest Lens</title>
+    <title>Manifest Lens — Browser Extension Manifest Explainer</title>
+    <meta
+      name="description"
+      content="Manifest Lens is a local-first manifest.json explainer for browser extensions. Paste, upload, or drop a manifest to understand fields and permissions."
+    />
+    <link rel="canonical" href="https://iamaamir.github.io/manifest-lens/" />
+    <meta property="og:title" content="Manifest Lens" />
+    <meta
+      property="og:description"
+      content="Hover your manifest. Understand every field. A local-first explainer for browser extension manifest.json files."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://iamaamir.github.io/manifest-lens/" />
+    <meta property="og:site_name" content="Manifest Lens" />
+    <meta property="og:image" content="https://iamaamir.github.io/manifest-lens/social-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Manifest Lens interface showing a browser extension manifest with contextual field explanations"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Manifest Lens" />
+    <meta
+      name="twitter:description"
+      content="A local-first browser extension manifest.json explainer for fields, permissions, host access, and common extension concepts."
+    />
+    <meta name="twitter:image" content="https://iamaamir.github.io/manifest-lens/social-card.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Manifest Lens interface showing a browser extension manifest with contextual field explanations"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Manifest Lens",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "description": "A local-first browser extension manifest.json explainer for understanding fields, permissions, host permissions, content scripts, and background configuration.",
+        "url": "https://iamaamir.github.io/manifest-lens/",
+        "image": "https://iamaamir.github.io/manifest-lens/social-card.png",
+        "isAccessibleForFree": true,
+        "softwareRequirements": "Modern web browser"
+      }
+    </script>
     <style>
       :root {
         color-scheme: dark;
@@ -247,6 +292,12 @@
 
       <main id="app" aria-labelledby="app-heading">
         <h1 id="app-heading" class="visually-hidden">Manifest Lens</h1>
+        <p class="visually-hidden">
+          Manifest Lens is a local-first browser extension manifest.json explainer for fields,
+          permissions, host access, content scripts, background configuration, actions,
+          web accessible resources, content security policy, commands, and browser-specific
+          extension concepts.
+        </p>
         <div class="inspector-shell" aria-labelledby="inspector-heading">
           <h2 id="inspector-heading" class="visually-hidden">Manifest Lens workspace</h2>
           <div id="inspector-host"></div>

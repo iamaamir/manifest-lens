@@ -1,0 +1,64 @@
+# Manifest Lens
+
+Manifest Lens is a local-first web explainer for browser extension manifest.json files.
+
+It helps developers paste, upload, drop, or load a sample browser extension manifest and understand its fields in context. The app renders a source-backed semantic tree and shows explanations for manifest fields, permissions, host permissions, content scripts, background configuration, actions, web accessible resources, content security policy, commands, browser-specific settings, and related extension concepts.
+
+## Primary URL
+
+https://iamaamir.github.io/manifest-lens/
+
+## Source
+
+https://github.com/iamaamir/manifest-lens
+
+## Product scope
+
+Manifest Lens is an explainer-first tool. It is not currently a linter, validator, health score, publishing-readiness checker, automatic fixer, compatibility report generator, or AI-generated explanation tool.
+
+The app runs locally in the browser. Manifest contents are not uploaded to a backend.
+
+## Useful files for agents
+
+- README.md: project overview, setup, validation
+- docs/PRD.md: product requirements
+- web-extension-manifest-inspector-hld.md: high-level architecture
+- docs/roadmap-v1.md: implementation roadmap
+- docs/architecture/coding-style.md: architecture and coding style rules
+- docs/knowledge/manifest-coverage.md: manifest knowledge coverage matrix
+- docs/knowledge/manifest-knowledge-sources.md: reviewed documentation sources
+- fixtures/manifests/comprehensive-all-browsers.json: comprehensive sample manifest
+
+## Architecture summary
+
+Manifest Lens uses a TypeScript monorepo with a platform-independent headless core, source-aware JSON parsing, semantic manifest modeling, a static knowledge registry, application state helpers, Web Components UI, and a thin web host.
+
+Package flow:
+
+contracts -> parser-json -> manifest-domain -> knowledge -> core -> application -> ui-components -> host-web -> apps/web
+
+## Local development
+
+Install dependencies:
+
+npm install
+
+Run the web app:
+
+npm run dev --workspace=@manifest-lens/web
+
+Validate:
+
+npm run typecheck
+npm run test
+npm run build
+npm run build --workspace=@manifest-lens/web
+npm run e2e
+
+## Important constraints
+
+Do not add remote analysis, runtime AI explanations, diagnostics, automatic fixes, health scores, compatibility reports, CLI behavior, VS Code extension behavior, or browser extension packaging unless explicitly requested for a future phase.
+
+Preserve source text. Do not reserialize user manifests for display.
+
+Keep the core engine platform-independent and serializable.
