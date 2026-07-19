@@ -79,12 +79,17 @@ function analyzeText(container: HTMLElement, text: string): AnalyzeOutcome {
     return { kind: "empty", message: STATUS_EMPTY };
   }
   try {
-    const snapshot = loadManifestText(container, text);
+    const document: SourceDocument = createSourceDocument(text);
+    const snapshot = analyzeManifest(document);
+    const host = ensureInspector(container);
     if (snapshot.parse.errors.length > 0) {
+      host.clear();
       return { kind: "invalid", message: STATUS_INVALID };
     }
+    host.loadSnapshot(snapshot);
     return { kind: "analyzed", message: STATUS_ANALYZED, snapshot };
   } catch {
+    clearManifest(container);
     return { kind: "invalid", message: STATUS_INVALID };
   }
 }
@@ -95,6 +100,14 @@ function statusKindFor(outcome: AnalyzeOutcome): HostStatusKind {
 
 export interface HostInputFlowOptions {
   readonly onStatus?: (message: string, kind: HostStatusKind) => void;
+}
+
+function isEditablePasteTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tagName = target.tagName.toLowerCase();
+  if (tagName === "textarea") return true;
+  if (tagName === "input") return true;
+  return target.isContentEditable;
 }
 
 export function wireManifestInputFlows(
@@ -121,6 +134,8 @@ export function wireManifestInputFlows(
   };
 
   const onPaste = (event: ClipboardEvent): void => {
+    if (!container.isConnected) return;
+    if (event.defaultPrevented || isEditablePasteTarget(event.target)) return;
     const text = event.clipboardData?.getData("text") ?? "";
     if (text.trim().length > 0) {
       event.preventDefault();
@@ -147,12 +162,14 @@ export function wireManifestInputFlows(
   };
 
   host.addEventListener("paste", onPaste as EventListener);
+  document.addEventListener("paste", onPaste as EventListener);
   host.addEventListener("dragover", onDragOver as EventListener);
   host.addEventListener("drop", onDrop as EventListener);
 
   return {
     dispose(): void {
       host.removeEventListener("paste", onPaste as EventListener);
+      document.removeEventListener("paste", onPaste as EventListener);
       host.removeEventListener("dragover", onDragOver as EventListener);
       host.removeEventListener("drop", onDrop as EventListener);
     },

@@ -27,6 +27,17 @@ const INVALID_MANIFEST = `{
   "permissions": ["tabs",
 }`;
 
+function pasteEventWithText(text: string): ClipboardEvent {
+  const event = new Event("paste", {
+    bubbles: true,
+    cancelable: true,
+  }) as ClipboardEvent;
+  Object.defineProperty(event, "clipboardData", {
+    value: { getData: () => text },
+  });
+  return event;
+}
+
 function appendContainer(): HTMLElement {
   const container = document.createElement("div");
   document.body.append(container);
@@ -156,6 +167,49 @@ describe("@mvviewer/host-web input wiring", () => {
     expect(pre?.textContent).toBe(VALID_MANIFEST);
   });
 
+  it("analyzes pasted page-level text through wired paste flow", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    const status = { message: "", kind: "info" as "info" | "error" };
+    wireManifestInputFlows(container, {
+      onStatus: (m, k) => {
+        status.message = m;
+        status.kind = k;
+      },
+    });
+
+    const pasteEvent = pasteEventWithText(VALID_MANIFEST);
+    document.body.dispatchEvent(pasteEvent);
+
+    const host = container.querySelector("manifest-inspector")!;
+    const pre = host.shadowRoot?.querySelector("pre.source-pre");
+    expect(pasteEvent.defaultPrevented).toBe(true);
+    expect(status.kind).toBe("info");
+    expect(pre?.textContent).toBe(VALID_MANIFEST);
+  });
+
+  it("does not steal paste from textarea controls", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    const textarea = document.createElement("textarea");
+    document.body.append(textarea);
+    const status = { message: "", kind: "info" as "info" | "error" };
+    wireManifestInputFlows(container, {
+      onStatus: (m, k) => {
+        status.message = m;
+        status.kind = k;
+      },
+    });
+
+    const pasteEvent = pasteEventWithText(VALID_MANIFEST);
+    textarea.dispatchEvent(pasteEvent);
+
+    const host = container.querySelector("manifest-inspector")!;
+    expect(pasteEvent.defaultPrevented).toBe(false);
+    expect(status.message).toBe("");
+    expect(host.shadowRoot?.querySelector("pre.source-pre")).toBeNull();
+  });
+
   it("shows a calm inline message for invalid manifest input", () => {
     const container = appendContainer();
     mountWebManifestInspector(container);
@@ -175,6 +229,35 @@ describe("@mvviewer/host-web input wiring", () => {
     expect(status.kind).toBe("error");
     expect(status.message.toLowerCase()).not.toMatch(/diagnos|fix|health score|report|audit/);
     expect(host.shadowRoot?.textContent ?? "").not.toMatch(/diagnos|fix|health score|report|audit/i);
+  });
+
+  it("clears previous source and explanation when invalid input follows a valid pinned manifest", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    const status = { message: "", kind: "info" as "info" | "error" };
+    wireManifestInputFlows(container, {
+      onStatus: (m, k) => {
+        status.message = m;
+        status.kind = k;
+      },
+    });
+
+    const host = container.querySelector("manifest-inspector")!;
+    loadManifestText(container, VALID_MANIFEST);
+    const sourceNode = host.shadowRoot?.querySelector(".source-node") as HTMLElement | null;
+    sourceNode?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(host.shadowRoot?.querySelector("pre.source-pre")?.textContent).toBe(VALID_MANIFEST);
+
+    const dropEvent = new Event("drop", { bubbles: true }) as DragEvent;
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      value: { getData: () => INVALID_MANIFEST, files: null, dropEffect: "copy" },
+    });
+    host.dispatchEvent(dropEvent);
+
+    expect(status.kind).toBe("error");
+    expect(host.shadowRoot?.querySelector("pre.source-pre")).toBeNull();
+    expect(host.shadowRoot?.textContent ?? "").not.toContain("Example Extension");
+    expect(host.shadowRoot?.textContent ?? "").not.toContain("Manifest Version");
   });
 });
 
