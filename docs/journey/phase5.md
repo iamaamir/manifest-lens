@@ -78,7 +78,7 @@ By the end of Phase 5, a user should be able to:
 
 1. open the local web app;
 2. paste a manifest or drop/import a `manifest.json`;
-3. see original source formatting preserved;
+3. see a source-backed semantic tree built from the original manifest source;
 4. hover an explainable region to preview an explanation;
 5. click/tap a region to pin an explanation;
 6. hover another region to temporarily preview and then restore pinned explanation on hover leave;
@@ -183,9 +183,9 @@ Avoid HLD future API methods for Phase 5:
 - fix APIs
 - compatibility/report APIs
 
-## Source Rendering Strategy
+## Source-Backed Semantic Tree Strategy
 
-Preserve original source. Never reserialize with `JSON.stringify` for display.
+Preserve original source in snapshots and render the visible inspector as a source-backed semantic tree. The tree may group, collapse, and truncate semantic rows for comprehension, but it must use original source ranges as backing data and must never reserialize values with `JSON.stringify` for display.
 
 Security rule:
 
@@ -205,7 +205,7 @@ Avoid naïvely wrapping every semantic node range if it creates invalid overlapp
 Recommended simple strategy:
 
 1. Use `snapshot.document.text` as canonical source.
-2. Build deterministic source segments from explainable semantic node ranges.
+2. Build deterministic tree rows or source segments from explainable semantic node ranges.
 3. Prefer the smallest explainable semantic node at pointer/focus offset.
 4. Keep DOM stable after snapshot load.
 5. On hover/focus/select, update active CSS classes and explanation panel without reparsing or reserializing.
@@ -459,9 +459,10 @@ Phase 5 is complete when:
 
 - first usable web UI MVP exists;
 - paste and drag/drop/import work locally;
-- preserved source and explanation panel are synchronized;
+- source-backed semantic tree and explanation panel are synchronized;
 - hover/click/tap/keyboard interactions work;
-- unknown and partial-invalid cases are graceful;
+- unknown fields in valid manifests are selectable with fallback explanations;
+- invalid JSON paste/drop/upload is graceful: it does not crash, clears stale valid-manifest state, and shows the calm error-card path without diagnostics/fixes/scores/reports; recoverable partial rendering is deferred;
 - tests and validation pass;
 - role reviews pass;
 - `docs/journey/memory.md` records completion and validation;

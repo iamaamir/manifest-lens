@@ -24,7 +24,7 @@ The initial release should focus on explanation quality, source precision, and i
 
 1. As a browser extension developer, I want to paste a manifest into the app, so that I can quickly understand what its fields mean.
 2. As a browser extension developer, I want to drag and drop a `manifest.json` file, so that I can inspect it without manually copying text.
-3. As a browser extension developer, I want the original source formatting to be preserved, so that the manifest I inspect still looks like the file I wrote.
+3. As a browser extension developer, I want the inspector to use my original manifest source as its backing text, so that the semantic tree and explanations stay connected to the file I wrote.
 4. As a browser extension developer, I want to hover over a top-level manifest field, so that I can understand its purpose.
 5. As a browser extension developer, I want to click a manifest field to pin its explanation, so that I can read the explanation without keeping my pointer in place.
 6. As a browser extension developer, I want hovering another field to temporarily preview a different explanation, so that I can explore the manifest quickly.
@@ -73,7 +73,7 @@ The initial release should focus on explanation quality, source precision, and i
   → interactive UI
   ```
 
-- The original source text should be preserved and rendered from source ranges rather than re-serialized JSON.
+- The original source text should be preserved in snapshots and used as the backing text for the visible source-backed semantic tree; the UI should render from source ranges rather than from re-serialized JSON.
 - The parser should produce enough source range information to associate keys, values, objects, arrays, and array items with semantic manifest nodes.
 - The semantic model should recognize common manifest concepts such as fields, sections, permissions, host permissions, content scripts, background configuration, actions, commands, icons, and web-accessible resources.
 - The explanation resolver should map semantic manifest nodes to explanation content.
@@ -86,7 +86,7 @@ The initial release should focus on explanation quality, source precision, and i
   - examples where useful,
   - official documentation links where appropriate.
 - Unknown or unsupported manifest fields should produce a graceful fallback explanation rather than breaking interaction.
-- The UI should use a split-view layout with source on one side and explanation on the other.
+- The UI should use a split-view layout with a source-backed semantic tree on one side and explanation on the other.
 - Hover should preview explanations.
 - Click should pin explanations.
 - Keyboard navigation should allow users to move through explainable semantic nodes.
