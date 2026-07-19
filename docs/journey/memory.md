@@ -44,6 +44,8 @@ Initial release priority is explanation and interaction clarity, not validation.
   - Human contributor checklist and review expectations.
 - AI team model: `docs/agents/team.md` and `docs/agents/workflow.md`
   - Coordinator-led, artifact-driven, role-specialized agent workflow.
+- Design source: `design.md`
+  - UI design source of truth for the Phase 5 reset: “The Observatory,” a near-black precision manifest inspection instrument.
 - External agent policy: `docs/agents/external-agents.md`
   - Coordinator boundary, external implementation-agent preference, and ACP status.
 - Agent role/persona cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
@@ -53,7 +55,7 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 5 — Web Components UI MVP is complete, reviewed, validated, and accepted on branch `ai-team-workflow-experiment`.
+Phase 5 — Web Components UI MVP is functionally complete, reviewed, and validated on branch `ai-team-workflow-experiment`, but the visual/UX direction has been rejected and is now in a design-led UI reset.
 
 Next phase is not started yet.
 
@@ -237,6 +239,12 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- User rejected the current Phase 5 UI as AI slop with bad UX. `design.md` is now the durable UI design source of truth for the Phase 5 UI reset.
+- Target concept is “The Observatory”: a near-black precision manifest inspection instrument where the source/tree pane and explanation pane are the product surface.
+- Frontend/UI work for this reset should use internal Product Designer, Manifest UX/domain, E2E/UX QA, and Frontend Engineer specialists. External agents/OpenCode are paused for frontend/UI work unless the user explicitly re-allows them.
+- Immediate UI reset should not polish the current light shell; it should replace it with a design-led Observatory implementation while preserving Phase 5 behavior.
+- MVP-critical reset scope: compact sticky header, integrated local input/drop/upload, dark design tokens, code-like preserved source with line numbers and syntax coloring, calm prose explanation hierarchy, quiet hover/focus/pin states, existing accessibility/privacy behavior, and no diagnostics/fixes/scores/reports/audits/AI/remote scope creep.
+- Deferred from immediate reset: full collapsible tree, depth collapse, large-array truncation, mobile inline cards, load sample, help popover, mixed-version/deprecated warnings, related-field links, large-file spinner, and browser E2E/screenshot tooling until the design target stabilizes.
 - Phase 5 Web Components UI MVP completed by external OpenCode implementation/fix agents and accepted after coordinator validation plus Product Manager, Core Engineer, Frontend Expert, Staff Engineer, QA Engineer, and Code Reviewer reviews/re-reviews.
 - Phase 5 now provides the first usable local web explainer UI: textarea Analyze flow, file picker, paste/drop handling, direct local `@mvviewer/core/analyzeManifest`, preserved source rendering, explanation panel, hover preview, click/tap pinning, keyboard navigation, unknown/custom fallback, partial-invalid graceful status, responsive split/stacked layout, and local-first privacy behavior.
 - `apps/web` is a thin composition root that mounts `<manifest-inspector>` and delegates controls to `@mvviewer/host-web`; `host-web` owns browser input adapters and parse-error-aware analysis outcomes; `ui-components` owns Web Components rendering and consumes `@mvviewer/application` reducer/selectors.
