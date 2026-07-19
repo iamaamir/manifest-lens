@@ -235,7 +235,15 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
-- Phase 5 planning completed with Product Manager, Core Engineer, Frontend Expert, QA Engineer, and Staff Engineer read-only reviews; created `docs/journey/phase5.md` and first narrow task brief `docs/agents/tasks/active/phase5-ui-mvp-slice1.md`.
+- Phase 5 Slice 1 completed by external OpenCode implementation/fix agents and accepted after coordinator validation plus Product Manager, Frontend Expert, Staff Engineer, QA Engineer, and Code Reviewer reviews/re-reviews.
+- Slice 1 added initial Web Components UI wiring: `apps/web` mounts through `@mvviewer/host-web`; `host-web` registers/mounts `@mvviewer/ui-components`; `ui-components` provides a real `<manifest-inspector>` Web Component with Shadow DOM and an accessible local-first empty state.
+- Slice 1 remains package-wiring/static-shell only: no paste/drop/file reading, manifest analysis, source rendering, explanation data rendering, hover/click/tap/keyboard source interaction, diagnostics, fixes, health scores, reports, audits, workers, remote analysis, AI behavior, browser extension, VS Code extension, or CLI.
+- Package direction reviewed and accepted for Slice 1: `apps/web -> host-web -> ui-components`; TypeScript project references match imports; `ui-components` has no workspace imports; `host-web` imports only `ui-components`; `apps/web` imports only `host-web`.
+- Added focused DOM tests for custom-element registration, empty/local-first state copy, absence of diagnostic/report/fix/health/audit terms, host-web mounting, and repeated mount behavior. Accepted `happy-dom` as the lightweight DOM test environment for Phase 5 component/host tests.
+- Slice 1 review fixes applied: Vitest APIs are imported explicitly, Vitest globals are not enabled, package tsconfigs include test files, custom-element registration uses direct `customElements.get` idempotency, unused direct `apps/web -> ui-components` dependency was removed, and the incomplete skip link was deferred.
+- Phase 5 Slice 1 validation passed locally: `npm run typecheck`, `npm run test` (8 files, 96 tests), `npm run build`, `npm run build --workspace=@mvviewer/web`, and `git diff --check`.
+- Completed Slice 1 task brief moved to `docs/agents/tasks/done/phase5-ui-mvp-slice1.md`.
+- Phase 5 planning completed with Product Manager, Core Engineer, Frontend Expert, QA Engineer, and Staff Engineer read-only reviews; created `docs/journey/phase5.md` and first narrow task brief.
 - Phase 5 MVP scope confirmed: first usable local Web Components explainer UI with paste/drop/import path, preserved source split view, explanation panel, hover preview, click/tap pinning, keyboard navigation, source/explanation synchronization, unknown fallback, basic responsive layout, and accessibility/privacy checks.
 - Phase 5 package plan: `ui-components` owns Web Components/rendering and should consume only `contracts` + `application`; `host-web` owns browser adapters and direct local `core/analyzeManifest`; `apps/web` remains a thin Vite composition root.
 - Phase 5 guardrails: direct in-browser engine first; no workers, diagnostics, fixes, health scores, reports/exports, security audits, compatibility matrices, remote analysis, AI-generated explanations, browser extension, VS Code extension, or CLI.
