@@ -259,6 +259,57 @@ describe("manifest-inspector snapshot rendering", () => {
     host.remove();
   });
 
+  it("keeps decorative line numbers out of the source-only element text", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeSnapshot());
+    const pre = host.shadowRoot?.querySelector("pre.source-pre");
+    const gutter = host.shadowRoot?.querySelector(".source-gutter");
+    const lineNumbers = host.shadowRoot?.querySelectorAll(".source-gutter-line");
+
+    expect(pre?.textContent).toBe(SOURCE);
+    expect(gutter?.getAttribute("aria-hidden")).toBe("true");
+    expect([...(lineNumbers ?? [])].map((line) => line.textContent)).toEqual([
+      "1",
+      "2",
+      "3",
+    ]);
+    expect(host.shadowRoot?.querySelector(".source-frame")?.textContent).toContain("123");
+    host.remove();
+  });
+
+  it("adds lightweight JSON syntax token classes without reserializing source", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeSnapshot());
+
+    const key = host.shadowRoot?.querySelector(".source-token-key");
+    const string = host.shadowRoot?.querySelector(".source-token-string");
+    const bracket = host.shadowRoot?.querySelector(".source-token-bracket");
+
+    expect(key?.textContent).toBe('"name"');
+    expect(string?.textContent).toBe('"Example Extension"');
+    expect(bracket?.textContent).toBe("{");
+    expect(host.shadowRoot?.querySelector("pre.source-pre")?.textContent).toBe(SOURCE);
+    host.remove();
+  });
+
+  it("marks the source gutter when a line is focused or pinned", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeSnapshot());
+    const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
+    const nameSpan = host.shadowRoot?.querySelector(
+      '.source-node[data-node-id="name"]',
+    ) as HTMLElement;
+
+    region.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    const focusedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-focused");
+    expect(focusedLine).not.toBeNull();
+
+    nameSpan.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const pinnedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-pinned");
+    expect(pinnedLine).not.toBeNull();
+    host.remove();
+  });
+
   it("renders source nodes with data-node-id for explainable ranges", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());

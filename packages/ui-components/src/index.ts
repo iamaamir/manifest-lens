@@ -20,9 +20,142 @@ const EMPTY_STATE_LOCAL_NOTE =
 const SOURCE_KEYBOARD_INSTRUCTIONS =
   "Use arrow keys to move between explainable fields, Enter or Space to pin an explanation, and Escape to clear.";
 
+type SourceTokenKind =
+  | "whitespace"
+  | "key"
+  | "string"
+  | "number"
+  | "boolean"
+  | "null"
+  | "bracket";
+
+interface SourceLexeme {
+  readonly start: number;
+  readonly end: number;
+  readonly kind: SourceTokenKind;
+}
+
 interface SourceSegment {
   readonly text: string;
   readonly nodeId: SemanticNodeId | null;
+  readonly tokenKind: SourceTokenKind;
+}
+
+function isJsonWhitespace(character: string): boolean {
+  return (
+    character === " " || character === "\n" || character === "\r" || character === "\t"
+  );
+}
+
+function isJsonPunctuation(character: string): boolean {
+  return (
+    character === "{"
+    || character === "}"
+    || character === "["
+    || character === "]"
+    || character === ":"
+    || character === ","
+  );
+}
+
+function isNumberStart(character: string): boolean {
+  return character === "-" || (character >= "0" && character <= "9");
+}
+
+function readJsonStringEnd(text: string, start: number): number {
+  let offset = start + 1;
+  let escaped = false;
+  while (offset < text.length) {
+    const character = text[offset]!;
+    offset += 1;
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (character === "\"") {
+      return offset;
+    }
+  }
+  return offset;
+}
+
+function readWhile(text: string, start: number, predicate: (character: string) => boolean): number {
+  let offset = start;
+  while (offset < text.length && predicate(text[offset]!)) {
+    offset += 1;
+  }
+  return offset;
+}
+
+function classifyJsonString(text: string, end: number): SourceTokenKind {
+  let offset = end;
+  while (offset < text.length && isJsonWhitespace(text[offset]!)) {
+    offset += 1;
+  }
+  return text[offset] === ":" ? "key" : "string";
+}
+
+function lexSourceText(text: string): readonly SourceLexeme[] {
+  const lexemes: SourceLexeme[] = [];
+  let offset = 0;
+
+  while (offset < text.length) {
+    const character = text[offset]!;
+
+    if (isJsonWhitespace(character)) {
+      const end = readWhile(text, offset, isJsonWhitespace);
+      lexemes.push({ start: offset, end, kind: "whitespace" });
+      offset = end;
+      continue;
+    }
+
+    if (character === "\"") {
+      const end = readJsonStringEnd(text, offset);
+      lexemes.push({ start: offset, end, kind: classifyJsonString(text, end) });
+      offset = end;
+      continue;
+    }
+
+    if (isJsonPunctuation(character)) {
+      lexemes.push({ start: offset, end: offset + 1, kind: "bracket" });
+      offset += 1;
+      continue;
+    }
+
+    if (text.startsWith("true", offset) || text.startsWith("false", offset)) {
+      const end = offset + (text.startsWith("true", offset) ? 4 : 5);
+      lexemes.push({ start: offset, end, kind: "boolean" });
+      offset = end;
+      continue;
+    }
+
+    if (text.startsWith("null", offset)) {
+      const end = offset + 4;
+      lexemes.push({ start: offset, end, kind: "null" });
+      offset = end;
+      continue;
+    }
+
+    if (isNumberStart(character)) {
+      const end = readWhile(text, offset, (candidate) => /[0-9eE+.-]/.test(candidate));
+      lexemes.push({ start: offset, end, kind: "number" });
+      offset = end;
+      continue;
+    }
+
+    lexemes.push({ start: offset, end: offset + 1, kind: "string" });
+    offset += 1;
+  }
+
+  return lexemes;
+}
+
+function lexemeAt(lexemes: readonly SourceLexeme[], start: number, end: number): SourceLexeme | undefined {
+  return lexemes.find((lexeme) => lexeme.start <= start && end <= lexeme.end);
 }
 
 function splitIntoSegments(
@@ -32,12 +165,17 @@ function splitIntoSegments(
   const explainable = snapshot.semantic.nodes.filter(
     (node) => node.id in snapshot.explanationsByNodeId,
   );
+  const lexemes = lexSourceText(text);
 
-  if (explainable.length === 0) {
-    return text.length > 0 ? [{ text, nodeId: null }] : [];
+  if (text.length === 0) {
+    return [];
   }
 
   const cutPoints = new Set<number>([0, text.length]);
+  for (const lexeme of lexemes) {
+    cutPoints.add(lexeme.start);
+    cutPoints.add(lexeme.end);
+  }
   for (const node of explainable) {
     cutPoints.add(node.sourceRange.start.offset);
     cutPoints.add(node.sourceRange.end.offset);
@@ -66,7 +204,12 @@ function splitIntoSegments(
       }
     }
 
-    segments.push({ text: text.slice(start, end), nodeId: bestNode ? bestNode.id : null });
+    const lexeme = lexemeAt(lexemes, start, end);
+    segments.push({
+      text: text.slice(start, end),
+      nodeId: bestNode ? bestNode.id : null,
+      tokenKind: lexeme?.kind ?? "string",
+    });
   }
 
   return segments;
@@ -86,8 +229,31 @@ function nodeLabel(snapshot: AnalysisSnapshot, nodeId: SemanticNodeId): string {
   return `${fieldText} (${pathText})`;
 }
 
-function isStructuralSourceText(text: string): boolean {
-  return /^[\s{}\[\],:]+$/.test(text);
+function isStructuralSourceSegment(segment: SourceSegment): boolean {
+  return segment.tokenKind === "whitespace" || segment.tokenKind === "bracket";
+}
+
+function sourceTokenClass(kind: SourceTokenKind): string {
+  switch (kind) {
+    case "key":
+      return "source-token-key";
+    case "string":
+      return "source-token-string";
+    case "number":
+      return "source-token-number";
+    case "boolean":
+      return "source-token-boolean";
+    case "null":
+      return "source-token-null";
+    case "bracket":
+      return "source-token-bracket";
+    case "whitespace":
+      return "source-token-whitespace";
+  }
+}
+
+function sourceLineCount(text: string): number {
+  return Math.max(1, text.split("\n").length);
 }
 
 const STYLE = `
@@ -211,14 +377,76 @@ const STYLE = `
     border: 0;
   }
 
+  .source-frame {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    min-height: 100%;
+    overflow: auto;
+    color: var(--color-text-secondary);
+    background: #101013;
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-lg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  }
+
+  .source-gutter {
+    margin: 0;
+    padding: 16px 10px 16px 0;
+    color: var(--color-text-tertiary);
+    border-right: 1px solid rgba(42, 42, 49, 0.72);
+    font-family: var(--mi-font-code);
+    font-size: 11px;
+    line-height: 20px;
+    list-style: none;
+    text-align: right;
+    user-select: none;
+  }
+
+  .source-gutter-line {
+    position: relative;
+    height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .source-gutter-line::before {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    content: "";
+  }
+
+  .source-gutter-line.is-focused::before {
+    background: transparent;
+    box-shadow: 0 0 0 1px var(--color-border-focus);
+  }
+
+  .source-gutter-line.is-active::before,
+  .source-gutter-line.is-pinned::before {
+    background: var(--color-accent-primary);
+  }
+
+  .source-gutter-line.is-pinned::after {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    color: var(--color-accent-primary);
+    font-size: 10px;
+    line-height: 1;
+    content: "•";
+  }
+
   .source-region {
     display: block;
-    border-radius: var(--mi-radius-lg);
+    min-width: max-content;
+    border-radius: 0;
   }
 
   .source-region:focus-visible {
     outline: 2px solid var(--color-border-focus);
-    outline-offset: 3px;
+    outline-offset: -2px;
   }
 
   .source-pre {
@@ -226,23 +454,22 @@ const STYLE = `
     margin: 0;
     padding: 16px;
     color: var(--color-text-secondary);
-    background: #101013;
-    border: 1px solid var(--color-border-hairline);
-    border-radius: var(--mi-radius-lg);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
     font-family: var(--mi-font-code);
     font-size: 13px;
     line-height: 20px;
     white-space: pre;
     tab-size: 2;
-    overflow: auto;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    overflow: visible;
   }
 
   .source-node {
     border-radius: var(--mi-radius-sm);
     cursor: pointer;
     padding: 0 0.08em;
-    color: var(--color-json-key);
+    color: inherit;
     background: transparent;
     transition:
       background-color 120ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -265,6 +492,34 @@ const STYLE = `
     box-shadow:
       inset 0 -2px 0 0 var(--color-accent-primary),
       0 0 0 1px rgba(94, 234, 212, 0.16);
+  }
+
+  .source-token-key {
+    color: var(--color-json-key);
+  }
+
+  .source-token-string {
+    color: var(--color-json-string);
+  }
+
+  .source-token-number {
+    color: var(--color-json-number);
+  }
+
+  .source-token-boolean {
+    color: var(--color-json-boolean);
+  }
+
+  .source-token-null {
+    color: var(--color-json-null);
+  }
+
+  .source-token-bracket {
+    color: var(--color-json-bracket);
+  }
+
+  .source-token-whitespace {
+    color: inherit;
   }
 
   .source-node.is-structural {
@@ -441,6 +696,17 @@ const STYLE = `
     }
   }
 
+  @media (forced-colors: active) {
+    .source-gutter-line.is-active::before,
+    .source-gutter-line.is-pinned::before {
+      background: Highlight;
+    }
+
+    .source-gutter-line.is-focused::before {
+      box-shadow: 0 0 0 1px Highlight;
+    }
+  }
+
   @media (prefers-contrast: more) {
     .source-node.is-active,
     .source-node.is-pinned,
@@ -460,9 +726,9 @@ export class ManifestInspectorElement extends HTMLElement {
   private state: InspectorState = createInitialInspectorState();
   private snapshot: AnalysisSnapshot | null = null;
   private sourceRegion: HTMLElement | null = null;
+  private sourceGutter: HTMLElement | null = null;
   private explanationPane: HTMLElement | null = null;
-  private representativeIdByNode: ReadonlyMap<SemanticNodeId, string> =
-    new Map();
+  private representativeIdByNode = new Map<SemanticNodeId, string>();
 
   constructor() {
     super();
@@ -590,6 +856,21 @@ export class ManifestInspectorElement extends HTMLElement {
     instructions.textContent = SOURCE_KEYBOARD_INSTRUCTIONS;
     pane.append(instructions);
 
+    const sourceFrame = document.createElement("div");
+    sourceFrame.className = "source-frame";
+
+    const gutter = document.createElement("ol");
+    gutter.className = "source-gutter";
+    gutter.setAttribute("aria-hidden", "true");
+    const lineCount = sourceLineCount(this.snapshot!.document.text);
+    for (let line = 1; line <= lineCount; line += 1) {
+      const lineNumber = document.createElement("li");
+      lineNumber.className = "source-gutter-line";
+      lineNumber.dataset.line = String(line);
+      lineNumber.textContent = String(line);
+      gutter.append(lineNumber);
+    }
+
     const pre = document.createElement("pre");
     pre.className = "source-pre source-region";
     pre.setAttribute("part", "source-region");
@@ -607,13 +888,16 @@ export class ManifestInspectorElement extends HTMLElement {
 
     for (const segment of segments) {
       if (segment.nodeId === null || !navigableIds.has(segment.nodeId)) {
-        pre.append(document.createTextNode(segment.text));
+        const token = document.createElement("span");
+        token.className = sourceTokenClass(segment.tokenKind);
+        token.textContent = segment.text;
+        pre.append(token);
         continue;
       }
 
       segmentIndex += 1;
       const domId = `source-node-${segment.nodeId}-${segmentIndex}`;
-      const isStructural = isStructuralSourceText(segment.text);
+      const isStructural = isStructuralSourceSegment(segment);
       const existing = representativeIdByNode.get(segment.nodeId);
       const existingIsStructural = representativeIsStructuralByNode.get(segment.nodeId);
       if (existing === undefined || (existingIsStructural === true && !isStructural)) {
@@ -623,8 +907,8 @@ export class ManifestInspectorElement extends HTMLElement {
 
       const span = document.createElement("span");
       span.className = isStructural
-        ? "source-node is-structural"
-        : "source-node";
+        ? `source-node is-structural ${sourceTokenClass(segment.tokenKind)}`
+        : `source-node ${sourceTokenClass(segment.tokenKind)}`;
       span.setAttribute("part", "source-node");
       span.dataset.nodeId = segment.nodeId;
       span.id = domId;
@@ -653,7 +937,9 @@ export class ManifestInspectorElement extends HTMLElement {
     pre.addEventListener("keydown", this.handleSourceKeydown);
 
     this.sourceRegion = pre;
-    pane.append(pre);
+    this.sourceGutter = gutter;
+    sourceFrame.append(gutter, pre);
+    pane.append(sourceFrame);
     return pane;
   }
 
@@ -698,6 +984,46 @@ export class ManifestInspectorElement extends HTMLElement {
     } else {
       pre.removeAttribute("aria-activedescendant");
     }
+
+    this.updateSourceGutter(activeId, pinnedId, focusedId);
+  }
+
+  private updateSourceGutter(
+    activeId: SemanticNodeId | null,
+    pinnedId: SemanticNodeId | null,
+    focusedId: SemanticNodeId | null,
+  ): void {
+    if (!this.snapshot || !this.sourceGutter) return;
+
+    const activeLines = this.lineSetForNodeId(activeId);
+    const pinnedLines = this.lineSetForNodeId(pinnedId);
+    const focusedLines = this.lineSetForNodeId(focusedId);
+
+    const lines = this.sourceGutter.querySelectorAll<HTMLElement>(
+      ".source-gutter-line",
+    );
+    lines.forEach((line) => {
+      const lineNumber = Number(line.dataset.line);
+      line.classList.toggle("is-active", activeLines.has(lineNumber));
+      line.classList.toggle("is-pinned", pinnedLines.has(lineNumber));
+      line.classList.toggle("is-focused", focusedLines.has(lineNumber));
+    });
+  }
+
+  private lineSetForNodeId(nodeId: SemanticNodeId | null): ReadonlySet<number> {
+    const lines = new Set<number>();
+    if (!this.snapshot || !nodeId) return lines;
+    const node = this.snapshot.semantic.nodes.find(
+      (candidate) => candidate.id === nodeId,
+    );
+    if (!node) return lines;
+
+    const startLine = Math.max(1, node.sourceRange.start.line);
+    const endLine = Math.max(startLine, node.sourceRange.end.line);
+    for (let line = startLine; line <= endLine; line += 1) {
+      lines.add(line);
+    }
+    return lines;
   }
 
   private closestInteractiveSourceNode(target: EventTarget | null): HTMLElement | null {
