@@ -102,12 +102,12 @@ export function wireManifestInputFlows(
   options: HostInputFlowOptions = {},
 ): { readonly dispose: () => void } {
   const host = ensureInspector(container);
-  const report = (message: string, kind: HostStatusKind = "info") =>
+  const emitStatus = (message: string, kind: HostStatusKind = "info") =>
     options.onStatus?.(message, kind);
 
   const analyze = (text: string): void => {
     const outcome = analyzeText(container, text);
-    report(outcome.message, statusKindFor(outcome));
+    emitStatus(outcome.message, statusKindFor(outcome));
   };
 
   const handleFiles = (files: FileList | null): void => {
@@ -116,7 +116,7 @@ export function wireManifestInputFlows(
     readFileText(file)
       .then((text) => analyze(text))
       .catch(() => {
-        report(STATUS_UNREADABLE, "error");
+        emitStatus(STATUS_UNREADABLE, "error");
       });
   };
 
@@ -183,12 +183,12 @@ export function wireManifestApp(
   controls: ManifestAppControls,
   options: ManifestAppOptions = {},
 ): { readonly dispose: () => void } {
-  const report = (message: string, kind: HostStatusKind = "info") =>
+  const emitStatus = (message: string, kind: HostStatusKind = "info") =>
     options.onStatus?.(message, kind);
 
   const analyze = (text: string): void => {
     const outcome = analyzeText(container, text);
-    report(outcome.message, statusKindFor(outcome));
+    emitStatus(outcome.message, statusKindFor(outcome));
   };
 
   const inputFlow = wireManifestInputFlows(
@@ -203,7 +203,7 @@ export function wireManifestApp(
   const onClearClick = (): void => {
     clearManifest(container);
     if (controls.textarea) controls.textarea.value = "";
-    report("", "info");
+    emitStatus("", "info");
   };
 
   const onFileChange = (): void => {
@@ -212,7 +212,7 @@ export function wireManifestApp(
     readFileText(file)
       .then((text) => analyze(text))
       .catch(() => {
-        report(STATUS_UNREADABLE, "error");
+        emitStatus(STATUS_UNREADABLE, "error");
       });
   };
 

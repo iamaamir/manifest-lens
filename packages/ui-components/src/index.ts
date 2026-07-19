@@ -87,41 +87,53 @@ function nodeLabel(snapshot: AnalysisSnapshot, nodeId: SemanticNodeId): string {
   return `${fieldText} (${pathText})`;
 }
 
+function isStructuralSourceText(text: string): boolean {
+  return /^[\s{}\[\],:]+$/.test(text);
+}
+
 const STYLE = `
   :host {
     display: block;
-    --mi-color-background: #ffffff;
-    --mi-color-surface: #f6f7f9;
-    --mi-color-text: #1b1f23;
-    --mi-color-muted: #5b6470;
-    --mi-color-border: #d8dce2;
-    --mi-color-highlight: #fff4cc;
-    --mi-color-pinned: #dce9ff;
-    --mi-color-focus: #2563eb;
-    --mi-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --mi-font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    overflow: hidden;
+    min-height: 360px;
+    --mi-color-background: oklch(99% 0.006 255);
+    --mi-color-surface: oklch(97.3% 0.012 255);
+    --mi-color-surface-raised: oklch(98.7% 0.006 255);
+    --mi-color-text: oklch(23% 0.033 255);
+    --mi-color-muted: oklch(48% 0.035 255);
+    --mi-color-border: oklch(87% 0.021 255);
+    --mi-color-highlight: oklch(94% 0.04 260);
+    --mi-color-pinned: oklch(91% 0.055 260);
+    --mi-color-hover: oklch(96% 0.035 260);
+    --mi-color-focus: oklch(52% 0.16 260);
+    --mi-font-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mi-font-code: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
     font-family: var(--mi-font-ui);
     color: var(--mi-color-text);
     background: var(--mi-color-background);
     border: 1px solid var(--mi-color-border);
-    border-radius: 12px;
+    border-radius: 18px;
+    box-shadow: inset 0 1px 0 oklch(99.5% 0.004 255 / 0.85);
   }
 
   .inspector {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1px;
-    background: var(--mi-color-border);
+    min-height: inherit;
+    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+    background: linear-gradient(90deg, transparent, transparent 50%, var(--mi-color-border) 50%, var(--mi-color-border));
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 820px) {
     .inspector {
       grid-template-columns: minmax(0, 1fr);
+      background: var(--mi-color-border);
+      gap: 1px;
     }
   }
 
   .source-pane,
   .explanation-pane {
+    min-width: 0;
     background: var(--mi-color-background);
     overflow: auto;
     scrollbar-gutter: stable;
@@ -130,6 +142,28 @@ const STYLE = `
 
   .source-pane {
     padding: 1rem;
+  }
+
+  .pane-header {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+  }
+
+  .pane-title {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pane-kicker {
+    margin: 0;
+    color: var(--mi-color-muted);
+    font-size: 0.82rem;
   }
 
   .source-instructions {
@@ -146,42 +180,43 @@ const STYLE = `
 
   .source-region {
     display: block;
-    border-radius: 6px;
+    border-radius: 14px;
   }
 
   .source-region:focus-visible {
-    outline: 2px solid var(--mi-color-focus);
-    outline-offset: 2px;
+    outline: 3px solid oklch(70% 0.14 260 / 0.75);
+    outline-offset: 3px;
   }
 
   .explanation-pane {
-    padding: 1rem 1.25rem;
+    padding: 1.15rem 1.25rem 1.35rem;
   }
 
   .source-pre {
     margin: 0;
+    padding: 1rem;
+    color: oklch(27% 0.032 255);
+    background: var(--mi-color-surface);
+    border: 1px solid var(--mi-color-border);
     font-family: var(--mi-font-code);
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.7;
     white-space: pre;
     tab-size: 2;
+    overflow: auto;
   }
 
   .source-node {
-    border-radius: 4px;
+    border-radius: 0.25rem;
     cursor: pointer;
-    padding: 0 1px;
+    padding: 0 0.08em;
     background: transparent;
-    transition: background-color 0.12s ease;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
   }
 
   .source-node:hover {
-    background: var(--mi-color-highlight);
-  }
-
-  .source-node:focus-visible {
-    outline: 2px solid var(--mi-color-focus);
-    outline-offset: 1px;
+    background: var(--mi-color-hover);
+    box-shadow: inset 0 -1px 0 0 oklch(68% 0.11 260);
   }
 
   .source-node.is-active {
@@ -194,32 +229,69 @@ const STYLE = `
     box-shadow: inset 0 -2px 0 0 var(--mi-color-focus);
   }
 
-  .source-node.is-focused:not(.is-pinned) {
-    outline: 2px dotted var(--mi-color-focus);
-    outline-offset: 1px;
+  .source-node.is-structural {
+    padding-inline: 0;
+    cursor: default;
+  }
+
+  .source-node.is-structural:not(.is-representative) {
+    pointer-events: none;
+  }
+
+  .source-node.is-structural:not(.is-representative-focused) {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .source-node.is-structural.is-representative {
+    cursor: pointer;
+  }
+
+  .source-node.is-representative-focused {
+    background: var(--mi-color-highlight);
+    box-shadow:
+      inset 0 -2px 0 0 var(--mi-color-focus),
+      0 0 0 2px oklch(70% 0.14 260 / 0.28);
   }
 
   .explanation-title {
-    margin: 0 0 0.5rem;
-    font-size: 1.125rem;
-    line-height: 1.4;
+    margin: 0 0 0.45rem;
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    line-height: 1.22;
+    letter-spacing: -0.025em;
   }
 
   .explanation-breadcrumb {
-    margin: 0 0 0.75rem;
-    font-size: 0.8125rem;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 0.85rem;
+    padding: 0.28rem 0.52rem;
     color: var(--mi-color-muted);
+    background: var(--mi-color-surface);
+    border: 1px solid var(--mi-color-border);
+    border-radius: 999px;
+    font-family: var(--mi-font-code);
+    font-size: 0.76rem;
+    overflow-wrap: anywhere;
   }
 
   .explanation-summary {
-    margin: 0 0 0.75rem;
-    line-height: 1.6;
+    margin: 0 0 0.9rem;
+    color: oklch(31% 0.034 255);
+    font-size: 1rem;
+    line-height: 1.65;
   }
 
   .explanation-details {
-    margin: 0 0 0.75rem;
-    padding-left: 1.25rem;
-    line-height: 1.6;
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+    color: oklch(34% 0.033 255);
+    line-height: 1.65;
+  }
+
+  .explanation-details li + li,
+  .explanation-docs li + li {
+    margin-top: 0.35rem;
   }
 
   .explanation-section-label {
@@ -243,28 +315,41 @@ const STYLE = `
   }
 
   .empty-state {
+    display: grid;
+    place-content: center;
+    min-height: 320px;
     margin: auto;
-    max-width: 36rem;
-    padding: 2rem 1.5rem;
+    max-width: 38rem;
+    padding: 2.5rem 1.5rem;
     text-align: center;
   }
 
   .empty-state h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.125rem;
-    line-height: 1.4;
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
   }
 
   .empty-state p {
     margin: 0;
     color: var(--mi-color-muted);
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.98rem;
+    line-height: 1.55;
   }
 
   :host(:focus-visible) {
-    outline: 2px solid var(--mi-color-focus);
-    outline-offset: 2px;
+    outline: 3px solid oklch(70% 0.14 260 / 0.75);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-contrast: more) {
+    .source-node.is-active,
+    .source-node.is-pinned,
+    .source-node.is-representative-focused {
+      outline: 2px solid CanvasText;
+      outline-offset: 1px;
+    }
   }
 `;
 
@@ -301,6 +386,7 @@ export class ManifestInspectorElement extends HTMLElement {
     this.snapshot = null;
     this.sourceRegion = null;
     this.explanationPane = null;
+    this.representativeIdByNode = new Map();
     this.state = inspectorReducer(this.state, { type: "snapshot/clear" });
     this.renderEmptyState();
   }
@@ -322,8 +408,6 @@ export class ManifestInspectorElement extends HTMLElement {
 
     const container = document.createElement("section");
     container.className = "inspector";
-    container.setAttribute("role", "region");
-    container.setAttribute("aria-label", "Manifest inspector");
 
     const emptyState = document.createElement("div");
     emptyState.className = "empty-state";
@@ -366,7 +450,20 @@ export class ManifestInspectorElement extends HTMLElement {
     const pane = document.createElement("section");
     pane.className = "source-pane";
     pane.setAttribute("part", "source-pane");
-    pane.setAttribute("aria-label", "Manifest source");
+
+    const header = document.createElement("div");
+    header.className = "pane-header";
+
+    const heading = document.createElement("h2");
+    heading.className = "pane-title";
+    heading.textContent = "Source";
+
+    const kicker = document.createElement("p");
+    kicker.className = "pane-kicker";
+    kicker.textContent = "Original formatting preserved";
+
+    header.append(heading, kicker);
+    pane.append(header);
 
     const instructions = document.createElement("p");
     instructions.id = "source-instructions";
@@ -386,6 +483,7 @@ export class ManifestInspectorElement extends HTMLElement {
     const navigableIds = new Set(getNavigableNodeIds(this.snapshot!));
 
     const representativeIdByNode = new Map<SemanticNodeId, string>();
+    const representativeIsStructuralByNode = new Map<SemanticNodeId, boolean>();
     let segmentIndex = 0;
 
     for (const segment of segments) {
@@ -396,16 +494,20 @@ export class ManifestInspectorElement extends HTMLElement {
 
       segmentIndex += 1;
       const domId = `source-node-${segment.nodeId}-${segmentIndex}`;
+      const isStructural = isStructuralSourceText(segment.text);
       const existing = representativeIdByNode.get(segment.nodeId);
-      if (existing === undefined) {
+      const existingIsStructural = representativeIsStructuralByNode.get(segment.nodeId);
+      if (existing === undefined || (existingIsStructural === true && !isStructural)) {
         representativeIdByNode.set(segment.nodeId, domId);
+        representativeIsStructuralByNode.set(segment.nodeId, isStructural);
       }
 
       const span = document.createElement("span");
-      span.className = "source-node";
+      span.className = isStructural
+        ? "source-node is-structural"
+        : "source-node";
       span.setAttribute("part", "source-node");
       span.dataset.nodeId = segment.nodeId;
-      span.dataset.representativeId = representativeIdByNode.get(segment.nodeId);
       span.id = domId;
       span.setAttribute("role", "option");
       span.setAttribute("aria-selected", "false");
@@ -413,6 +515,16 @@ export class ManifestInspectorElement extends HTMLElement {
       span.textContent = segment.text;
       pre.append(span);
     }
+
+    const sourceNodes = pre.querySelectorAll<HTMLElement>(".source-node");
+    sourceNodes.forEach((span) => {
+      const nodeId = span.dataset.nodeId as SemanticNodeId | undefined;
+      if (!nodeId) return;
+      const representativeId = representativeIdByNode.get(nodeId);
+      if (!representativeId) return;
+      span.dataset.representativeId = representativeId;
+      span.classList.toggle("is-representative", span.id === representativeId);
+    });
 
     this.representativeIdByNode = representativeIdByNode;
 
@@ -444,45 +556,60 @@ export class ManifestInspectorElement extends HTMLElement {
           : null;
     const focusedId = this.state.focusedNodeId;
 
+    const representativeId = focusedId
+      ? this.representativeIdByNode.get(focusedId)
+      : undefined;
+
     const spans = pre.querySelectorAll<HTMLElement>(".source-node");
     spans.forEach((span) => {
       const nodeId = span.dataset.nodeId ?? "";
       const isActive = nodeId === activeId || nodeId === hoveredId;
+      const isPinned = nodeId === pinnedId;
+      const isFocused = nodeId === focusedId;
+      const isRepresentativeFocused = isFocused && span.id === representativeId;
       span.classList.toggle("is-active", isActive);
-      span.classList.toggle("is-pinned", nodeId === pinnedId);
-      span.classList.toggle("is-focused", nodeId === focusedId);
-      span.setAttribute("aria-selected", nodeId === pinnedId ? "true" : "false");
+      span.classList.toggle("is-pinned", isPinned);
+      span.classList.toggle("is-focused", isFocused);
+      span.classList.toggle("is-representative-focused", isRepresentativeFocused);
+      span.setAttribute("aria-selected", isPinned ? "true" : "false");
     });
 
-    if (focusedId) {
-      const representativeId = this.representativeIdByNode.get(focusedId);
-      if (representativeId) {
-        pre.setAttribute("aria-activedescendant", representativeId);
-      } else {
-        pre.removeAttribute("aria-activedescendant");
-      }
+    if (representativeId) {
+      pre.setAttribute("aria-activedescendant", representativeId);
     } else {
       pre.removeAttribute("aria-activedescendant");
     }
   }
 
+  private closestInteractiveSourceNode(target: EventTarget | null): HTMLElement | null {
+    if (!(target instanceof HTMLElement)) return null;
+    const sourceNode = target.closest<HTMLElement>(".source-node");
+    if (!sourceNode || !sourceNode.dataset.nodeId) return null;
+    if (
+      sourceNode.classList.contains("is-structural") &&
+      !sourceNode.classList.contains("is-representative")
+    ) {
+      return null;
+    }
+    return sourceNode;
+  }
+
   private handleSourcePointerOver = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    const target = (event.target as HTMLElement).closest<HTMLElement>(".source-node");
+    const target = this.closestInteractiveSourceNode(event.target);
     if (!target || !target.dataset.nodeId) return;
     this.dispatch({ type: "node/hover", nodeId: target.dataset.nodeId as SemanticNodeId });
   };
 
   private handleSourcePointerOut = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    const related = event.relatedTarget as HTMLElement | null;
-    if (related && related.closest?.(".source-node")) return;
+    if (this.closestInteractiveSourceNode(event.relatedTarget)) return;
     this.dispatch({ type: "node/hoverEnd" });
   };
 
   private handleSourceClick = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    const target = (event.target as HTMLElement).closest<HTMLElement>(".source-node");
+    const target = this.closestInteractiveSourceNode(event.target);
     if (!target || !target.dataset.nodeId) return;
     this.dispatch({ type: "node/select", nodeId: target.dataset.nodeId as SemanticNodeId });
   };
@@ -491,15 +618,32 @@ export class ManifestInspectorElement extends HTMLElement {
     const pane = document.createElement("section");
     pane.className = "explanation-pane";
     pane.setAttribute("part", "explanation-panel");
-    pane.setAttribute("aria-label", "Explanation");
-    pane.setAttribute("aria-live", "polite");
-    pane.append(this.buildExplanationContent());
+
+    const header = document.createElement("div");
+    header.className = "pane-header";
+
+    const heading = document.createElement("h2");
+    heading.className = "pane-title";
+    heading.textContent = "Explanation";
+
+    const kicker = document.createElement("p");
+    kicker.className = "pane-kicker";
+    kicker.textContent = "Hover, tap, or pin a field";
+
+    header.append(heading, kicker);
+    pane.append(header, this.buildExplanationContent());
     return pane;
   }
 
   private updateExplanationPane(): void {
     if (!this.explanationPane) return;
-    this.explanationPane.replaceChildren(this.buildExplanationContent());
+    const content = this.buildExplanationContent();
+    const header = this.explanationPane.querySelector(".pane-header");
+    if (header) {
+      this.explanationPane.replaceChildren(header, content);
+    } else {
+      this.explanationPane.replaceChildren(content);
+    }
   }
 
   private buildExplanationContent(): DocumentFragment {

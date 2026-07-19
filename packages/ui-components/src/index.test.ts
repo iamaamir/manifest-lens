@@ -623,6 +623,65 @@ describe("manifest-inspector source DOM id uniqueness", () => {
     expect(representative?.classList.contains("is-focused")).toBe(true);
     host.remove();
   });
+
+  it("prefers non-structural text as the representative for nodes that have it", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeNestedSnapshot());
+
+    const nameRepresentative = host.shadowRoot?.querySelector(
+      '.source-node.is-representative[data-node-id="name"]',
+    );
+    const permissionsRepresentative = host.shadowRoot?.querySelector(
+      '.source-node.is-representative[data-node-id="permissions"]',
+    );
+
+    expect(nameRepresentative?.classList.contains("is-structural")).toBe(false);
+    expect(nameRepresentative?.textContent).toContain("name");
+    expect(permissionsRepresentative?.classList.contains("is-structural")).toBe(false);
+    expect(permissionsRepresentative?.textContent).toContain("permissions");
+    host.remove();
+  });
+
+  it("uses the non-structural representative as aria-activedescendant when focused", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeNestedSnapshot());
+
+    const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
+    region.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    region.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+
+    const activeDescendant = region.getAttribute("aria-activedescendant");
+    expect(activeDescendant).toBeTruthy();
+    const representative = host.shadowRoot?.getElementById(activeDescendant!);
+    expect(representative).not.toBeNull();
+    expect(representative?.getAttribute("data-node-id")).toBe("permissions");
+    expect(representative?.classList.contains("is-representative")).toBe(true);
+    expect(representative?.classList.contains("is-structural")).toBe(false);
+    host.remove();
+  });
+
+  it("ignores hover and click on non-representative structural source fragments", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeNestedSnapshot());
+
+    const structural = host.shadowRoot?.querySelector(
+      ".source-node.is-structural:not(.is-representative)",
+    ) as HTMLElement;
+    expect(structural).not.toBeNull();
+
+    structural.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    structural.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
+      "Manifest",
+    );
+    expect(structural.classList.contains("is-pinned")).toBe(false);
+    host.remove();
+  });
 });
 
 describe("manifest-inspector unknown/custom fallback", () => {

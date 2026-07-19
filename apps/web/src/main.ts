@@ -18,8 +18,14 @@ if (app && inspectorHost) {
     inspectorHost,
     { textarea, analyzeButton, clearButton, fileInput },
     {
-      onStatus: (message) => {
-        if (statusMessage) statusMessage.textContent = message;
+      onStatus: (message, kind) => {
+        if (!statusMessage) return;
+        statusMessage.textContent = message;
+        if (message.length > 0) {
+          statusMessage.dataset.kind = kind;
+        } else {
+          delete statusMessage.dataset.kind;
+        }
       },
     },
   );
