@@ -134,7 +134,28 @@ export type ManifestFieldName =
   | "storage"
   | "minimum_chrome_version"
   | "key"
-  | "update_url";
+  | "update_url"
+  | "cross_origin_embedder_policy"
+  | "cross_origin_opener_policy"
+  | "dark_theme"
+  | "dictionaries"
+  | "protocol_handlers"
+  | "requirements"
+  | "sidebar_action"
+  | "theme"
+  | "theme_experiment"
+  | "tts_engine"
+  | "user_scripts"
+  | "mime_types_handler"
+  | "offline_enabled"
+  | "automation"
+  | "content_capabilities"
+  | "export"
+  | "import"
+  | "file_browser_handlers"
+  | "file_handlers"
+  | "file_system_provider_capabilities"
+  | "input_components";
 
 export interface BreadcrumbSegment {
   readonly label: string;

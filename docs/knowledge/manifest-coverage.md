@@ -33,8 +33,8 @@ Extracted from `packages/knowledge/src/index.ts` on 2026-07-19.
 
 Current implemented coverage after the first implementation slice:
 
-- 69 path entries.
-- 20 permission entries.
+- 125 path entries.
+- 85 permission entries.
 - Checked-in coverage catalogs under `packages/knowledge/src/coverage-catalog/` enforce the priority slice.
 - Registry entries are split under `packages/knowledge/src/entries/` instead of living entirely in `index.ts`.
 - Top-level keys in the priority slice are also recognized by the semantic model as `field` nodes, so they do not render as generic unknown fields.
@@ -365,6 +365,7 @@ The first implementation slice is complete:
 - Tests fail if priority entries are missing.
 - Registry modules are split enough to avoid a single giant knowledge file.
 - Priority Tier 1 entries and common MV3 permissions are covered with official docs links.
-- Semantic recognition was expanded for the priority top-level keys and optional permission arrays.
+- A follow-up broad expansion added remaining reviewed top-level keys, long-tail/browser-specific permissions, and wildcard dynamic path entries without adding new exhaustive tests, per user request for speed.
+- Semantic recognition was expanded for covered top-level keys and optional permission arrays.
 
-A later implementation slice should cover remaining long-tail rows, deeper nested paths, and value-level enum explanations once semantic value support is ready.
+Later hardening should extend the coverage catalogs/tests to include the broad long-tail entries and add value-level enum explanations once semantic value support is ready.

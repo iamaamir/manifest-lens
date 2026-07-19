@@ -65,6 +65,12 @@ export function resolveNodeExplanation(
     return entryToExplanation(pathEntry, { kind: "knowledge", packId: REGISTRY_PACK_ID });
   }
 
+  const wildcardPathEntry = findWildcardPathEntry(node.normalizedPath, registry.pathEntries);
+
+  if (wildcardPathEntry) {
+    return entryToExplanation(wildcardPathEntry, { kind: "knowledge", packId: REGISTRY_PACK_ID });
+  }
+
   if (node.kind === "contentScriptField") {
     const fieldEntry = registry.pathEntries[`content_scripts[].${node.fieldName}`];
 
@@ -76,6 +82,30 @@ export function resolveNodeExplanation(
   const fallbackReason = fallbackReasonForNode(node);
 
   return createFallbackExplanation(node, fallbackReason);
+}
+
+function findWildcardPathEntry(
+  normalizedPath: string,
+  pathEntries: Readonly<Record<string, KnowledgeEntry>>,
+): KnowledgeEntry | undefined {
+  for (const [pattern, entry] of Object.entries(pathEntries)) {
+    if (pattern.includes("*") && wildcardPathMatches(pattern, normalizedPath)) {
+      return entry;
+    }
+  }
+
+  return undefined;
+}
+
+function wildcardPathMatches(pattern: string, normalizedPath: string): boolean {
+  const patternSegments = pattern.split(".");
+  const pathSegments = normalizedPath.split(".");
+
+  if (patternSegments.length !== pathSegments.length) {
+    return false;
+  }
+
+  return patternSegments.every((segment, index) => segment === "*" || segment === pathSegments[index]);
 }
 
 function isRecognizedHostPermission(value: string): boolean {
