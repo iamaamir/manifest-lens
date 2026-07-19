@@ -10,6 +10,7 @@ export const requiredPermissions = [
   "declarativeNetRequest",
   "declarativeNetRequestFeedback",
   "downloads",
+  "downloads.shelf",
   "history",
   "identity",
   "notifications",
@@ -19,4 +20,9 @@ export const requiredPermissions = [
   "unlimitedStorage",
   "webNavigation",
   "webRequest",
+  "displaySource",
+  "experimental",
+  "fileBrowserHandler",
+  "fileSystemProvider",
+  "savedPages",
 ] as const;

@@ -34,7 +34,7 @@ Extracted from `packages/knowledge/src/index.ts` on 2026-07-19.
 Current implemented coverage after the first implementation slice:
 
 - 125 path entries.
-- 85 permission entries.
+- 91 permission entries.
 - Checked-in coverage catalogs under `packages/knowledge/src/coverage-catalog/` enforce the priority slice.
 - Registry entries are split under `packages/knowledge/src/entries/` instead of living entirely in `index.ts`.
 - Top-level keys in the priority slice are also recognized by the semantic model as `field` nodes, so they do not render as generic unknown fields.
@@ -87,11 +87,17 @@ contextMenus
 cookies
 declarativeNetRequest
 declarativeNetRequestFeedback
+displaySource
 downloads
+downloads.shelf
+experimental
+fileBrowserHandler
+fileSystemProvider
 history
 identity
 notifications
 offscreen
+savedPages
 sidePanel
 tabGroups
 unlimitedStorage
@@ -213,7 +219,7 @@ These are Tier 2 candidates. The list prioritizes fields that appear in common M
 
 ## Permission value coverage
 
-Chrome and MDN permission references reviewed on 2026-07-19. Current registry covers only `activeTab`, `scripting`, `storage`, and `tabs`.
+Chrome and MDN permission references reviewed on 2026-07-19. Current registry covers the MVP permissions plus broad Chrome/MDN long-tail entries; fixture-driven ChromeOS/legacy additions are tracked here as covered when registry entries exist.
 
 | Permission | Source coverage | Current status | Notes |
 | --- | --- | --- | --- |
@@ -240,19 +246,22 @@ Chrome and MDN permission references reviewed on 2026-07-19. Current registry co
 | `declarativeNetRequestFeedback` | Chrome, MDN | covered | DNR feedback/debugging support. |
 | `declarativeNetRequestWithHostAccess` | Chrome, MDN | missing | DNR with host permission model. |
 | `desktopCapture` | Chrome | missing | Screen/window capture API. |
+| `displaySource` | Chrome | covered | Display source capability in Chrome/platform-specific manifests. |
 | `devtools` | MDN | missing | MDN notes implicit with `devtools_page`. |
 | `dns` | Chrome, MDN | missing | DNS API. |
 | `documentScan` | Chrome | missing | Document scanning API. |
 | `downloads` | Chrome, MDN | covered | Downloads API. |
 | `downloads.open` | Chrome, MDN | missing | Allows opening downloaded files. |
+| `downloads.shelf` | Chrome | covered | Legacy Chrome downloads shelf behavior. |
 | `downloads.ui` | Chrome | missing | Downloads UI options. |
 | `enterprise.deviceAttributes` | Chrome | deferred | Enterprise/managed-device specific. |
 | `enterprise.hardwarePlatform` | Chrome | deferred | Enterprise/managed-device specific. |
 | `enterprise.networkingAttributes` | Chrome | deferred | Enterprise/managed-device specific. |
 | `enterprise.platformKeys` | Chrome | deferred | Enterprise/managed-device specific. |
+| `experimental` | Chrome | covered | Experimental extension APIs in development/specialized contexts. |
 | `favicon` | Chrome | missing | Favicon API. |
-| `fileBrowserHandler` | Chrome | deferred | ChromeOS-specific. |
-| `fileSystemProvider` | Chrome | deferred | ChromeOS-specific. |
+| `fileBrowserHandler` | Chrome | covered | ChromeOS file browser handler integration. |
+| `fileSystemProvider` | Chrome | covered | ChromeOS file system provider integration. |
 | `find` | MDN | missing | Firefox/WebExtensions find API. |
 | `fontSettings` | Chrome | missing | Font settings API. |
 | `gcm` | Chrome | missing | Google Cloud Messaging/instance ID legacy API. |
@@ -281,6 +290,7 @@ Chrome and MDN permission references reviewed on 2026-07-19. Current registry co
 | `publicSuffix` | MDN | missing | Firefox public suffix API. |
 | `readingList` | Chrome | missing | Chrome reading list API. |
 | `runtime` | Chrome | missing | Chrome native messaging subset; runtime otherwise often no permission. |
+| `savedPages` | Chrome | covered | Saved/offline pages capability in legacy or platform-specific manifests. |
 | `scripting` | Chrome, MDN | covered | Programmatic script/style injection in MV3. |
 | `search` | Chrome, MDN | missing | Search API. |
 | `sessions` | Chrome, MDN | missing | Recently closed/session API. |
