@@ -11,6 +11,7 @@ Read this first, then read only the task brief and the smallest set of reference
 - The coordinator owns architecture continuity, synthesis, memory updates, and commits.
 - You own only the assigned implementation/test/fix scope.
 - Do not rely on chat history. Durable truth is in repo docs.
+- The user's preferred OpenCode model for this project is **Big Pickle** unless the coordinator/task chooses a different capacity.
 
 ## Hard Rules
 
@@ -61,6 +62,12 @@ For narrow fix-up work, read only:
 4. any specific docs named by the coordinator
 
 Do not reread the entire HLD/PRD unless the task requires product or architecture reinterpretation.
+
+## Model / Capacity Note
+
+When launched from OpenCode, Big Pickle is the preferred default model for normal implementation/test/fix work in this repository.
+
+Use lower capacity only for tiny mechanical tasks if configured. Use higher/deeper variants or a deep-thinking configured agent for architecture-sensitive changes, hard bugs, or review-blocker fixes.
 
 ## Before Returning
 

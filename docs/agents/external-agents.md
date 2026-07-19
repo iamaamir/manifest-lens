@@ -22,11 +22,19 @@ So configured Zed ACP agents may be available to the user in Zed, but they are n
 
 ## Immediate External Agent Workaround
 
-For now, use OpenCode through the shell:
+When the coordinator is running in Zed, use OpenCode through the shell:
 
 ```sh
 opencode run --pure "<task prompt>"
 ```
+
+The user's preferred OpenCode model is **Big Pickle**. If it is configured as a model alias in the local OpenCode setup, prefer:
+
+```sh
+opencode run --pure --model big-pickle "<task prompt>"
+```
+
+If Big Pickle is already the active/default OpenCode model or configured through an OpenCode agent, do not duplicate the setting; use the local OpenCode default/agent configuration.
 
 This gives real external-agent execution, but it is not the same as using Zed's configured ACP agent thread.
 
@@ -98,9 +106,11 @@ The coordinator preserves control by:
 
 This keeps implementation throughput high while preserving architecture and product quality.
 
-## Token and Quality Strategy
+## Token, Capacity, and Quality Strategy
 
-External agents launched through `opencode run --pure` are effectively fresh synchronous runs. They do not preserve a parent-managed continuation session, so the coordinator should reduce repeated context loading by using durable repo artifacts.
+External agents launched through `opencode run --pure` are effectively fresh synchronous runs unless an explicit OpenCode session is continued. They do not preserve a parent-managed continuation session from Zed, so the coordinator should reduce repeated context loading by using durable repo artifacts.
+
+If the current coordinator itself is running inside OpenCode, prefer OpenCode-native internal agents/subagents or task mechanisms instead of shelling out to `opencode run`. Avoid recursive OpenCode → shell OpenCode delegation unless explicitly needed.
 
 Best practices:
 
@@ -111,6 +121,7 @@ Best practices:
 - Require the self-review checklist before accepting a report.
 - Prefer one external implementation agent at a time on a working tree unless write scopes are disjoint and isolated by branch/worktree.
 - Use internal Zed sub-agents for parallel read-only Staff/Code/QA review after implementation.
+- Match model capacity to task risk using OpenCode `--model`, `--agent`, and `--variant` when available.
 
 The expected pattern is:
 
@@ -122,6 +133,29 @@ small task brief + known traps
 → one narrow external fix run only if needed
 → memory update and commit
 ```
+
+### OpenCode model/capacity policy
+
+Use Big Pickle for normal OpenCode implementation unless a task clearly needs cheaper/faster or deeper reasoning.
+
+Suggested tiers:
+
+| Task type | Suggested OpenCode capacity |
+|---|---|
+| tiny docs/mechanical cleanup | Big Pickle default, or cheaper local/default model if configured |
+| normal implementation/test-writing | Big Pickle |
+| review-fix tasks after blockers | Big Pickle with `--variant high` if supported |
+| architecture-sensitive or complex debugging | Big Pickle with high/max variant, or a configured deep-thinking OpenCode agent |
+
+Examples, depending on local OpenCode configuration:
+
+```sh
+opencode run --pure --model big-pickle "<normal implementation prompt>"
+opencode run --pure --model big-pickle --variant high "<review blocker fix prompt>"
+opencode run --pure --agent deep-thinker "<complex architecture/debugging prompt>"
+```
+
+Do not assume every provider/model supports every variant. If a variant fails, fall back to the configured Big Pickle default and record the mismatch only if it affects workflow.
 
 ## Two-Layer Workflow
 
@@ -140,7 +174,7 @@ The coordinator then reads stdout, synthesizes findings, and updates memory/docs
 For non-trivial work:
 
 1. Coordinator creates a task brief in `docs/agents/tasks/active/`.
-2. Coordinator runs OpenCode against that brief using `opencode run --pure`.
+2. Coordinator runs OpenCode against that brief using `opencode run --pure`, preferably with Big Pickle or a task-appropriate configured OpenCode agent/model.
 3. External agent writes a report to `docs/agents/tasks/done/` or returns stdout.
 4. Coordinator reviews/synthesizes.
 5. Coordinator triggers code review/QA as needed.
