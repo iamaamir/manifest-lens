@@ -188,8 +188,9 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
-- Created experiment branch `ai-team-workflow-experiment` for trying the coordinator-led AI team workflow.
-- Important git caveat: repository has no commits yet and files are untracked, so this branch name alone is not a true rollback snapshot. Create an initial commit or stash if a durable restore point is needed.
+- Baseline committed on `main` with commit `6c4615b` (`chore: establish project baseline`).
+- Active experiment branch is `ai-team-workflow-experiment`, created from the baseline commit, for trying the coordinator-led AI team workflow.
+- Experiment branch policy: keep committing meaningful AI-team workflow changes on this branch so `main` remains a stable restore point.
 - Added `docs/architecture/coding-style.md` as the canonical coding-style and architecture enforcement contract for humans and agents.
 - Added root `AGENTS.md` with required read order, tutor-first role expectations, memory discipline, phase discipline, package boundaries, coding style, validation, and sub-agent rules.
 - Added `CONTRIBUTING.md` with contributor checklist, dependency checklist, validation expectations, and review mindset.
