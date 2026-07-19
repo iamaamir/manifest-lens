@@ -1,0 +1,526 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "version": "3.1.0",
+  "version_name": "3.1.0 beta 2",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "short_name": "OmniTest",
+  "author": "test@example.com",
+  "homepage_url": "https://example.com/extension",
+  "update_url": "https://example.com/updates.xml",
+  "minimum_chrome_version": "100",
+  "minimum_opera_version": "80",
+  "incognito": "spanning",
+  "offline_enabled": true,
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "64": "icons/icon-64.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png",
+    "256": "icons/icon-256.png",
+    "512": "icons/icon-512.png"
+  },
+  "permissions": [
+    "alarms",
+    "bookmarks",
+    "browsingData",
+    "clipboardRead",
+    "clipboardWrite",
+    "contentSettings",
+    "contextMenus",
+    "cookies",
+    "debugger",
+    "declarativeContent",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "desktopCapture",
+    "displaySource",
+    "dns",
+    "documentScan",
+    "downloads",
+    "downloads.open",
+    "downloads.shelf",
+    "experimental",
+    "fileBrowserHandler",
+    "fileSystemProvider",
+    "fontSettings",
+    "gcm",
+    "geolocation",
+    "history",
+    "identity",
+    "identity.email",
+    "idle",
+    "loginState",
+    "management",
+    "nativeMessaging",
+    "notifications",
+    "pageCapture",
+    "platformKeys",
+    "power",
+    "printerProvider",
+    "privacy",
+    "processes",
+    "proxy",
+    "readingList",
+    "savedPages",
+    "search",
+    "sessions",
+    "sidePanel",
+    "storage",
+    "system.cpu",
+    "system.display",
+    "system.memory",
+    "system.storage",
+    "tabCapture",
+    "tabGroups",
+    "tabs",
+    "topSites",
+    "tts",
+    "ttsEngine",
+    "unlimitedStorage",
+    "vpnProvider",
+    "wallpaper",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "optional_permissions": [
+    "activeTab",
+    "clipboardRead",
+    "clipboardWrite",
+    "contentSettings",
+    "debugger",
+    "downloads",
+    "geolocation",
+    "history",
+    "notifications",
+    "pageCapture",
+    "scripting",
+    "tabs",
+    "webNavigation",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "*://*.example.com/*",
+    "https://*.google.com/*",
+    "https://github.com/mvviewer/*",
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://example.com/*"],
+      "exclude_matches": ["https://example.com/admin/*"],
+      "include_globs": ["*example*"],
+      "exclude_globs": ["*admin*"],
+      "css": ["styles/content.css"],
+      "js": ["scripts/content.js", "scripts/vendor.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true,
+      "match_origin_as_fallback": false,
+      "world": "ISOLATED"
+    },
+    {
+      "matches": ["https://*.example.org/*"],
+      "js": ["scripts/example-org-content.js"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "match_origin_as_fallback": true,
+      "world": "MAIN"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module",
+    "scripts": ["legacy-background.js"],
+    "page": "background-page.html",
+    "persistent": false
+  },
+  "action": {
+    "default_title": "OmniTest Extension",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_area": "navbar"
+  },
+  "browser_action": {
+    "default_title": "Legacy Browser Action",
+    "default_popup": "legacy-popup.html",
+    "default_icon": "icons/icon-32.png",
+    "default_area": "navbar"
+  },
+  "page_action": {
+    "default_title": "Page Action Legacy",
+    "default_popup": "page-popup.html",
+    "default_icon": "icons/icon-32.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y",
+        "linux": "Ctrl+Shift+U",
+        "windows": "Ctrl+Shift+O",
+        "chromeos": "Ctrl+Shift+C"
+      },
+      "description": "Execute the action"
+    },
+    "_execute_browser_action": {
+      "suggested_key": "Alt+Shift+B",
+      "description": "Execute browser action"
+    },
+    "_execute_page_action": {
+      "suggested_key": "Ctrl+Shift+E",
+      "description": "Execute page action"
+    },
+    "custom-command-one": {
+      "suggested_key": "Ctrl+Shift+1",
+      "description": "First custom command",
+      "global": true
+    },
+    "custom-command-two": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+2",
+        "mac": "Command+Shift+2"
+      },
+      "description": "Second custom command"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true,
+    "browser_style": true
+  },
+  "options_page": "options-legacy.html",
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "sidebar_action": {
+    "default_title": "My Sidebar",
+    "default_panel": "sidebar/sidebar.html",
+    "default_icon": "icons/icon-48.png",
+    "browser_style": true,
+    "open_at_install": true
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*", "fonts/*.woff2"],
+      "matches": ["https://example.com/*", "https://*.example.org/*"],
+      "use_dynamic_url": true,
+      "extension_ids": ["abcdefghijklmnopabcdefghijklmn"]
+    },
+    {
+      "resources": ["public/*"],
+      "matches": ["<all_urls>"],
+      "use_dynamic_url": false
+    }
+  ],
+  "devtools_page": "devtools/devtools.html",
+  "chrome_url_overrides": {
+    "bookmarks": "overrides/bookmarks.html",
+    "history": "overrides/history.html",
+    "newtab": "overrides/newtab.html"
+  },
+  "chrome_settings_overrides": {
+    "homepage": "https://example.com/start",
+    "search_provider": {
+      "name": "Example Search",
+      "keyword": "example.com",
+      "favicon_url": "https://example.com/favicon.ico",
+      "search_url": "https://example.com/search?q={searchTerms}",
+      "suggest_url": "https://example.com/suggest?q={searchTerms}",
+      "image_url": "https://example.com/image?q={searchTerms}",
+      "search_url_post_params": "q={searchTerms}",
+      "suggest_url_post_params": "q={searchTerms}",
+      "image_url_post_params": "q={searchTerms}",
+      "encoding": "UTF-8",
+      "is_default": true
+    },
+    "startup_pages": ["https://example.com/start"]
+  },
+  "chrome_ui_overrides": {
+    "bookmarks_ui": {
+      "remove_bookmark_shortcut": true,
+      "remove_button": true
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules/ruleset_1.json"
+      },
+      {
+        "id": "ruleset_2",
+        "enabled": false,
+        "path": "rules/ruleset_2.json"
+      }
+    ]
+  },
+  "externally_connectable": {
+    "matches": ["https://example.com/*", "https://*.example.org/*"],
+    "ids": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    "accepts_tls_channel_id": false
+  },
+  "storage": {
+    "managed_schema": "schema/managed-storage.json"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0F2i4lLzY3qQ5c6z7R8a9v4b1N2m3k5j6h7g8f9d0s1a2s3d4f5g6h7j8k9l0z1x2c3v4b5n6m7",
+  "requirements": {
+    "3D": {
+      "features": ["webgl"]
+    }
+  },
+  "sandbox": {
+    "pages": ["sandbox/sandbox.html", "sandbox/editor.html"],
+    "content_security_policy": "sandbox allow-scripts allow-forms"
+  },
+  "tts_engine": {
+    "voices": [
+      {
+        "voice_name": "Alice",
+        "lang": "en-US",
+        "gender": "female",
+        "event_types": ["start", "word", "sentence", "end"]
+      },
+      {
+        "voice_name": "Bob",
+        "lang": "en-GB",
+        "gender": "male",
+        "event_types": ["start", "end"]
+      }
+    ]
+  },
+  "file_browser_handlers": [
+    {
+      "id": "open",
+      "default_title": "Open with Extension",
+      "file_filters": ["filesystem:*.txt", "filesystem:*.md"]
+    }
+  ],
+  "file_system_provider": {
+    "configurable": true,
+    "multiple_mounts": true,
+    "source": "network",
+    "watchable": true
+  },
+  "nacl_modules": [
+    {
+      "path": "native_client/module.nmf",
+      "mime_type": "application/x-nacl"
+    }
+  ],
+  "platforms": [
+    {
+      "nacl_arch": "x86-32",
+      "sub_package_path": "_platform_specific/x86-32/"
+    },
+    {
+      "nacl_arch": "x86-64",
+      "sub_package_path": "_platform_specific/x86-64/"
+    },
+    {
+      "nacl_arch": "arm",
+      "sub_package_path": "_platform_specific/arm/"
+    }
+  ],
+  "omnibox": {
+    "keyword": "omni"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "mailto",
+      "name": "Example Mail",
+      "uriTemplate": "https://example.com/mail?to=%s"
+    },
+    {
+      "protocol": "web+example",
+      "name": "Example Protocol",
+      "uriTemplate": "https://example.com/handle?uri=%s"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "@omnifest-test",
+      "strict_min_version": "100.0",
+      "strict_max_version": "130.0",
+      "update_url": "https://example.com/firefox/updates.json"
+    },
+    "safari": {
+      "strict_min_version": "15.0",
+      "strict_max_version": "18.0"
+    },
+    "edge": {
+      "strict_min_version": "100.0",
+      "strict_max_version": "120.0"
+    }
+  },
+  "applications": {
+    "gecko": {
+      "id": "@omnifest-test-legacy",
+      "strict_min_version": "78.0",
+      "update_url": "https://example.com/legacy-updates.json"
+    }
+  },
+  "user_scripts": {
+    "api_script": "scripts/user-api.js"
+  },
+  "theme": {
+    "images": {
+      "theme_frame": "images/theme-frame.png",
+      "theme_frame_inactive": "images/theme-frame-inactive.png",
+      "theme_ntp_background": "images/ntp-background.png",
+      "theme_ntp_attribution": "images/ntp-attribution.png",
+      "theme_tab_background": "images/tab-background.png",
+      "theme_toolbar": "images/toolbar.png"
+    },
+    "colors": {
+      "bookmark_text": [255, 255, 255],
+      "button_background_active": [255, 255, 255, 0.2],
+      "frame": [30, 30, 30],
+      "frame_inactive": [50, 50, 50],
+      "icons": [255, 255, 255],
+      "icons_attention": [0, 200, 255],
+      "ntp_background": [15, 15, 15],
+      "ntp_text": [200, 200, 200],
+      "popup": [30, 30, 30],
+      "popup_border": [80, 80, 80],
+      "popup_highlight": [60, 60, 60],
+      "popup_highlight_text": [255, 255, 255],
+      "popup_text": [220, 220, 220],
+      "sidebar": [30, 30, 30],
+      "sidebar_border": [80, 80, 80],
+      "sidebar_highlight": [60, 60, 60],
+      "sidebar_highlight_text": [255, 255, 255],
+      "sidebar_text": [220, 220, 220],
+      "tab_background_text": [200, 200, 200],
+      "tab_line": [0, 200, 255],
+      "tab_loading": [0, 200, 255],
+      "tab_selected": [60, 60, 60],
+      "tab_text": [255, 255, 255],
+      "toolbar": [45, 45, 45],
+      "toolbar_bottom_separator": [80, 80, 80],
+      "toolbar_field": [30, 30, 30],
+      "toolbar_field_border": [80, 80, 80],
+      "toolbar_field_focus": [40, 40, 40],
+      "toolbar_field_highlight": [60, 60, 60],
+      "toolbar_field_highlight_text": [255, 255, 255],
+      "toolbar_field_text": [220, 220, 220],
+      "toolbar_field_text_focus": [255, 255, 255],
+      "toolbar_text": [255, 255, 255],
+      "toolbar_top_separator": [80, 80, 80],
+      "toolbar_vertical_separator": [80, 80, 80]
+    },
+    "properties": {
+      "additional_backgrounds_alignment": ["top", "bottom"],
+      "additional_backgrounds_tiling": ["repeat", "no-repeat"],
+      "color_scheme": "dark",
+      "content_color_scheme": "dark"
+    }
+  },
+  "search_provider": {
+    "name": "Example Firefox Search",
+    "keyword": "ex",
+    "search_url": "https://example.com/search?q={searchTerms}",
+    "suggest_url": "https://example.com/suggest?q={searchTerms}",
+    "favicon_url": "https://example.com/favicon.ico",
+    "is_default": true,
+    "encoding": "UTF-8"
+  },
+  "experiment_apis": {
+    "myApi": {
+      "schema": "experiments/my-api/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["myApi"]],
+        "script": "experiments/my-api/api.js"
+      },
+      "child": {
+        "scopes": ["addon_child"],
+        "paths": [["myApi"]],
+        "script": "experiments/my-api/child.js"
+      }
+    }
+  },
+  "langpack_id": "en-US",
+  "languages": ["en-US", "en-GB", "fr-FR", "de-DE", "ja-JP"],
+  "sources": ["https://example.com/lang-source"],
+  "event_rules": [
+    {
+      "event": "declarativeContent.onPageChanged",
+      "actions": [
+        {
+          "type": "declarativeContent.ShowAction"
+        }
+      ],
+      "conditions": [
+        {
+          "type": "declarativeContent.PageStateMatcher",
+          "css": ["input[type='password']"]
+        }
+      ]
+    }
+  ],
+  "import": [
+    {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "export": {
+    "allowlist": ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+  },
+  "transient_background": false,
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  },
+  "input_components": [
+    {
+      "name": "Test IME",
+      "type": "ime",
+      "id": "test-ime",
+      "description": "Test Input Method Editor",
+      "language": "en-US",
+      "layouts": ["us::eng"]
+    }
+  ],
+  "compose_action": {
+    "default_title": "Compose",
+    "default_popup": "compose.html",
+    "default_icon": "icons/icon-32.png",
+    "browser_style": true
+  },
+  "message_display_action": {
+    "default_title": "Message Actions",
+    "default_popup": "message.html",
+    "default_icon": "icons/icon-32.png",
+    "browser_style": true,
+    "default_area": "maintoolbar"
+  },
+  "accounts_url": "https://example.com/accounts",
+  "safari": {
+    "strict_min_version": "15.0",
+    "strict_max_version": "18.0"
+  },
+  "x_custom_metadata": {
+    "internal_tool": "mvviewer-test-generator",
+    "version_generated": "1.0.0",
+    "test_categories": ["cross-browser", "comprehensive", "edge-cases"]
+  }
+}
