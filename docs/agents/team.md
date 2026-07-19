@@ -18,11 +18,17 @@ The coordinator owns continuity. Specialist and external agents own focused revi
 | Product Manager | Guards PRD alignment, MVP scope, user stories, acceptance criteria |
 | Staff Engineer | Guards architecture, package boundaries, long-term maintainability |
 | Core Engineer | Parser/domain/knowledge/core/application implementation and design |
-| Frontend Expert | Web Components, interaction, accessibility, layout, host-web/app concerns |
+| Frontend Expert | Advisory review for Web Components, interaction, accessibility, layout, host-web/app concerns |
+| Frontend Engineer | Implements approved UI slices within Web Components/app shell boundaries |
+| Product Designer | Guards visual/interaction craft against `design.md` and reviews screenshots/artifacts |
+| Manifest UX Domain Specialist | Guards manifest semantics, explanation clarity, and neutral explainer-first domain language |
 | QA Engineer | Test strategy, fixtures, regression coverage, validation matrix |
+| E2E/UX QA Engineer | Playwright browser coverage, UX interaction regressions, screenshots/traces for design review |
 | Code Reviewer | Implementation review, style enforcement, risk finding, maintainability |
 
 Role/persona cards live in `docs/agents/roles/`. They are designed for both coordinator-spawned specialists and direct specialist chats started by the user. See `docs/agents/persona-loading.md`.
+
+For Phase 5 Observatory UI work, use the design-led loop in `docs/agents/ui-design-loop.md`: Product Designer → Frontend Engineer → E2E/UX QA Engineer → screenshot/artifact feedback → Product Designer review.
 
 ## Coordinator Authority
 

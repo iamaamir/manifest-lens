@@ -50,6 +50,8 @@ Initial release priority is explanation and interaction clarity, not validation.
   - Coordinator boundary, external implementation-agent preference, and ACP status.
 - Agent role/persona cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
   - Specialist responsibilities, persona prompts, and report/task formats.
+- UI design loop: `docs/agents/ui-design-loop.md`
+  - Phase 5 Observatory workflow: Product Designer → Frontend Engineer → E2E/UX QA → screenshot/artifact feedback → Product Designer review.
 - Persona loading guide: `docs/agents/persona-loading.md`
   - How to start a separate specialist agent by loading a single role/persona file.
 
@@ -246,10 +248,12 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 - E2E/UX QA review found concrete Slice 1 blockers, now fixed and validated: page-level paste works without stealing textarea/input paste, invalid-after-valid clears stale source/explanation/pin state, and hidden upload input no longer becomes visible on keyboard focus. Post-fix validation passed: `npm run typecheck`, `npm run test` (8 files, 148 tests), `npm run build`, `npm run build --workspace=@mvviewer/web`, and `git diff --check`.
 - User rejected the current Phase 5 UI as AI slop with bad UX. `design.md` is now the durable UI design source of truth for the Phase 5 UI reset.
 - Target concept is “The Observatory”: a near-black precision manifest inspection instrument where the source/tree pane and explanation pane are the product surface.
-- Frontend/UI work for this reset should use internal Product Designer, Manifest UX/domain, E2E/UX QA, and Frontend Engineer specialists. External agents/OpenCode are paused for frontend/UI work unless the user explicitly re-allows them.
+- Frontend/UI work for this reset should use Product Designer, Manifest UX Domain Specialist, E2E/UX QA Engineer, and Frontend Engineer roles through the durable loop in `docs/agents/ui-design-loop.md`.
+- User re-authorized trying OpenCode for frontend/UI and especially Playwright E2E now that `design.md` is clear. OpenCode must be quality-gated, use the local default model unless the user selects capacity, and be abandoned/fallback to internal specialists if output is broad, buggy, generic, or visually low-craft.
 - Immediate UI reset should not polish the current light shell; it should replace it with a design-led Observatory implementation while preserving Phase 5 behavior.
 - MVP-critical reset scope: compact sticky header, integrated local input/drop/upload, dark design tokens, code-like preserved source with line numbers and syntax coloring, calm prose explanation hierarchy, quiet hover/focus/pin states, existing accessibility/privacy behavior, and no diagnostics/fixes/scores/reports/audits/AI/remote scope creep.
-- Deferred from immediate reset: full collapsible tree, depth collapse, large-array truncation, mobile inline cards, load sample, help popover, mixed-version/deprecated warnings, related-field links, large-file spinner, and browser E2E/screenshot tooling until the design target stabilizes.
+- Deferred from immediate reset unless explicitly tasked: full collapsible tree, depth collapse, large-array truncation, mobile inline cards, load sample, help popover, mixed-version/deprecated warnings, related-field links, and large-file spinner. Browser E2E/screenshot tooling is now explicitly approved for the design loop via Playwright.
+- Playwright headless E2E should cover comprehensive interactions, especially left/right panel click/scroll/visibility, keyboard, paste/upload/drop paths where feasible, invalid-after-valid, unknown fallback, mobile viewport behavior, screenshots for designer review, and local-only privacy using `fixtures/manifests/comprehensive-all-browsers.json` as the primary payload.
 - Phase 5 Web Components UI MVP completed by external OpenCode implementation/fix agents and accepted after coordinator validation plus Product Manager, Core Engineer, Frontend Expert, Staff Engineer, QA Engineer, and Code Reviewer reviews/re-reviews.
 - Phase 5 now provides the first usable local web explainer UI: textarea Analyze flow, file picker, paste/drop handling, direct local `@mvviewer/core/analyzeManifest`, preserved source rendering, explanation panel, hover preview, click/tap pinning, keyboard navigation, unknown/custom fallback, partial-invalid graceful status, responsive split/stacked layout, and local-first privacy behavior.
 - `apps/web` is a thin composition root that mounts `<manifest-inspector>` and delegates controls to `@mvviewer/host-web`; `host-web` owns browser input adapters and parse-error-aware analysis outcomes; `ui-components` owns Web Components rendering and consumes `@mvviewer/application` reducer/selectors.

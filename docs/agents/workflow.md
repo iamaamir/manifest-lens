@@ -81,6 +81,32 @@ Quality stays with the coordinator-led process: external-agent implementation mu
 
 See `docs/agents/external-agents.md` for external-agent policy, compact onboarding, model/capacity guidance, `opencode run --pure` prompt envelope, two-layer workflow, token-saving strategy, and ACP status.
 
+## Design-Led UI Loop
+
+Use for Phase 5 Observatory UI work and any later UI quality pass governed by `design.md`.
+
+Canonical loop:
+
+```text
+Product Designer
+→ Frontend Engineer implementation
+→ E2E/UX QA with Playwright
+→ screenshots/artifact feedback
+→ Product Designer review
+→ repeat
+```
+
+Rules:
+
+1. Product Designer reviews current screenshots/UI against `design.md` and writes exact bounded implementation instructions.
+2. Coordinator converts instructions into a narrow task brief.
+3. Frontend Engineer or quality-gated OpenCode implements only the approved slice.
+4. E2E/UX QA Engineer writes/runs headless Playwright tests and captures screenshots/traces.
+5. Coordinator synthesizes results, updates memory/docs, and sends artifacts back to Product Designer.
+6. Nothing in the loop may expand beyond `design.md`, PRD explainer-first scope, or the active task brief.
+
+See `docs/agents/ui-design-loop.md` for the full loop contract.
+
 ## Review Workflow
 
 Use when user says implementation is ready or risk is high.
@@ -90,7 +116,10 @@ Recommended reviewers:
 - Staff Engineer: architecture/package boundaries
 - Code Reviewer: readability/style/maintainability
 - QA Engineer: test coverage/edge cases
+- E2E/UX QA Engineer: browser interaction/screenshots when Playwright or UX flow changed
 - Frontend Expert: UI/accessibility only when UI changed
+- Product Designer: visual/interaction craft when `design.md` UI direction is at stake
+- Manifest UX Domain Specialist: manifest semantics/explanation clarity when field coverage or copy changed
 
 Coordinator writes or summarizes findings in `docs/reviews/` when useful.
 
