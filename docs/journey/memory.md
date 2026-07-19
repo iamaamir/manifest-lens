@@ -53,7 +53,7 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 3 — Explanation Knowledge and Resolver is next.
+Phase 3 — Explanation Knowledge and Resolver is active/planned. Implementation has not started.
 
 Phase 2 — Semantic Manifest Model is complete, reviewed, and validated.
 
@@ -210,7 +210,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Open Working Questions
 
-- Phase 3 needs an implementation guide before work begins.
+- Phase 3 implementation guide exists: `docs/journey/phase3.md`.
+- Phase 3 external-agent-ready task brief exists: `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
 - External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with a strong prompt envelope.
 - Zed supports external ACP agents via `agent_servers` such as `opencode acp`, but this coordinator thread does not currently appear to have a tool-callable way to spawn/use a configured ACP agent and wait for its result.
 - Phase guides and task briefs should be clear enough that either the user or an external implementation agent can pick them up without chat history.
@@ -222,6 +223,14 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 3 planning completed for Explanation Knowledge and Resolver.
+- Created `docs/journey/phase3.md` as the implementation guide.
+- Created external-agent-ready task brief `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
+- Phase 3 scope confirmed: serializable explanation contracts, UI-independent knowledge registry, resolver strategy/fallbacks, initial PRD-required explanation pack, and core engine composition from source → parse → semantic → explanations.
+- Phase 3 primary packages: `packages/contracts`, `packages/knowledge`, and `packages/core`.
+- Package direction confirmed: `knowledge -> contracts, manifest-domain`; `core -> contracts, parser-json, manifest-domain, knowledge`.
+- Phase 3 excludes UI interaction, validation/diagnostics, fixes, health scores, compatibility matrices, remote analysis, and AI-generated explanations.
+- Specialist planning completed: Product Manager, Staff Engineer, and QA Engineer provided scope, architecture, and test-plan guidance.
 - User clarified coordinator boundary: coordinator must orchestrate/manage/instruct only, not directly implement product code, write tests, or perform low-level coding tasks.
 - User clarified current Zed ACP reality: external ACP agents can be configured through `agent_servers` such as `opencode acp`, but a running Zed agent thread does not currently have a tool-callable way to spawn/use that configured ACP agent and await a result.
 - External-agent workaround recorded: use `opencode run --pure "<prompt>"` with a strong prompt envelope.
