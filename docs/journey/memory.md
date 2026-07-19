@@ -241,6 +241,8 @@ We are building manifest-lens, a local-first Web Extension Manifest Explainer. R
 
 ## Latest Update
 
+- **Unknown-field fallback now points users to official references.** Updated the fallback explanation for unrecognized manifest fields so it no longer dead-ends. Unknown fields now explain that the key may be browser-specific, experimental, or newer than bundled knowledge, add a short detail directing users to official references, and render Chrome/MDN manifest reference links in the existing docs section. Validation passed: `npx vitest run packages/knowledge/src/index.test.ts --reporter=verbose`, `npm run typecheck`, `npm run test`, `npm run build --workspace=@manifest-lens/web`, and `npm run e2e` (49 passed).
+
 - **Comprehensive fixture is now the built-in sample manifest.** The web app's header `Load sample` button and empty-state `Try a sample manifest instead` action now load `fixtures/manifests/comprehensive-all-browsers.json` via a local Vite raw import, replacing the previous tiny inline sample while preserving local/no-network behavior. Validation passed: `npm run typecheck`, `npm run build --workspace=@manifest-lens/web`, and `npm run e2e` (49 passed).
 
 - **Fixture-driven permission coverage gap closed.** Added specific knowledge entries for six permissions found as fallbacks in `fixtures/manifests/comprehensive-all-browsers.json`: `displaySource`, `downloads.shelf`, `experimental`, `fileBrowserHandler`, `fileSystemProvider`, and `savedPages`. Permission registry coverage is now 91 entries, and the coverage catalog/docs were updated so these fixture gaps stay guarded.

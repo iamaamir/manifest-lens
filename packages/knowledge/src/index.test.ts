@@ -152,7 +152,7 @@ describe("Resolver", () => {
     expect(resolveNodeExplanation(cssFieldNode, registry).title).toBe("CSS Files");
   });
 
-  it("falls back gracefully for unknown top-level fields", () => {
+  it("falls back with official references for unknown top-level fields", () => {
     const registry = createKnowledgeRegistry();
     const unknownNode = makeNode({
       kind: "unknownField",
@@ -164,6 +164,12 @@ describe("Resolver", () => {
     expect(explanation.source.kind).toBe("fallback");
     expect(explanation.source).toEqual({ kind: "fallback", reason: "unknown-field" });
     expect(explanation.title).toBe("Unknown Field");
+    expect(explanation.summary).toContain("unrecognized by Manifest Lens's current field reference");
+    expect(explanation.details).toContain("Check the official manifest references below for browser-specific or newly added fields. The source tree still shows the field exactly as it appears in the manifest.");
+    expect(explanation.docsLinks).toEqual([
+      { label: "Chrome: manifest file format", url: "https://developer.chrome.com/docs/extensions/reference/manifest" },
+      { label: "MDN: manifest.json reference", url: "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json" },
+    ]);
   });
 
   it("falls back gracefully for unknown nested fields", () => {

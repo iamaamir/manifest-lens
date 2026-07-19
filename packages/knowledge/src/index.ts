@@ -1,4 +1,5 @@
 import type {
+  DocumentationLink,
   Explanation,
   ExplanationId,
   ExplanationSource,
@@ -14,6 +15,11 @@ import type { KnowledgeEntry, KnowledgeRegistry } from "./types.js";
 export type { KnowledgeEntry, KnowledgeRegistry } from "./types.js";
 
 const REGISTRY_PACK_ID = "manifest-lens-knowledge";
+
+const UNKNOWN_FIELD_DOCS_LINKS: readonly DocumentationLink[] = [
+  { label: "Chrome: manifest file format", url: "https://developer.chrome.com/docs/extensions/reference/manifest" },
+  { label: "MDN: manifest.json reference", url: "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json" },
+];
 
 export function createKnowledgeRegistry(): KnowledgeRegistry {
   return {
@@ -161,10 +167,10 @@ function createFallbackExplanation(
     id: `explanation:fallback:${reason}:${node.normalizedPath}` as ExplanationId,
     title,
     summary,
-    details: [],
+    details: fallbackDetails(reason),
     relatedFields: [],
     examples: [],
-    docsLinks: [],
+    docsLinks: fallbackDocsLinks(reason),
     source: { kind: "fallback", reason },
   };
 }
@@ -185,12 +191,34 @@ function fallbackTitle(reason: FallbackExplanationReason): string {
 function fallbackSummary(reason: FallbackExplanationReason): string {
   switch (reason) {
     case "unknown-field":
-      return "This field is not one of the standard manifest fields Manifest Lens currently explains. You can still see its structure and values in the source view.";
+      return "This key is unrecognized by Manifest Lens's current field reference. It may be browser-specific, experimental, or newer than the bundled knowledge.";
     case "unknown-permission":
       return "This permission is not one of the commonly explained permissions. The extension declares it for access to browser capabilities, but Manifest Lens does not yet have a specific explanation.";
     case "unknown-host-permission":
       return "This host permission pattern controls which websites the extension can access, but Manifest Lens does not yet have a specific explanation for this value.";
     case "unknown-node-kind":
       return "This part of the manifest is not yet covered by Manifest Lens's explanation knowledge. You can still interact with it in the source view.";
+  }
+}
+
+function fallbackDetails(reason: FallbackExplanationReason): readonly string[] {
+  switch (reason) {
+    case "unknown-field":
+      return ["Check the official manifest references below for browser-specific or newly added fields. The source tree still shows the field exactly as it appears in the manifest."];
+    case "unknown-permission":
+    case "unknown-host-permission":
+    case "unknown-node-kind":
+      return [];
+  }
+}
+
+function fallbackDocsLinks(reason: FallbackExplanationReason): readonly DocumentationLink[] {
+  switch (reason) {
+    case "unknown-field":
+      return UNKNOWN_FIELD_DOCS_LINKS;
+    case "unknown-permission":
+    case "unknown-host-permission":
+    case "unknown-node-kind":
+      return [];
   }
 }
