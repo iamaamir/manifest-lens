@@ -45,7 +45,7 @@ The next frontend work should be design-led by internal specialists, not delegat
 
 A developer opens a dark, calm instrument next to their editor.
 
-1. A compact sticky header says `Manifest Inspector` and exposes upload/sample/help controls where in scope.
+1. A compact sticky header says `Manifest Lens` and exposes upload/sample/help controls where in scope.
 2. The main surface is a two-pane inspector:
    - left: source/tree pane;
    - right: explanation pane.
@@ -304,7 +304,7 @@ Run at minimum:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 git diff --check
 ```
 

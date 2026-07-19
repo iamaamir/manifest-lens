@@ -10,7 +10,7 @@ import {
   type SourceRange,
   type SyntaxNode,
   type SyntaxNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 
 const knownTopLevelFields = new Set<string>([
   "manifest_version",

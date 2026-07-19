@@ -8,7 +8,7 @@ import {
   type SourceRange,
   type SyntaxNode,
   type SyntaxNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 import {
   parseTree,
   printParseErrorCode,

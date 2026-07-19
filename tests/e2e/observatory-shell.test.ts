@@ -18,7 +18,7 @@ test.describe("1. Empty Observatory Shell", () => {
     const l = locators(page);
 
     await expect(l.header).toBeVisible();
-    await expect(l.brandName).toHaveText("Manifest Inspector");
+    await expect(l.brandName).toHaveText("Manifest Lens");
     await expect(l.uploadButton).toBeVisible();
 
     await expect(l.clearButton).toBeHidden();

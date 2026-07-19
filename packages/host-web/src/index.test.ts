@@ -45,7 +45,7 @@ function appendContainer(): HTMLElement {
   return container;
 }
 
-describe("@mvviewer/host-web mount helper", () => {
+describe("@manifest-lens/host-web mount helper", () => {
   beforeAll(() => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() => {
       throw new Error("network should never be used");
@@ -76,7 +76,7 @@ describe("@mvviewer/host-web mount helper", () => {
   });
 });
 
-describe("@mvviewer/host-web local analysis flow", () => {
+describe("@manifest-lens/host-web local analysis flow", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
@@ -171,7 +171,7 @@ describe("@mvviewer/host-web local analysis flow", () => {
   });
 });
 
-describe("@mvviewer/host-web input wiring", () => {
+describe("@manifest-lens/host-web input wiring", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
@@ -348,7 +348,7 @@ describe("@mvviewer/host-web input wiring", () => {
   });
 });
 
-describe("@mvviewer/host-web app control wiring", () => {
+describe("@manifest-lens/host-web app control wiring", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
@@ -402,7 +402,7 @@ describe("@mvviewer/host-web app control wiring", () => {
   });
 });
 
-describe("@mvviewer/host-web privacy on import and drop paths", () => {
+describe("@manifest-lens/host-web privacy on import and drop paths", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
@@ -455,7 +455,7 @@ describe("@mvviewer/host-web privacy on import and drop paths", () => {
   });
 });
 
-describe("@mvviewer/host-web fixture-backed coverage", () => {
+describe("@manifest-lens/host-web fixture-backed coverage", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });

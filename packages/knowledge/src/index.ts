@@ -8,9 +8,9 @@ import type {
   SemanticManifestSnapshot,
   SemanticNode,
   SemanticNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 
-const REGISTRY_PACK_ID = "mvviewer-knowledge";
+const REGISTRY_PACK_ID = "manifest-lens-knowledge";
 
 interface KnowledgeEntry {
   readonly id: ExplanationId;
@@ -167,13 +167,13 @@ function fallbackTitle(reason: FallbackExplanationReason): string {
 function fallbackSummary(reason: FallbackExplanationReason): string {
   switch (reason) {
     case "unknown-field":
-      return "This field is not one of the standard manifest fields mvviewer currently explains. You can still see its structure and values in the source view.";
+      return "This field is not one of the standard manifest fields manifest-lens currently explains. You can still see its structure and values in the source view.";
     case "unknown-permission":
-      return "This permission is not one of the commonly explained permissions. The extension declares it for access to browser capabilities, but mvviewer does not yet have a specific explanation.";
+      return "This permission is not one of the commonly explained permissions. The extension declares it for access to browser capabilities, but manifest-lens does not yet have a specific explanation.";
     case "unknown-host-permission":
-      return "This host permission pattern controls which websites the extension can access, but mvviewer does not yet have a specific explanation for this value.";
+      return "This host permission pattern controls which websites the extension can access, but manifest-lens does not yet have a specific explanation for this value.";
     case "unknown-node-kind":
-      return "This part of the manifest is not yet covered by mvviewer's explanation knowledge. You can still interact with it in the source view.";
+      return "This part of the manifest is not yet covered by manifest-lens's explanation knowledge. You can still interact with it in the source view.";
   }
 }
 

@@ -2,7 +2,7 @@
 
 ## Context
 
-Project: `mvviewer`, a local-first Web Extension Manifest Explainer.
+Project: `manifest-lens`, a local-first Web Extension Manifest Explainer.
 
 North star:
 

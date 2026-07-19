@@ -125,7 +125,7 @@ Install:
 npm install jsonc-parser
 ```
 
-Add it as a dependency of `@mvviewer/parser-json` in `packages/parser-json/package.json`, or rely on npm workspace root installation if you prefer first-pass simplicity. Prefer package-local dependency for clearer ownership.
+Add it as a dependency of `@manifest-lens/parser-json` in `packages/parser-json/package.json`, or rely on npm workspace root installation if you prefer first-pass simplicity. Prefer package-local dependency for clearer ownership.
 
 ## Step 1 — Define Contracts
 
@@ -235,7 +235,7 @@ Edit `packages/parser-json/package.json` to include:
 
 ```json
 "dependencies": {
-  "@mvviewer/contracts": "0.0.0",
+  "@manifest-lens/contracts": "0.0.0",
   "jsonc-parser": "latest"
 }
 ```

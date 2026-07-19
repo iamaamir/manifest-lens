@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createSourceDocument, createSourceRangeIndex, flattenSyntaxTree, parseJsonDocument } from "./index";
-import type { ParseSnapshot, SyntaxNode } from "@mvviewer/contracts";
+import type { ParseSnapshot, SyntaxNode } from "@manifest-lens/contracts";
 
 function readFixture(name: string): string {
   return readFileSync(join(process.cwd(), "fixtures", "manifests", name), "utf8");

@@ -1,5 +1,5 @@
 {
-  "name": "@mvviewer/host-web",
+  "name": "@manifest-lens/host-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,8 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mvviewer/ui-components": "0.0.0",
-    "@mvviewer/core": "0.0.0",
-    "@mvviewer/contracts": "0.0.0"
+    "@manifest-lens/ui-components": "0.0.0",
+    "@manifest-lens/core": "0.0.0",
+    "@manifest-lens/contracts": "0.0.0"
   }
 }

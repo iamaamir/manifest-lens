@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildSemanticManifestSnapshot, findSemanticNodeByPath } from "@mvviewer/manifest-domain";
-import { createSourceDocument, parseJsonDocument } from "@mvviewer/parser-json";
+import { buildSemanticManifestSnapshot, findSemanticNodeByPath } from "@manifest-lens/manifest-domain";
+import { createSourceDocument, parseJsonDocument } from "@manifest-lens/parser-json";
 
 function readFixture(name: string): string {
   return readFileSync(join(process.cwd(), "fixtures", "manifests", name), "utf8");

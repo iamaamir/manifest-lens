@@ -14,7 +14,7 @@ The structure is designed to:
 ## Top-Level Layout
 
 ```text
-mvviewer/
+manifest-lens/
   apps/
     web/
   packages/
@@ -90,7 +90,7 @@ apps/web/
     main.ts
 ```
 
-For Phase 0, it is only a shell. It proves that the app can exist as a workspace package and can later import from `@mvviewer/host-web` and `@mvviewer/ui-components`.
+For Phase 0, it is only a shell. It proves that the app can exist as a workspace package and can later import from `@manifest-lens/host-web` and `@manifest-lens/ui-components`.
 
 Vite is listed in this package because it will be the web app build/dev tool when real UI work begins.
 
@@ -256,7 +256,7 @@ Runs Vitest in watch mode for later development phases.
 When UI work begins, run:
 
 ```sh
-npm run dev --workspace @mvviewer/web
+npm run dev --workspace @manifest-lens/web
 ```
 
 This starts the Vite dev server for `apps/web`.
@@ -264,7 +264,7 @@ This starts the Vite dev server for `apps/web`.
 ### Web app build
 
 ```sh
-npm run build --workspace @mvviewer/web
+npm run build --workspace @manifest-lens/web
 ```
 
 This runs the Vite production build for the web app package.

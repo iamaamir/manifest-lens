@@ -339,7 +339,7 @@ Before accepting Phase 4:
 For OpenCode or another external implementation agent:
 
 ```text
-You are an external implementation agent for mvviewer Phase 4.
+You are an external implementation agent for manifest-lens Phase 4.
 Read docs/agents/external-quickstart.md first, then docs/journey/phase4.md and docs/agents/tasks/active/phase4-application-state.md.
 Implement only Phase 4: Application State and Interaction Model.
 Do not implement UI, DOM event handling, storage, workers, host integration, validation diagnostics, fixes, health scores, remote analysis, or AI-generated behavior.

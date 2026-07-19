@@ -173,7 +173,7 @@ Do not touch parser/core/domain/knowledge unless a compile error forces a narrow
    - Remove duplicate local/privacy messaging from the top form area.
 
 6. Simplify header.
-   - Left: cyan dot + `Manifest Inspector`.
+   - Left: cyan dot + `Manifest Lens`.
    - Right: `Upload`, plus `Clear` only when content exists if implemented.
    - No center marketing copy.
    - Do not add `Load sample` or `?` unless explicitly scoped.

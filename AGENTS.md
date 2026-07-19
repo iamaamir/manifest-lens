@@ -1,4 +1,4 @@
-# Agent Instructions — mvviewer
+# Agent Instructions — manifest-lens
 
 These instructions apply to every agent working on this repository.
 

@@ -1,1 +1,1 @@
-export const packageName = "@mvviewer/engine-worker";
+export const packageName = "@manifest-lens/engine-worker";

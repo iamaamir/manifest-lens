@@ -1,5 +1,5 @@
 {
-  "name": "@mvviewer/web",
+  "name": "@manifest-lens/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mvviewer/host-web": "0.0.0"
+    "@manifest-lens/host-web": "0.0.0"
   },
   "devDependencies": {
     "vite": "latest"

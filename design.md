@@ -1,4 +1,4 @@
-# Manifest Inspector — Design Specification
+# Manifest Lens — Design Specification
 ### Concept: "The Observatory" (hybrid, responsive)
 Version 1.0 — For direct implementation by an AI coding agent. No value in this document is approximate. If a value appears ambiguous, treat it as an error in the document, not license to improvise.
 
@@ -119,7 +119,7 @@ Motion principle: nothing bounces, nothing overshoots. All transitions use `--ea
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │ HEADER  — height 56px, bg var(--color-bg-header)                │
-│ [● Manifest Inspector]         [Load sample] [Upload] [Docs ?]  │
+│ [● Manifest Lens]         [Load sample] [Upload] [Docs ?]  │
 ├──────────────────────────────┬───────────────────────────────────┤
 │ TREE PANE (60% / 64% desktop) │ EXPLANATION PANEL (40% / 36%)     │
 │ bg var(--color-bg-tree-pane)  │ bg var(--color-bg-panel)          │
@@ -163,7 +163,7 @@ Only one inline card is open at a time; opening a new one closes the previous wi
 ### 4.1 Header
 
 - Height: 56px desktop/tablet, 48px mobile.
-- Left: small filled circle (8px diameter, `--color-accent-primary`) + wordmark "Manifest Inspector", `--text-md`, `--weight-semibold`, `--color-text-primary`.
+- Left: small filled circle (8px diameter, `--color-accent-primary`) + wordmark "Manifest Lens", `--text-md`, `--weight-semibold`, `--color-text-primary`.
 - Right (desktop): three items right-aligned, `--space-4` gap: "Load sample" (text button), "Upload" (primary button, see 4.4), "?" (icon button, opens a lightweight keyboard-shortcut/about popover, not a full docs page).
 - Right (mobile): collapse "Load sample" and "?" into a single overflow icon button (⋯); "Upload" remains visible.
 

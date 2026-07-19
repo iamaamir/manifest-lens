@@ -1,4 +1,4 @@
-# Web Extension Manifest Inspector
+# Web Extension Manifest Lens
 ## High-Level Design and Portability Architecture
 
 **Document status:** Draft  
@@ -51,7 +51,7 @@
 
 # 1. Executive Summary
 
-The Web Extension Manifest Inspector is a frontend-first developer tool that accepts a browser-extension manifest through file upload, drag and drop, paste, editor input, or a host platform document.
+The Web Extension Manifest Lens is a frontend-first developer tool that accepts a browser-extension manifest through file upload, drag and drop, paste, editor input, or a host platform document.
 
 The application parses the original source text, builds a source-aware syntax tree, interprets the document as a browser-extension manifest, validates it, and presents a synchronized split view:
 

@@ -1,5 +1,5 @@
 {
-  "name": "@mvviewer/knowledge",
+  "name": "@manifest-lens/knowledge",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mvviewer/contracts": "0.0.0"
+    "@manifest-lens/contracts": "0.0.0"
   }
 }

@@ -12,7 +12,7 @@ import type {
   SourceDocument,
   SourceRange,
   SyntaxNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 import {
   customElementTagName,
   ManifestInspectorElement,
@@ -293,7 +293,7 @@ function mountInspector(): ManifestInspectorElement {
   return host;
 }
 
-describe("@mvviewer/ui-components public contract", () => {
+describe("@manifest-lens/ui-components public contract", () => {
   it("exposes the manifest-inspector custom element tag name", () => {
     expect(customElementTagName).toBe("manifest-inspector");
   });

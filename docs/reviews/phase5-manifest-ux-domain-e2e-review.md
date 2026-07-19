@@ -40,7 +40,7 @@ Important nested semantics are under-covered:
 
 - individual permission strings: `tabs`, `storage`;
 - optional permission strings: `activeTab`, `scripting`;
-- host patterns: `<all_urls>`, `*://*.example.com/*`, `https://github.com/mvviewer/*`;
+- host patterns: `<all_urls>`, `*://*.example.com/*`, `https://github.com/manifest-lens/*`;
 - `content_scripts[].matches`, `js`, `css`, `run_at`, `all_frames`, `world`, `match_origin_as_fallback`;
 - `background.service_worker`, `background.scripts`, `background.page`, `background.persistent`;
 - `web_accessible_resources[].resources`, `matches`, `use_dynamic_url`, `extension_ids`;
@@ -60,7 +60,7 @@ Fallback wording should avoid implying that browser-specific or legacy fields ar
 
 Prefer language like:
 
-> This key is not in mvviewer’s current field reference. The source is still selectable and shown as-is.
+> This key is not in manifest-lens’s current field reference. The source is still selectable and shown as-is.
 
 ### `host_permissions` wording
 

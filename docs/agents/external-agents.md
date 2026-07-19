@@ -63,7 +63,7 @@ docs/agents/templates/external-self-review.md
 Use a strong prompt envelope:
 
 ```text
-You are an external specialist agent for mvviewer.
+You are an external specialist agent for manifest-lens.
 Read docs/agents/external-quickstart.md first.
 Read-only unless explicitly authorized.
 Read the referenced task brief/docs before acting.

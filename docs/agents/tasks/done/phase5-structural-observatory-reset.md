@@ -22,7 +22,7 @@ Coordinator validation passed:
 npm run typecheck
 npm run test                    # 8 files, 151 tests
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npm run e2e                     # 26 passed
 git diff --check
 ```
@@ -125,7 +125,7 @@ Make the UI a viewport-bound Observatory instrument:
    - No duplicate top input instructions.
 
 6. Simplify header.
-   - Left: cyan dot + `Manifest Inspector`.
+   - Left: cyan dot + `Manifest Lens`.
    - Right: `Upload`; `Clear` only when content exists if preserved.
    - No center marketing copy.
    - Do not add `Load sample` or `?` unless already trivial and no behavior expansion is needed. Prefer omission.
@@ -283,7 +283,7 @@ Run and report exact results:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npm run e2e
 git diff --check
 ```

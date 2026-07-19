@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { createSourceDocument } from "@mvviewer/parser-json";
+import { createSourceDocument } from "@manifest-lens/parser-json";
 import { analyzeManifest } from "./index.js";
 
 function readFixture(name: string): string {

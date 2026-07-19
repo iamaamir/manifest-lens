@@ -1,5 +1,5 @@
 {
-  "name": "@mvviewer/engine-worker",
+  "name": "@manifest-lens/engine-worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",

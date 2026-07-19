@@ -10,7 +10,7 @@ These role files are designed for two use cases:
 Use this when starting a separate specialist agent:
 
 ```text
-You are joining mvviewer as a specialist agent.
+You are joining manifest-lens as a specialist agent.
 Load and follow this persona file:
 <role-file-path>
 
@@ -23,7 +23,7 @@ Return durable findings as a structured report and include a proposed memory.md 
 Example:
 
 ```text
-You are joining mvviewer as the Frontend Expert.
+You are joining manifest-lens as the Frontend Expert.
 Load and follow docs/agents/roles/frontend-expert.md.
 ```
 

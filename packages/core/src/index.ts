@@ -1,7 +1,7 @@
-import type { AnalysisSnapshot, SourceDocument } from "@mvviewer/contracts";
-import { createKnowledgeRegistry, resolveExplanations } from "@mvviewer/knowledge";
-import { buildSemanticManifestSnapshot } from "@mvviewer/manifest-domain";
-import { parseJsonDocument } from "@mvviewer/parser-json";
+import type { AnalysisSnapshot, SourceDocument } from "@manifest-lens/contracts";
+import { createKnowledgeRegistry, resolveExplanations } from "@manifest-lens/knowledge";
+import { buildSemanticManifestSnapshot } from "@manifest-lens/manifest-domain";
+import { parseJsonDocument } from "@manifest-lens/parser-json";
 
 const defaultRegistry = createKnowledgeRegistry();
 

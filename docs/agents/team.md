@@ -1,6 +1,6 @@
 # AI Team Operating Model
 
-This document defines the repo-native AI team model for `mvviewer`.
+This document defines the repo-native AI team model for `manifest-lens`.
 
 The goal is a coordinator-led, artifact-driven, role-specialized workflow where specialist agents can plan, review, and QA work without relying on chat history.
 
@@ -69,7 +69,7 @@ If the user wants to chat directly with a specialist, they can start a new agent
 Example:
 
 ```text
-You are joining mvviewer as the Frontend Expert.
+You are joining manifest-lens as the Frontend Expert.
 Load and follow docs/agents/roles/frontend-expert.md.
 ```
 

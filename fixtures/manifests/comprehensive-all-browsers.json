@@ -108,7 +108,7 @@
     "https://*/*",
     "*://*.example.com/*",
     "https://*.google.com/*",
-    "https://github.com/mvviewer/*",
+    "https://github.com/manifest-lens/*",
     "<all_urls>"
   ],
   "content_scripts": [
@@ -519,7 +519,7 @@
     "strict_max_version": "18.0"
   },
   "x_custom_metadata": {
-    "internal_tool": "mvviewer-test-generator",
+    "internal_tool": "manifest-lens-test-generator",
     "version_generated": "1.0.0",
     "test_categories": ["cross-browser", "comprehensive", "edge-cases"]
   }

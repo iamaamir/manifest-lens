@@ -64,7 +64,7 @@ Do not edit contracts/parser/domain/knowledge/core/application unless a blocker 
 - Add a compact sticky header, 56px desktop/tablet and 48px mobile if practical.
 - Header should include:
   - restrained mark/dot;
-  - `Manifest Inspector` wordmark;
+  - `Manifest Lens` wordmark;
   - concise local-first copy or status;
   - Upload and Clear controls if keeping controls outside the component.
 - Keep `apps/web` thin. It can own page shell markup/styles and call `host-web` wiring only.
@@ -151,7 +151,7 @@ Run:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 git diff --check
 ```
 

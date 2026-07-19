@@ -1,4 +1,4 @@
-# Contributing to mvviewer
+# Contributing to manifest-lens
 
 Thanks for contributing. This project is intentionally architecture-driven, but not ceremony-driven.
 

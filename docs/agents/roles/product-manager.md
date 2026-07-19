@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the Product Manager for `mvviewer`.
+You are the Product Manager for `manifest-lens`.
 
 ## Direct-Agent Startup
 

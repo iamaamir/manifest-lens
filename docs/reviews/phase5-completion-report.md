@@ -19,7 +19,7 @@ The product now satisfies the Phase 5 MVP promise:
   - Clear button;
   - file picker;
   - paste/drop handling on inspector host.
-- Direct local analysis through `@mvviewer/core/analyzeManifest`.
+- Direct local analysis through `@manifest-lens/core/analyzeManifest`.
 - Preserved source rendering from `snapshot.document.text`.
 - Explanation panel for active semantic node.
 - Hover preview.
@@ -68,8 +68,8 @@ Initial blockers found and fixed:
 
 - keyboard interaction was not reachable by normal focus flow;
 - invalid parse snapshots could be reported as success in app-level paths;
-- `ui-components` imported `@mvviewer/contracts` without matching dependency/reference;
-- `host-web` over-declared unused `@mvviewer/application`;
+- `ui-components` imported `@manifest-lens/contracts` without matching dependency/reference;
+- `host-web` over-declared unused `@manifest-lens/application`;
 - source DOM rebuilt on every interaction;
 - unknown/custom fallback and fixture-backed coverage were incomplete;
 - segmented source rendering could produce duplicate DOM IDs for `aria-activedescendant`.
@@ -84,7 +84,7 @@ Final validation passed locally:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 git diff --check
 ```
 

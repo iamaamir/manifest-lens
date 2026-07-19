@@ -38,7 +38,7 @@ Why npm workspaces now:
 Create this structure:
 
 ```text
-mvviewer/
+manifest-lens/
   apps/
     web/
       src/
@@ -110,7 +110,7 @@ Change root `package.json` toward this shape:
 
 ```json
 {
-  "name": "mvviewer",
+  "name": "manifest-lens",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -210,7 +210,7 @@ Use this package JSON pattern, changing the package name:
 
 ```json
 {
-  "name": "@mvviewer/contracts",
+  "name": "@manifest-lens/contracts",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -223,7 +223,7 @@ Use this package JSON pattern, changing the package name:
 For now, each `src/index.ts` can contain only a placeholder export, for example:
 
 ```ts
-export const packageName = "@mvviewer/contracts";
+export const packageName = "@manifest-lens/contracts";
 ```
 
 This is intentionally boring. The point is to validate package wiring before behavior.
@@ -244,7 +244,7 @@ Suggested `apps/web/package.json`:
 
 ```json
 {
-  "name": "@mvviewer/web",
+  "name": "@manifest-lens/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -254,8 +254,8 @@ Suggested `apps/web/package.json`:
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mvviewer/host-web": "0.0.0",
-    "@mvviewer/ui-components": "0.0.0"
+    "@manifest-lens/host-web": "0.0.0",
+    "@manifest-lens/ui-components": "0.0.0"
   },
   "devDependencies": {
     "vite": "latest"
@@ -404,7 +404,7 @@ Before moving to Phase 1, confirm:
 - [ ] Root `package.json` uses workspaces.
 - [ ] Root TypeScript project references every package/app.
 - [ ] Every package has `package.json`, `tsconfig.json`, and `src/index.ts`.
-- [ ] Package names use `@mvviewer/*`.
+- [ ] Package names use `@manifest-lens/*`.
 - [ ] `apps/web` exists and can be built or typechecked.
 - [ ] `fixtures/manifests/README.md` exists.
 - [ ] `npm run typecheck` passes or the failure is understood.

@@ -2,7 +2,7 @@
 
 ## Context
 
-Project: `mvviewer`, a local-first Web Extension Manifest Explainer.
+Project: `manifest-lens`, a local-first Web Extension Manifest Explainer.
 
 North star:
 
@@ -54,7 +54,7 @@ This slice proves package wiring and Web Component registration without analysis
 ### `packages/ui-components`
 
 - Add DOM-capable TypeScript config if needed.
-- Add dependencies/references to `@mvviewer/contracts` and/or `@mvviewer/application` only if actually imported.
+- Add dependencies/references to `@manifest-lens/contracts` and/or `@manifest-lens/application` only if actually imported.
 - Implement/register initial custom elements, likely:
   - `<manifest-inspector>`
   - optionally internal placeholder elements for source/panel/split view if simple.
@@ -67,7 +67,7 @@ This slice proves package wiring and Web Component registration without analysis
 ### `packages/host-web`
 
 - Add DOM-capable TypeScript config if needed.
-- Add dependencies/references to `@mvviewer/ui-components` and `@mvviewer/contracts` only if actually imported.
+- Add dependencies/references to `@manifest-lens/ui-components` and `@manifest-lens/contracts` only if actually imported.
 - Implement `mountWebManifestInspector(container: HTMLElement): void` or equivalent.
 - Ensure custom elements are registered before mount.
 - No analysis/input/file logic yet unless absolutely required for mounting.
@@ -142,8 +142,8 @@ apps/web      -> host-web
 
 Rules:
 
-- `ui-components` must not import `@mvviewer/core`, parser, domain, or knowledge packages.
-- `host-web` may import `@mvviewer/core` later, but Slice 1 should avoid analysis unless needed.
+- `ui-components` must not import `@manifest-lens/core`, parser, domain, or knowledge packages.
+- `host-web` may import `@manifest-lens/core` later, but Slice 1 should avoid analysis unless needed.
 - `apps/web` should remain a thin composition root.
 - Update `package.json` dependencies and `tsconfig.json` references for every workspace import.
 
@@ -165,7 +165,7 @@ Rules:
 
 - Do not implement the whole Phase 5 UI in Slice 1.
 - Do not add parser/core analysis flow yet unless coordinator expands scope.
-- Do not import `@mvviewer/core` into `ui-components`.
+- Do not import `@manifest-lens/core` into `ui-components`.
 - Do not add diagnostic/report/fix/health-score UI from HLD future examples.
 - Do not use positive `tabindex`.
 - Do not use fake interactive divs where native controls would work.

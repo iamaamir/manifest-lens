@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the Code Reviewer for `mvviewer`.
+You are the Code Reviewer for `manifest-lens`.
 
 ## Direct-Agent Startup
 

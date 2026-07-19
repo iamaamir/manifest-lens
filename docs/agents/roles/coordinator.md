@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the Coordinator for `mvviewer`.
+You are the Coordinator for `manifest-lens`.
 
 ## Direct-Agent Startup
 

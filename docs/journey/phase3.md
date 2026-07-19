@@ -138,10 +138,10 @@ return explanation-aware snapshot
 
 The core package may depend on:
 
-- `@mvviewer/contracts`
-- `@mvviewer/parser-json`
-- `@mvviewer/manifest-domain`
-- `@mvviewer/knowledge`
+- `@manifest-lens/contracts`
+- `@manifest-lens/parser-json`
+- `@manifest-lens/manifest-domain`
+- `@manifest-lens/knowledge`
 
 ## Out of Scope
 
@@ -252,7 +252,7 @@ Must support graceful fallbacks for:
 - unknown host permission pattern
 - unknown semantic node/value
 
-Fallbacks should say the field/value is selectable, but mvviewer does not yet have a specific explanation for it.
+Fallbacks should say the field/value is selectable, but manifest-lens does not yet have a specific explanation for it.
 
 ## Docs Link Policy
 
@@ -441,7 +441,7 @@ Before accepting Phase 3:
 For OpenCode or another external implementation agent:
 
 ```text
-You are an external implementation agent for mvviewer Phase 3.
+You are an external implementation agent for manifest-lens Phase 3.
 Read docs/journey/memory.md, AGENTS.md, docs/architecture/coding-style.md, docs/agents/external-agents.md, docs/journey/phase3.md, docs/PRD.md, and docs/roadmap-v1.md.
 Implement only Phase 3: Explanation Knowledge and Resolver.
 Do not implement UI, validation diagnostics, fixes, health scores, worker/host integration, remote analysis, or AI-generated explanations.

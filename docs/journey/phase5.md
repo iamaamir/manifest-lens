@@ -145,7 +145,7 @@ Likely responsibilities:
 - create `SourceDocument` from pasted text/file text;
 - read local files using browser APIs;
 - handle drag/drop and optional file picker;
-- call direct `@mvviewer/core/analyzeManifest`;
+- call direct `@manifest-lens/core/analyzeManifest`;
 - mount/register the web inspector in a container.
 
 Do not define manifest semantic/domain behavior here.

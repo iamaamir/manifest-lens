@@ -6,7 +6,7 @@ import type {
   SourceRange,
   SyntaxNode,
   SyntaxNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 import {
   buildSemanticManifestSnapshot,
   findSemanticNodeByPath,

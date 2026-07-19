@@ -2,7 +2,7 @@
 
 ## Context
 
-Project: `mvviewer`, a local-first Web Extension Manifest Explainer.
+Project: `manifest-lens`, a local-first Web Extension Manifest Explainer.
 
 North star:
 
@@ -66,7 +66,7 @@ By the end, a user can:
 - Add minimal public API, e.g. `snapshot` property and/or `loadSnapshot(snapshot)` plus `clear()`.
 - Render preserved `snapshot.document.text` safely.
 - Render explanation panel for active node.
-- Use `@mvviewer/application` reducer/selectors for interaction state.
+- Use `@manifest-lens/application` reducer/selectors for interaction state.
 - Map source interaction to semantic nodes.
 - Implement hover preview, click/tap pin, hover leave restore.
 - Implement keyboard navigation: next/previous, Enter/Space select, Escape clear if simple.
@@ -78,7 +78,7 @@ By the end, a user can:
 
 - Own browser-specific input adapters.
 - Create `SourceDocument` from pasted/file text.
-- Call direct `@mvviewer/core/analyzeManifest` locally.
+- Call direct `@manifest-lens/core/analyzeManifest` locally.
 - Mount app controls and inspector into the container.
 - Support paste/analyze flow.
 - Support drag/drop `manifest.json` flow.
@@ -227,9 +227,9 @@ apps/web      -> host-web
 
 Rules:
 
-- `ui-components` must not import `@mvviewer/core`, parser, domain, or knowledge.
-- `host-web` may import `@mvviewer/core` for direct local analysis.
-- `apps/web` remains thin and imports only `@mvviewer/host-web` unless justified.
+- `ui-components` must not import `@manifest-lens/core`, parser, domain, or knowledge.
+- `host-web` may import `@manifest-lens/core` for direct local analysis.
+- `apps/web` remains thin and imports only `@manifest-lens/host-web` unless justified.
 - Update `package.json` dependencies and `tsconfig.json` references for every workspace import.
 
 ## Acceptance Criteria
@@ -259,7 +259,7 @@ Run:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 ```
 
 Also run static checks:

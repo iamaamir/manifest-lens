@@ -207,7 +207,7 @@ Run:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npm run e2e
 git diff --check
 ```
@@ -313,7 +313,7 @@ Commands run:
 - `npm run typecheck` — passed (`tsc -b --pretty`).
 - `npm run test` — first run failed because a new unit assertion expected `manifest_version` in a synthetic snapshot that only contains `name`; fixed the test assertion. Re-run passed: 8 files, 155 tests.
 - `npm run build` — passed (`tsc -b`).
-- `npm run build --workspace=@mvviewer/web` — passed (`vite build`, 19 modules transformed, built in 27ms).
+- `npm run build --workspace=@manifest-lens/web` — passed (`vite build`, 19 modules transformed, built in 27ms).
 - `npm run e2e` — passed: 46 tests, 8.9s.
 - `git --no-pager diff --check` — passed with no output.
 
@@ -333,7 +333,7 @@ Required static greps:
 ### 8. Proposed `docs/journey/memory.md` update
 
 ```md
-- Phase 5 drag/drop polish completed by Frontend Engineer specialist: empty and loaded Observatory panes now show pre-drop feedback, host-web classifies DataTransfer candidates before drop, rejected candidates show calm JSON-file copy, drag feedback clears on leave/drop/cancel, Upload is a real focusable button, and invalid paste/drop/upload all route through the same parse-error-aware error-card path with stale source/explanation/pin cleared. Validation passed: `npm run typecheck`, `npm run test` (8 files, 155 tests after fixing one new assertion), `npm run build`, `npm run build --workspace=@mvviewer/web`, `npm run e2e` (46 passed), `git diff --check`, and required static greps showed only expected test matches.
+- Phase 5 drag/drop polish completed by Frontend Engineer specialist: empty and loaded Observatory panes now show pre-drop feedback, host-web classifies DataTransfer candidates before drop, rejected candidates show calm JSON-file copy, drag feedback clears on leave/drop/cancel, Upload is a real focusable button, and invalid paste/drop/upload all route through the same parse-error-aware error-card path with stale source/explanation/pin cleared. Validation passed: `npm run typecheck`, `npm run test` (8 files, 155 tests after fixing one new assertion), `npm run build`, `npm run build --workspace=@manifest-lens/web`, `npm run e2e` (46 passed), `git diff --check`, and required static greps showed only expected test matches.
 ```
 
 ### 9. Self-review checklist
@@ -387,7 +387,7 @@ Resolved the review blockers from the drag-feedback polish pass:
 - `npm run typecheck` — passed (`tsc -b --pretty`).
 - `npm run test` — passed: 8 test files, 156 tests.
 - `npm run build` — passed (`tsc -b`).
-- `npm run build --workspace=@mvviewer/web` — passed (`vite build`, 19 modules transformed, built in 22ms).
+- `npm run build --workspace=@manifest-lens/web` — passed (`vite build`, 19 modules transformed, built in 22ms).
 - `npm run e2e` — passed: 48 tests, 9.1s.
 - `git --no-pager diff --check` — passed with no output.
 
@@ -406,5 +406,5 @@ Static checks:
 ### Proposed `docs/journey/memory.md` update
 
 ```md
-- Phase 5 drag/drop polish follow-up blockers resolved: removed inert Help button, hid header Load sample on mobile while preserving in-pane sample, made hidden file input non-tabbable, replaced global reduced-motion wildcard overrides with targeted rules, added document/window drag cleanup listeners, and clears invalid upload file input value. Validation passed: `npm run typecheck`, `npm run test` (8 files, 156 tests), `npm run build`, `npm run build --workspace=@mvviewer/web`, `npm run e2e` (48 passed), `git diff --check`, required static greps, and an extra `0.01ms` grep with no matches.
+- Phase 5 drag/drop polish follow-up blockers resolved: removed inert Help button, hid header Load sample on mobile while preserving in-pane sample, made hidden file input non-tabbable, replaced global reduced-motion wildcard overrides with targeted rules, added document/window drag cleanup listeners, and clears invalid upload file input value. Validation passed: `npm run typecheck`, `npm run test` (8 files, 156 tests), `npm run build`, `npm run build --workspace=@manifest-lens/web`, `npm run e2e` (48 passed), `git diff --check`, required static greps, and an extra `0.01ms` grep with no matches.
 ```

@@ -4,7 +4,7 @@ import {
   wireManifestInputFlows,
   clearManifest,
   importManifestFile,
-} from "@mvviewer/host-web";
+} from "@manifest-lens/host-web";
 
 const SAMPLE_MANIFEST = JSON.stringify(
   {

@@ -32,7 +32,7 @@ Coordinator had already validated the drag/drop remediation with:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npm run e2e
 git --no-pager diff --check
 ```

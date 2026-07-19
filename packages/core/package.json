@@ -1,5 +1,5 @@
 {
-  "name": "@mvviewer/core",
+  "name": "@manifest-lens/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mvviewer/contracts": "0.0.0",
-    "@mvviewer/parser-json": "0.0.0",
-    "@mvviewer/manifest-domain": "0.0.0",
-    "@mvviewer/knowledge": "0.0.0"
+    "@manifest-lens/contracts": "0.0.0",
+    "@manifest-lens/parser-json": "0.0.0",
+    "@manifest-lens/manifest-domain": "0.0.0",
+    "@manifest-lens/knowledge": "0.0.0"
   }
 }

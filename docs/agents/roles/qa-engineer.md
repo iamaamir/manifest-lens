@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the QA Engineer for `mvviewer`.
+You are the QA Engineer for `manifest-lens`.
 
 ## Direct-Agent Startup
 

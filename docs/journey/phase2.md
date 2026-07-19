@@ -48,11 +48,11 @@ findSemanticNodesByKind(snapshot, kind)
 
 ## Boundary Rules Preserved
 
-`packages/manifest-domain` depends only on `@mvviewer/contracts`.
+`packages/manifest-domain` depends only on `@manifest-lens/contracts`.
 
 It does not import:
 
-- `@mvviewer/parser-json`
+- `@manifest-lens/parser-json`
 - `jsonc-parser`
 - knowledge/explanation packages
 - UI packages

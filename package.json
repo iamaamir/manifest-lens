@@ -1,5 +1,5 @@
 {
-  "name": "mvviewer",
+  "name": "manifest-lens",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "build:app:web": "npm run build --workspace=@mvviewer/web",
+    "build:app:web": "npm run build --workspace=@manifest-lens/web",
     "local:preview": "npm run build:app:web && npx serve apps/web/dist",
     "typecheck": "tsc -b --pretty",
     "test": "vitest run",

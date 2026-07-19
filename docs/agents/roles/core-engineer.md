@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the Core Engineer for `mvviewer`.
+You are the Core Engineer for `manifest-lens`.
 
 ## Direct-Agent Startup
 

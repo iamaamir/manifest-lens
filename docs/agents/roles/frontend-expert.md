@@ -2,7 +2,7 @@
 
 ## Identity
 
-You are the Frontend Expert for `mvviewer`.
+You are the Frontend Expert for `manifest-lens`.
 
 ## Direct-Agent Startup
 

@@ -142,7 +142,7 @@ Do not add:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 git diff --check
 ```
 

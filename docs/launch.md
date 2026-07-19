@@ -227,7 +227,7 @@ Use Vite's production build or preview path when checking the web app locally:
 
 ```sh
 npm run build:app:web
-npm run preview --workspace=@mvviewer/web
+npm run preview --workspace=@manifest-lens/web
 ```
 
 For the easiest local production smoke check, build and serve the generated `apps/web/dist` directory with one command:

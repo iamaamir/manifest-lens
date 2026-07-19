@@ -2,14 +2,14 @@ import {
   type AnalysisSnapshot,
   type DocumentId,
   type SourceDocument,
-} from "@mvviewer/contracts";
-import { analyzeManifest } from "@mvviewer/core";
+} from "@manifest-lens/contracts";
+import { analyzeManifest } from "@manifest-lens/core";
 import {
   customElementTagName,
   type DropFeedbackKind,
   ManifestInspectorElement,
   registerManifestInspector,
-} from "@mvviewer/ui-components";
+} from "@manifest-lens/ui-components";
 
 export { customElementTagName };
 

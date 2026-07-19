@@ -1,6 +1,6 @@
 # Coding Style and Architecture Enforcement
 
-This document is the canonical coding-style contract for `mvviewer`.
+This document is the canonical coding-style contract for `manifest-lens`.
 
 It applies to human contributors and agents. Phase guides may add stricter temporary rules, but they should not contradict this document.
 

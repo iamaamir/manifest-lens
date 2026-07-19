@@ -4,7 +4,7 @@ import type {
   SemanticNode,
   SemanticNodeId,
   SourceRange,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 
 export type InspectorStatus =
   | { readonly kind: "empty" }

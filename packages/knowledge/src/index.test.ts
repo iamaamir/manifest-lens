@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createKnowledgeRegistry, resolveNodeExplanation } from "./index.js";
-import type { BreadcrumbSegment, SemanticNode, SemanticNodeId, SourceRange, SyntaxNodeId } from "@mvviewer/contracts";
+import type { BreadcrumbSegment, SemanticNode, SemanticNodeId, SourceRange, SyntaxNodeId } from "@manifest-lens/contracts";
 
 function makeNode(overrides: Partial<SemanticNode> & { kind: SemanticNode["kind"] }): SemanticNode {
   const base = {

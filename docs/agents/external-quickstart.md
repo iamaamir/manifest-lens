@@ -6,7 +6,7 @@ Read this first, then read only the task brief and the smallest set of reference
 
 ## Operating Model
 
-- The project is `mvviewer`, a local-first Web Extension Manifest Explainer.
+- The project is `manifest-lens`, a local-first Web Extension Manifest Explainer.
 - North star: **Hover your manifest. Understand every field.**
 - The coordinator owns architecture continuity, synthesis, memory updates, and commits.
 - You own only the assigned implementation/test/fix scope.

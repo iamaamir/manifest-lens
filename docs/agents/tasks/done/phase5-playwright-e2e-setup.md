@@ -18,7 +18,7 @@ Coordinator validation passed:
 npm run typecheck
 npm run test                    # 8 files, 151 tests
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npm run e2e                     # 20 passed
 npx playwright install chromium # completed during setup
 git diff --check
@@ -122,7 +122,7 @@ Use current Playwright conventions:
 
   ```ts
   webServer: {
-    command: "npm run dev --workspace=@mvviewer/web -- --host 127.0.0.1",
+    command: "npm run dev --workspace=@manifest-lens/web -- --host 127.0.0.1",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
@@ -229,7 +229,7 @@ Run as much as possible and report exact results:
 npm run typecheck
 npm run test
 npm run build
-npm run build --workspace=@mvviewer/web
+npm run build --workspace=@manifest-lens/web
 npx playwright install chromium
 npm run e2e
 ```

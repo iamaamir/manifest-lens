@@ -9,7 +9,7 @@ import type {
   SyntaxNodeId,
   SourceDocument,
   SourceRange,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 import {
   createInitialInspectorState,
   findSmallestExplainableNodeAtOffset,

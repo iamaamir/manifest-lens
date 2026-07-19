@@ -2,7 +2,7 @@ import type {
   AnalysisSnapshot,
   SemanticNode,
   SemanticNodeId,
-} from "@mvviewer/contracts";
+} from "@manifest-lens/contracts";
 import {
   buildFlatTree,
   createInitialInspectorState,
@@ -13,7 +13,7 @@ import {
   type InspectorAction,
   type InspectorState,
   type TreeRowInfo,
-} from "@mvviewer/application";
+} from "@manifest-lens/application";
 
 const MANIFEST_INSPECTOR_TAG = "manifest-inspector";
 

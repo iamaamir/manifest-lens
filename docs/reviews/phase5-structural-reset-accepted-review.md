@@ -46,7 +46,7 @@ Artifacts:
    - Stable right-side interpretive surface.
 
 4. Header chrome is calmer.
-   - Left: cyan dot + `Manifest Inspector`.
+   - Left: cyan dot + `Manifest Lens`.
    - Right: `Upload`, with `Clear` only in loaded states.
    - No center marketing copy.
 
