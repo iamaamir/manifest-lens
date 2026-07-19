@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Custom Example",
+  "version": "1.0.0",
+  "x_internal_metadata": {
+    "owner": "team-a"
+  }
+}

@@ -51,7 +51,11 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 1 — Source-Aware Parser Foundation is active.
+Phase 3 — Explanation Knowledge and Resolver is next.
+
+Phase 2 — Semantic Manifest Model is complete, reviewed, and validated.
+
+Phase 1 — Source-Aware Parser Foundation is complete, reviewed, and validated.
 
 Phase 0 — Repository and Architecture Foundation is complete and reviewed.
 
@@ -199,11 +203,24 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Open Working Questions
 
-- Phase 1 product scope is JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
-- Parser implementation may still use `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract. User can still override if they prefer a custom parser.
+- Phase 3 needs an implementation guide before work begins.
+- Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
+- Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
 
 ## Latest Update
 
+- Completed Phase 1 Source-Aware Parser Foundation and Phase 2 Semantic Manifest Model on branch `ai-team-workflow-experiment`.
+- Implemented parser contracts and `@mvviewer/parser-json` source-aware JSON parser using `jsonc-parser` behind the parser boundary.
+- Phase 1 parser preserves source text, produces serializable syntax snapshots, deterministic syntax node IDs, key/value/object/array/item ranges and paths, parse errors for invalid JSON, JSON-only errors for comments/trailing commas, partial recovery where practical, and range-index lookup for smallest containing nodes.
+- Implemented Phase 2 semantic manifest mapping in `@mvviewer/manifest-domain`, depending only on `@mvviewer/contracts`.
+- Phase 2 semantic mapper produces serializable semantic manifest snapshots with manifest version detection, known top-level fields, unknown/custom fields, permissions, host permissions, content scripts, breadcrumbs, normalized paths, and parent-child references.
+- Added realistic parser/domain fixtures under `fixtures/manifests/`.
+- Added parser unit tests, semantic unit tests, and root parser-to-semantic integration tests under `tests/` so production package dependency direction remains intact.
+- Added `docs/journey/phase2.md` documenting Phase 2 outcome, scope, preserved boundaries, validation, and follow-ups.
+- Validation passed: `npm run typecheck`, `npm run test` (3 files, 25 tests), and `npm run build`.
+- Specialist reviews passed: QA blockers resolved; architecture/package-boundary review passed; code review approved after memory update.
+- Architecture review confirmed no parser-library leakage, `parser-json` depends only on contracts/jsonc-parser, `manifest-domain` depends only on contracts, TypeScript references match workspace imports, and no explanation/diagnostics/fix/validation/health-score/UI scope creep was found.
+- Next phase is Phase 3: explanation knowledge and resolver.
 - Upgraded `docs/agents/roles/*` from short role cards into self-contained specialist persona files suitable for direct specialist chats.
 - Added `docs/agents/persona-loading.md` with instructions for starting a new specialist agent from a single persona file.
 - Added repo-native AI team operating model: `docs/agents/team.md`, `docs/agents/workflow.md`, role cards, report/task templates, task queue README, and `docs/reviews/` directory.

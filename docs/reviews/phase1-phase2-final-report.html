@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en" data-theme="luxury">
+  <head>
+    <</head>meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>mvviewer Phase 1 + Phase 2 Final Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+    <style>
+      *</style>, *::before, *::after { box-sizing: border-box; }
+      :where(.grid, .flex, .layout-grid, .layout-flex) > *,
+      :where([style*="display: grid"], [style*="display:grid"], [style*="display: flex"], [style*="display:flex"]) > * {
+        min-width: 0;
+      }
+      :where(p, h1, h2, h3, h4, h5, h6, li, dd, blockquote, figcaption, td, th, .badge, .label) {
+        overflow-wrap: anywhere;
+      }
+      :where(img, svg, video, canvas, iframe) {
+        max-width: 100%;
+        height: auto;
+      }
+      code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      .report-shell { max-width: 1180px; margin: 0 auto; }
+      .evidence-table td, .evidence-table th { vertical-align: top; }
+    </style>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+      const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const paint = document.createElement("canvas").getContext("2d");
+      function toRgba(color) {
+        paint.clearRect(0, 0, 1, 1);
+        paint.fillStyle = "#000";
+        paint.fillStyle = color;
+        paint.fillRect(0, 0, 1, 1);
+        return paint.getImageData(0, 0, 1, 1).data;
+      }
+      function compositeRgba(foreground, background) {
+        const foregroundAlpha = foreground[3] / 255;
+        const backgroundAlpha = background[3] / 255;
+        const alpha = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
+        if (alpha === 0) return [0, 0, 0, 0];
+        return [
+          (foreground[0] * foregroundAlpha + background[0] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+          (foreground[1] * foregroundAlpha + background[1] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+          (foreground[2] * foregroundAlpha + background[2] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+          alpha * 255,
+        ];
+      }
+      function pageIsDark() {
+        const root = document.documentElement;
+        const rootBackground = toRgba(getComputedStyle(root).backgroundColor);
+        const bodyBackground = document.body ? toRgba(getComputedStyle(document.body).backgroundColor) : [0, 0, 0, 0];
+        const [r, g, b, a] = compositeRgba(bodyBackground, rootBackground);
+        if (a > 0) return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+        const colorScheme = getComputedStyle(root).colorScheme;
+        if (colorScheme.includes("dark") && !colorScheme.includes("light")) return true;
+        if (colorScheme.includes("light") && !colorScheme.includes("dark")) return false;
+        return darkQuery.matches;
+      }
+      const diagrams = [...document.querySelectorAll(".mermaid")].map((el) => ({ el, src: el.textContent }));
+      let applied;
+      let rendering = false;
+      let queued = false;
+      function queueRender() {
+        queued = true;
+        if (rendering) return;
+        void render();
+      }
+      async function render() {
+        rendering = true;
+        try {
+          while (queued) {
+            queued = false;
+            const theme = pageIsDark() ? "dark" : "default";
+            if (theme === applied) continue;
+            mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
+            for (const { el, src } of diagrams) {
+              el.removeAttribute("data-processed");
+              el.textContent = src;
+            }
+            try {
+              await mermaid.run({ nodes: diagrams.map((d) => d.el) });
+            } catch (error) {
+              console.error("Mermaid diagram render failed:", error);
+              return;
+            }
+            applied = theme;
+          }
+        } finally {
+          rendering = false;
+          if (queued) queueRender();
+        }
+      }
+      if (document.readyState === "complete") queueRender();
+      else window.addEventListener("load", queueRender, { once: true });
+      const themeObserver = new MutationObserver(queueRender);
+      for (const el of [document.documentElement, document.body]) {
+        if (!el) continue;
+        themeObserver.observe(el, { attributes: true, attributeFilter: ["data-theme", "class", "style"] });
+      }
+      darkQuery.addEventListener("change", queueRender);
+    </script>
+  </head>
+  <body class="bg-base-200 text-base-content">
+    <main class="report-shell p-5 lg:p-10 space-y-8">
+      <section class="hero rounded-box bg-base-100 shadow-xl">
+        <div class="hero-content text-center py-12">
+          <div class="max-w-4xl">
+            <div class="badge badge-success badge-lg mb-4">Phase 1 + Phase 2 complete</div>
+            <h1 class="text-4xl lg:text-6xl font-bold leading-tight">mvviewer Parser + Semantic Model Report</h1>
+            <p class="py-5 text-lg opacity-80">Source-aware JSON parsing and source-linked semantic manifest modeling are implemented, reviewed, validated, and ready for Phase 3 explanation knowledge.</p>
+            <div class="flex flex-wrap gap-3 justify-center">
+              <span class="badge badge-outline">Branch: <span class="mono ml-1">ai-team-workflow-experiment</span></span>
+              <span class="badge badge-outline">Tests: <span class="mono ml-1">25 passed</span></span>
+              <span class="badge badge-outline">Scope: parser + domain only</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-4 md:grid-cols-3">
+        <article class="stat bg-base-100 rounded-box shadow">
+          <div class="stat-title">Validation</div>
+          <div class="stat-value text-success">Pass</div>
+          <div class="stat-desc">typecheck, test, build</div>
+        </article>
+        <article class="stat bg-base-100 rounded-box shadow">
+          <div class="stat-title">Test coverage</div>
+          <div class="stat-value">3 / 25</div>
+          <div class="stat-desc">test files / tests passed</div>
+        </article>
+        <article class="stat bg-base-100 rounded-box shadow">
+          <div class="stat-title">Next phase</div>
+          <div class="stat-value text-primary">Phase 3</div>
+          <div class="stat-desc">Explanation knowledge + resolver</div>
+        </article>
+      </section>
+
+      <section class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">Architecture flow now implemented</h2>
+          <p class="opacity-80">The completed work implements the first two durable pipeline stages. Explanation resolution and UI remain intentionally out of scope.</p>
+          <div class="rounded-box bg-base-200 p-4 overflow-x-auto">
+            <pre class="mermaid">flowchart TD
+  A[SourceDocument\noriginal manifest JSON text] --> B[parser-json\nparseJsonDocument]
+  B --> C[ParseSnapshot\nSyntaxNode ADT + ranges + errors]
+  C --> D[manifest-domain\nbuildSemanticManifestSnapshot]
+  D --> E[SemanticManifestSnapshot\nmanifest concepts + breadcrumbs]
+  E --> F[Phase 3 next\nExplanation resolver]
+
+  subgraph Contracts[packages/contracts]
+    C1[Serializable contracts]
+    C2[Branded IDs]
+    C3[ADTs]
+  end
+
+  C -. shaped by .-> Contracts
+  E -. shaped by .-> Contracts</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-4 lg:grid-cols-2">
+        <article class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">Phase 1 deliverables</h2>
+            <ul class="list-disc pl-6 space-y-2">
+              <li><span class="font-semibold">Contracts:</span> <code>SourceDocument</code></code>, <code>SourceRange</code></code>, <code>SyntaxNode</code>, <code>ParseSnapshot</code>.</li>
+             </code> <li><span</code> class="font-semibold">Parser facade:</span> <code>parseJsonDocument(document)</code>.</li></code>
+              <li><span class="font-semibold">Adapter:</span> <code>jsonc-parser</code></code> hidden inside <code>packages/parser-json</code>.</li>
+              <li><span class="font-semibold">JSON-only MVP:</span> comments/trailing commas produce parse errors.</li</code>>
+              <li><span class="font-semibold">Range lookup:</span> smallest containing syntax node helper.</li>
+              <li><span class="font-semibold">Recovery:</span> invalid/partial JSON returns errors and recoverable nodes where practical.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">Phase 2 deliverables</h2>
+            <ul class="list-disc pl-6 space-y-2">
+              <li><span class="font-semibold">Semantic snapshot:</span> source-linked manifest concepts.</li>
+              <li><span class="font-semibold">Version detection:</span> MV2, MV3, missing, invalid.</li>
+              <li><span class="font-semibold">Known fields:</span> common PRD/HLD top-level fields.</li>
+              <li><span class="font-semibold">Selectable items:</span> permissions, host permissions, content script matches/files.</li>
+              <li><span class="font-semibold">Unknown fields:</span> preserved as semantic nodes.</li>
+              <li><span class="font-semibold">Navigation metadata:</span> normalized paths, breadcrumbs, parent/child references.</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">Evidence table</h2>
+          <p class="opacity-80">What changed and how it was proven.</p>
+          <div class="overflow-x-auto rounded-box border border-base-content/10">
+            <table class="table table-zebra evidence-table">
+              <thead>
+                <tr></thead></tr>
+                  <th>Area</th></th>
+                  <th>Files</th>
+</th>                  <th>Evidence</</th>th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Contracts</td>
+                  <td><code>packages/contracts/src/index.ts</code></td>
+                  <td>Parser + semantic ADTs, branded IDs, readonly serializable snapshots.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+                <tr>
+                  <td>Parser</td>
+                  <td><code>packages/parser-json/src/index.ts</code></td>
+                  <td>Source-aware JSON parser, deterministic IDs, range index, parse errors.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+                <tr>
+                  <td>Semantic model</td>
+                  <td</tbody></tr></td></code></td></tr></td></code></td></tr></td>><code></code>packages/manifest-domain/src/index.ts</code></td>
+                  <td>Pure</td> mapper from <code>ParseSnapshot</code> to <</code>code>SemanticManifestSnapshot</code>.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+                <tr>
+</tr>                  <td>Fixtures</</td>td>
+                  <td><code></code>fixtures/manifests/*.json</code></td>
+                  <td>Minimal</td> MV3, permissions, host permissions, content scripts, unknown fields, MV2, invalid/missing versions, common full manifest.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+                <tr>
+                  <</tr>td>Tests</td>
+                  <td><code>packages/*/src/*.test.ts</code>, <code></code></code>tests/*.test.ts</code></td>
+                  <td>Parser unit, semantic</td> unit, parser-to-semantic integration. 25 tests pass.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+                <tr>
+                  <td</tr>>Docs/memory</td>
+                  <td><code>docs</code>/journey/memory.md</code>, <code>docs</code>/journey/phase2.md</code></td>
+                  <td>Durable</td> phase status, validation results, scope boundaries, follow-ups.</td>
+                  <td><span class="badge badge-success">Done</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-4 lg:grid-cols-3">
+        <article class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">Validation commands</h2>
+            <div class="mockup-code text-sm">
+              <pre data-prefix="$"><code>npm run typecheck</code></pre</code>>
+              <pre data-prefix="$"><code>npm</code> run test</code></pre>
+              <pre data-prefix="$"><code>npm</code> run build</code></pre>
+            </div>
+            <p class="text-success font-semibold">All passed.</p>
+          </div>
+        </article>
+        <article class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">Specialist reviews</h2>
+            <ul class="space-y-2">
+              <li><span class="badge badge-success mr-2">QA</span> Coverage blockers resolved.</li>
+              <li><span class="badge badge-success mr-2">Staff Engineer</span> Boundaries passed.</li>
+              <li><span class="badge badge-success mr-2">Code Review</span> Approved after memory update.</li>
+            </ul>
+          </div>
+        </article>
+        <article class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">Kept out of scope</h2>
+            <ul class="list-disc pl-6">
+              <li>Explanation text</li>
+              <</li>li>Validation diagnostics</li>
+              <li>Fixes / health scoring</li>
+              <li>UI behavior</li>
+              <li>Worker/host integration</li>
+            </ul>
+          </div>
+</li></li></li>        </article>
+      </section>
+
+      <section class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">Follow-ups</h2>
+          <div class="overflow-x-auto rounded-box border border-base-content/10">
+            <table class="table table-zebra">
+              <thead></thead>
+                <tr>
+                  <th>Follow-up</th>
+                  <th>Why</th>
+                  <th>When</th>
+                </tr></tr></th></th></th>
+              </thead>
+              <tbody></tbody>
+                <tr>
+</tr>                  <td>Generate</td> <code>docs/journey</code>/phase3.md</code></td>
+                  <td>Phase 3</td> is next and needs an implementation guide for explanation knowledge/resolver.</td>
+                  <td><span class="badge badge-primary">Next</span></td>
+                </tr>
+                <tr>
+                  <td>Derive known-field</tr></td> list from one source</td>
+                  <td>Avoid drift between <code>ManifestFieldName</code></code> and domain known-field set.</td>
+                  <td><span class="badge badge-ghost">Later cleanup</span></td>
+                </tr>
+                <tr></tr>
+                  <td></td>Split test tsconfigs</td>
+                  <td>Keep</td> Node ambient test types away from production package compilation.</td>
+                  <td><span class="badge badge-ghost">Later cleanup</span></td>
+                </tr>
+                <tr>
+                  <td>Remove <code</tr></td>>passWithNoTests</code></td>
+                  <td>Now tests exist</td>; eventually make missing test discovery fail loudly.</td>
+                  <td><span class="badge badge-ghost">Later cleanup</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

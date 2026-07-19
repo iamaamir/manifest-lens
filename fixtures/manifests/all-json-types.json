@@ -1,0 +1,8 @@
+{
+  "string": "value",
+  "number": 1,
+  "boolean": true,
+  "nullValue": null,
+  "array": ["x"],
+  "object": { "nested": "y" }
+}

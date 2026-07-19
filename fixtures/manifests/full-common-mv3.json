@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Full Common Example",
+  "version": "1.0.0",
+  "description": "A manifest with common fields.",
+  "permissions": ["tabs", "storage", "activeTab", "scripting"],
+  "host_permissions": ["https://example.com/*", "https://*.example.org/*", "<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["https://example.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open"
+  },
+  "browser_action": {
+    "default_title": "Open MV2"
+  },
+  "page_action": {
+    "default_title": "Page"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      }
+    }
+  },
+  "options_ui": {
+    "page": "options.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["public.png"],
+      "matches": ["https://example.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "declarative_net_request": {
+    "rule_resources": []
+  }
+}
