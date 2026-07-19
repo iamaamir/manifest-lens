@@ -14,10 +14,9 @@ import {
 
 const MANIFEST_INSPECTOR_TAG = "manifest-inspector";
 
-const EMPTY_STATE_PROMPT =
-  "Paste or drop a manifest.json to understand what each field does.";
+const EMPTY_STATE_PROMPT = "Drop a manifest.json";
 const EMPTY_STATE_LOCAL_NOTE =
-  "Your manifest is processed locally in this browser.";
+  "Paste or drop a manifest.json here, or use Upload above. Processing stays local to this browser.";
 const SOURCE_KEYBOARD_INSTRUCTIONS =
   "Use arrow keys to move between explainable fields, Enter or Space to pin an explanation, and Escape to clear.";
 
@@ -96,74 +95,108 @@ const STYLE = `
     display: block;
     overflow: hidden;
     min-height: 360px;
-    --mi-color-background: oklch(99% 0.006 255);
-    --mi-color-surface: oklch(97.3% 0.012 255);
-    --mi-color-surface-raised: oklch(98.7% 0.006 255);
-    --mi-color-text: oklch(23% 0.033 255);
-    --mi-color-muted: oklch(48% 0.035 255);
-    --mi-color-border: oklch(87% 0.021 255);
-    --mi-color-highlight: oklch(94% 0.04 260);
-    --mi-color-pinned: oklch(91% 0.055 260);
-    --mi-color-hover: oklch(96% 0.035 260);
-    --mi-color-focus: oklch(52% 0.16 260);
-    --mi-font-ui: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --mi-font-code: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
+    color-scheme: dark;
+    --color-bg-canvas: #121214;
+    --color-bg-tree-pane: #16161A;
+    --color-bg-panel: #1B1B20;
+    --color-bg-header: #0D0D0F;
+    --color-bg-elevated: #202027;
+    --color-border-hairline: #2A2A31;
+    --color-border-focus: #5EEAD4;
+    --color-text-primary: #EDEDEF;
+    --color-text-secondary: #A6A6AE;
+    --color-text-tertiary: #6E6E78;
+    --color-text-explanation: #D9D9DE;
+    --color-accent-primary: #5EEAD4;
+    --color-accent-error: #F87171;
+    --color-json-key: #7DD3FC;
+    --color-json-string: #A7F3D0;
+    --color-json-number: #FDE68A;
+    --color-json-boolean: #F5A97F;
+    --color-json-null: #6E6E78;
+    --color-json-bracket: #6E6E78;
+    --mi-color-background: var(--color-bg-canvas);
+    --mi-color-surface: var(--color-bg-tree-pane);
+    --mi-color-surface-raised: var(--color-bg-elevated);
+    --mi-color-text: var(--color-text-primary);
+    --mi-color-muted: var(--color-text-secondary);
+    --mi-color-border: var(--color-border-hairline);
+    --mi-color-highlight: rgba(94, 234, 212, 0.14);
+    --mi-color-pinned: var(--color-bg-elevated);
+    --mi-color-hover: rgba(32, 32, 39, 0.72);
+    --mi-color-focus: var(--color-border-focus);
+    --mi-font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mi-font-code: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    --mi-radius-sm: 4px;
+    --mi-radius-md: 6px;
+    --mi-radius-lg: 10px;
     font-family: var(--mi-font-ui);
     color: var(--mi-color-text);
-    background: var(--mi-color-background);
-    border: 1px solid var(--mi-color-border);
-    border-radius: 18px;
-    box-shadow: inset 0 1px 0 oklch(99.5% 0.004 255 / 0.85);
+    background: var(--color-bg-canvas);
+    border: 0;
+    border-radius: 0;
   }
 
   .inspector {
     display: grid;
     min-height: inherit;
-    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
-    background: linear-gradient(90deg, transparent, transparent 50%, var(--mi-color-border) 50%, var(--mi-color-border));
+    grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+    background: var(--color-border-hairline);
+    gap: 1px;
   }
 
   @media (max-width: 820px) {
     .inspector {
       grid-template-columns: minmax(0, 1fr);
-      background: var(--mi-color-border);
-      gap: 1px;
     }
   }
 
   .source-pane,
   .explanation-pane {
     min-width: 0;
-    background: var(--mi-color-background);
     overflow: auto;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
   }
 
   .source-pane {
-    padding: 1rem;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 24px;
+    background: var(--color-bg-tree-pane);
+  }
+
+  .explanation-pane {
+    padding: 24px;
+    background: var(--color-bg-panel);
+    color: var(--color-text-explanation);
   }
 
   .pane-header {
     display: flex;
-    gap: 1rem;
+    gap: 16px;
     align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 0.85rem;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border-hairline);
   }
 
   .pane-title {
     margin: 0;
-    font-size: 0.82rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
+    color: var(--color-text-primary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
   .pane-kicker {
     margin: 0;
-    color: var(--mi-color-muted);
-    font-size: 0.82rem;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    line-height: 16px;
   }
 
   .source-instructions {
@@ -180,57 +213,63 @@ const STYLE = `
 
   .source-region {
     display: block;
-    border-radius: 14px;
+    border-radius: var(--mi-radius-lg);
   }
 
   .source-region:focus-visible {
-    outline: 3px solid oklch(70% 0.14 260 / 0.75);
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 3px;
   }
 
-  .explanation-pane {
-    padding: 1.15rem 1.25rem 1.35rem;
-  }
-
   .source-pre {
+    min-height: 100%;
     margin: 0;
-    padding: 1rem;
-    color: oklch(27% 0.032 255);
-    background: var(--mi-color-surface);
-    border: 1px solid var(--mi-color-border);
+    padding: 16px;
+    color: var(--color-text-secondary);
+    background: #101013;
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-lg);
     font-family: var(--mi-font-code);
-    font-size: 0.9rem;
-    line-height: 1.7;
+    font-size: 13px;
+    line-height: 20px;
     white-space: pre;
     tab-size: 2;
     overflow: auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
   }
 
   .source-node {
-    border-radius: 0.25rem;
+    border-radius: var(--mi-radius-sm);
     cursor: pointer;
     padding: 0 0.08em;
+    color: var(--color-json-key);
     background: transparent;
-    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+    transition:
+      background-color 120ms cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 120ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .source-node:hover {
     background: var(--mi-color-hover);
-    box-shadow: inset 0 -1px 0 0 oklch(68% 0.11 260);
+    box-shadow: inset 0 -1px 0 0 var(--color-accent-primary);
   }
 
   .source-node.is-active {
     background: var(--mi-color-highlight);
-    box-shadow: inset 0 -2px 0 0 var(--mi-color-focus);
+    box-shadow: inset 0 -2px 0 0 var(--color-accent-primary);
   }
 
   .source-node.is-pinned {
     background: var(--mi-color-pinned);
-    box-shadow: inset 0 -2px 0 0 var(--mi-color-focus);
+    box-shadow:
+      inset 0 -2px 0 0 var(--color-accent-primary),
+      0 0 0 1px rgba(94, 234, 212, 0.16);
   }
 
   .source-node.is-structural {
     padding-inline: 0;
+    color: var(--color-json-bracket);
     cursor: default;
   }
 
@@ -250,97 +289,156 @@ const STYLE = `
   .source-node.is-representative-focused {
     background: var(--mi-color-highlight);
     box-shadow:
-      inset 0 -2px 0 0 var(--mi-color-focus),
-      0 0 0 2px oklch(70% 0.14 260 / 0.28);
+      inset 0 -2px 0 0 var(--color-accent-primary),
+      0 0 0 2px rgba(94, 234, 212, 0.3);
   }
 
   .explanation-title {
-    margin: 0 0 0.45rem;
-    font-size: clamp(1.25rem, 2vw, 1.55rem);
-    line-height: 1.22;
-    letter-spacing: -0.025em;
+    display: inline-block;
+    max-width: 100%;
+    margin: 0 0 16px;
+    padding: 4px 8px;
+    color: var(--color-text-primary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-sm);
+    font-family: var(--mi-font-code);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    overflow-wrap: anywhere;
   }
 
   .explanation-breadcrumb {
     width: fit-content;
     max-width: 100%;
-    margin: 0 0 0.85rem;
-    padding: 0.28rem 0.52rem;
-    color: var(--mi-color-muted);
-    background: var(--mi-color-surface);
-    border: 1px solid var(--mi-color-border);
-    border-radius: 999px;
-    font-family: var(--mi-font-code);
-    font-size: 0.76rem;
+    margin: 0 0 16px;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     overflow-wrap: anywhere;
   }
 
   .explanation-summary {
-    margin: 0 0 0.9rem;
-    color: oklch(31% 0.034 255);
-    font-size: 1rem;
-    line-height: 1.65;
+    margin: 0 0 16px;
+    color: var(--color-text-explanation);
+    font-size: 14px;
+    line-height: 22px;
   }
 
   .explanation-details {
-    margin: 0 0 1rem;
-    padding-left: 1.2rem;
-    color: oklch(34% 0.033 255);
-    line-height: 1.65;
+    margin: 0 0 20px;
+    padding-left: 20px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 22px;
   }
 
   .explanation-details li + li,
   .explanation-docs li + li {
-    margin-top: 0.35rem;
+    margin-top: 8px;
   }
 
   .explanation-section-label {
-    margin: 0 0 0.25rem;
-    font-size: 0.8125rem;
+    margin: 0 0 8px;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
     font-weight: 600;
-    color: var(--mi-color-muted);
+    line-height: 16px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   .explanation-docs {
     margin: 0;
-    padding-left: 1.25rem;
-    line-height: 1.6;
+    padding-left: 20px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .explanation-docs a {
+    color: var(--color-accent-primary);
+    text-underline-offset: 3px;
+  }
+
+  .explanation-docs a:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--mi-radius-sm);
   }
 
   .explanation-empty {
-    color: var(--mi-color-muted);
-    line-height: 1.6;
+    display: grid;
+    min-height: 240px;
+    place-content: center;
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    line-height: 22px;
+    text-align: center;
   }
 
   .empty-state {
     display: grid;
     place-content: center;
+    justify-items: center;
     min-height: 320px;
-    margin: auto;
-    max-width: 38rem;
-    padding: 2.5rem 1.5rem;
+    margin: 0;
+    padding: 32px 24px;
     text-align: center;
   }
 
+  .empty-glyph {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 16px;
+    color: var(--color-text-tertiary);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-lg);
+    font-family: var(--mi-font-code);
+    font-size: 20px;
+    line-height: 1;
+  }
+
   .empty-state h2 {
-    margin: 0 0 0.6rem;
-    font-size: clamp(1.35rem, 3vw, 2rem);
-    line-height: 1.15;
-    letter-spacing: -0.035em;
+    margin: 0 0 8px;
+    color: var(--color-text-primary);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 32px;
+    letter-spacing: -0.03em;
   }
 
   .empty-state p {
+    max-width: 30rem;
     margin: 0;
-    color: var(--mi-color-muted);
-    font-size: 0.98rem;
-    line-height: 1.55;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 22px;
   }
 
   :host(:focus-visible) {
-    outline: 3px solid oklch(70% 0.14 260 / 0.75);
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 3px;
+  }
+
+  @media (max-width: 820px) {
+    .source-pane,
+    .explanation-pane {
+      padding: 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .source-node {
+      transition-duration: 0.01ms;
+    }
   }
 
   @media (prefers-contrast: more) {
@@ -409,8 +507,17 @@ export class ManifestInspectorElement extends HTMLElement {
     const container = document.createElement("section");
     container.className = "inspector";
 
+    const sourcePane = document.createElement("section");
+    sourcePane.className = "source-pane";
+    sourcePane.setAttribute("part", "source-pane");
+
     const emptyState = document.createElement("div");
     emptyState.className = "empty-state";
+
+    const glyph = document.createElement("div");
+    glyph.className = "empty-glyph";
+    glyph.setAttribute("aria-hidden", "true");
+    glyph.textContent = "{ }";
 
     const heading = document.createElement("h2");
     heading.textContent = EMPTY_STATE_PROMPT;
@@ -418,8 +525,20 @@ export class ManifestInspectorElement extends HTMLElement {
     const note = document.createElement("p");
     note.textContent = EMPTY_STATE_LOCAL_NOTE;
 
-    emptyState.append(heading, note);
-    container.append(emptyState);
+    emptyState.append(glyph, heading, note);
+    sourcePane.append(emptyState);
+
+    const explanationPane = document.createElement("section");
+    explanationPane.className = "explanation-pane";
+    explanationPane.setAttribute("part", "explanation-panel");
+
+    const placeholder = document.createElement("p");
+    placeholder.className = "explanation-empty";
+    placeholder.textContent =
+      "Hover any field once your manifest loads, and its explanation appears here.";
+    explanationPane.append(placeholder);
+
+    container.append(sourcePane, explanationPane);
 
     this.root.replaceChildren(style, container);
   }
@@ -654,7 +773,7 @@ export class ManifestInspectorElement extends HTMLElement {
       const empty = document.createElement("p");
       empty.className = "explanation-empty";
       empty.textContent =
-        "Select a highlighted field in the manifest to see what it does.";
+        "Hover any field once your manifest loads, and its explanation appears here.";
       fragment.append(empty);
       return fragment;
     }

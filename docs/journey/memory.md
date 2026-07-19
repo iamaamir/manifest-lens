@@ -239,6 +239,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 5 UI reset Slice 1 implemented by an internal Frontend Engineer specialist and coordinator-reviewed: the app now has an Observatory shell with near-black sticky-header canvas, compact integrated paste/upload/clear controls, dark source/prose panes, quiet in-inspector empty state, and preserved existing local analysis/source/hover/pin/keyboard/privacy behavior.
+- Slice 1 validation passed after coordinator rerun: `npm run typecheck`, `npm run test` (8 files, 145 tests), `npm run build`, `npm run build --workspace=@mvviewer/web`, `git diff --check`; static greps showed expected test/generated-output matches only, not new production source-injection/network/scope-creep paths.
 - User rejected the current Phase 5 UI as AI slop with bad UX. `design.md` is now the durable UI design source of truth for the Phase 5 UI reset.
 - Target concept is “The Observatory”: a near-black precision manifest inspection instrument where the source/tree pane and explanation pane are the product surface.
 - Frontend/UI work for this reset should use internal Product Designer, Manifest UX/domain, E2E/UX QA, and Frontend Engineer specialists. External agents/OpenCode are paused for frontend/UI work unless the user explicitly re-allows them.

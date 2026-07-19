@@ -3,24 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manifest Explainer — Web Extension Manifest Inspector</title>
+    <title>Manifest Inspector</title>
     <style>
       :root {
-        color-scheme: light;
-        --app-bg: oklch(97.8% 0.012 255);
-        --app-surface: oklch(99% 0.006 255);
-        --app-surface-muted: oklch(96.2% 0.014 255);
-        --app-text: oklch(24% 0.032 255);
-        --app-muted: oklch(47% 0.035 255);
-        --app-border: oklch(87% 0.02 255);
-        --app-accent: oklch(52% 0.16 260);
-        --app-accent-strong: oklch(43% 0.18 260);
-        --app-accent-soft: oklch(94.5% 0.035 260);
-        --app-error: oklch(48% 0.17 29);
-        --app-error-soft: oklch(95% 0.035 29);
-        --app-shadow: 0 18px 50px oklch(42% 0.04 255 / 0.12);
-        --app-font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --app-font-code: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
+        color-scheme: dark;
+        --color-bg-canvas: #121214;
+        --color-bg-tree-pane: #16161a;
+        --color-bg-panel: #1b1b20;
+        --color-bg-header: #0d0d0f;
+        --color-bg-elevated: #202027;
+        --color-border-hairline: #2a2a31;
+        --color-border-focus: #5eead4;
+        --color-text-primary: #ededef;
+        --color-text-secondary: #a6a6ae;
+        --color-text-tertiary: #6e6e78;
+        --color-text-explanation: #d9d9de;
+        --color-accent-primary: #5eead4;
+        --color-accent-error: #f87171;
+        --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
       }
 
       * {
@@ -31,11 +32,11 @@
         margin: 0;
         min-width: 320px;
         min-height: 100vh;
-        color: var(--app-text);
+        color: var(--color-text-primary);
         background:
-          radial-gradient(circle at 8% 0%, oklch(94% 0.035 260) 0, transparent 30rem),
-          linear-gradient(180deg, var(--app-bg), oklch(95.8% 0.01 255));
-        font-family: var(--app-font-ui);
+          radial-gradient(circle at 16% -10%, rgba(94, 234, 212, 0.08), transparent 30rem),
+          linear-gradient(180deg, #121214 0%, #0f0f12 100%);
+        font-family: var(--font-sans);
       }
 
       button,
@@ -46,64 +47,110 @@
 
       button:focus-visible,
       textarea:focus-visible,
-      input:focus-visible {
-        outline: 3px solid oklch(70% 0.14 260 / 0.8);
+      input:focus-visible,
+      .upload-button:focus-within {
+        outline: 2px solid var(--color-border-focus);
         outline-offset: 2px;
       }
 
-      .page-shell {
-        width: min(1180px, calc(100% - 32px));
-        margin: 0 auto;
-        padding: 32px 0 40px;
-      }
-
-      .hero {
+      .app-frame {
+        min-height: 100vh;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 24px;
-        align-items: end;
-        margin-bottom: 22px;
+        grid-template-rows: auto 1fr;
       }
 
-      .eyebrow {
-        margin: 0 0 8px;
-        color: var(--app-accent-strong);
-        font-size: 0.76rem;
-        font-weight: 750;
-        letter-spacing: 0.11em;
-        text-transform: uppercase;
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 24px;
+        background: var(--color-bg-header);
+        border-bottom: 1px solid var(--color-border-hairline);
       }
 
-      h1 {
-        margin: 0;
-        max-width: 760px;
-        font-size: clamp(2rem, 4.8vw, 4.25rem);
-        line-height: 0.98;
-        letter-spacing: -0.055em;
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
       }
 
-      .hero-copy {
-        margin: 14px 0 0;
-        max-width: 680px;
-        color: var(--app-muted);
-        font-size: clamp(1rem, 1.6vw, 1.18rem);
-        line-height: 1.55;
-      }
-
-      .privacy-note {
-        max-width: 20rem;
-        margin: 0;
-        padding: 12px 14px;
-        color: var(--app-muted);
-        background: oklch(99% 0.006 255 / 0.78);
-        border: 1px solid var(--app-border);
+      .brand-mark {
+        width: 8px;
+        height: 8px;
+        flex: none;
         border-radius: 999px;
-        font-size: 0.88rem;
-        line-height: 1.35;
-        box-shadow: 0 10px 28px oklch(42% 0.04 255 / 0.07);
+        background: var(--color-accent-primary);
+        box-shadow: 0 0 20px rgba(94, 234, 212, 0.48);
       }
 
-      .visually-hidden:not(:focus-within, :active) {
+      .brand-name {
+        margin: 0;
+        color: var(--color-text-primary);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+
+      .header-status {
+        margin: 0;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+        line-height: 20px;
+      }
+
+      .header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex: none;
+      }
+
+      button,
+      .upload-button {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 20px;
+      }
+
+      #clear-button {
+        color: var(--color-text-secondary);
+        background: transparent;
+      }
+
+      #clear-button:hover {
+        color: var(--color-text-primary);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .upload-button,
+      #analyze-button {
+        color: var(--color-bg-header);
+        background: var(--color-accent-primary);
+      }
+
+      .upload-button:hover,
+      #analyze-button:hover {
+        filter: brightness(1.08);
+      }
+
+      .visually-hidden:not(:focus, :focus-within, :active) {
         position: absolute !important;
         width: 1px !important;
         height: 1px !important;
@@ -116,223 +163,223 @@
       }
 
       #app {
+        width: min(1440px, 100%);
+        min-height: calc(100vh - 56px);
+        margin: 0 auto;
         display: grid;
-        gap: 18px;
+        grid-template-rows: auto minmax(0, 1fr);
+        padding: 16px;
       }
 
-      .input-panel,
-      .inspector-card {
-        background: oklch(99% 0.006 255 / 0.94);
-        border: 1px solid var(--app-border);
-        border-radius: 24px;
-        box-shadow: var(--app-shadow);
-      }
-
-      .input-panel {
+      .control-dock {
         display: grid;
-        gap: 16px;
-        padding: 18px;
+        grid-template-columns: minmax(18rem, 32rem) auto minmax(12rem, 1fr);
+        gap: 12px;
+        align-items: end;
+        padding: 12px;
+        background: var(--color-bg-panel);
+        border: 1px solid var(--color-border-hairline);
+        border-bottom: 0;
+        border-radius: 10px 10px 0 0;
       }
 
-      .input-panel-header {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 18px;
-        align-items: baseline;
-        justify-content: space-between;
-      }
-
-      .input-panel h2 {
-        margin: 0;
-        font-size: 1rem;
-        line-height: 1.3;
-      }
-
-      .input-help {
-        margin: 0;
-        color: var(--app-muted);
-        font-size: 0.92rem;
-        line-height: 1.45;
+      .input-group {
+        display: grid;
+        gap: 6px;
       }
 
       label[for="manifest-input"] {
-        display: inline-flex;
-        width: fit-content;
-        color: var(--app-muted);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
+        color: var(--color-text-tertiary);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
       }
 
       #manifest-input {
         width: 100%;
-        min-height: 180px;
+        min-height: 72px;
+        max-height: 128px;
         resize: vertical;
-        padding: 16px;
-        color: var(--app-text);
-        background: var(--app-surface-muted);
-        border: 1px solid var(--app-border);
-        border-radius: 16px;
-        font-family: var(--app-font-code);
-        font-size: 0.92rem;
-        line-height: 1.6;
-        box-shadow: inset 0 1px 0 oklch(99.5% 0.004 255 / 0.82);
+        padding: 10px 12px;
+        color: var(--color-text-primary);
+        background: var(--color-bg-tree-pane);
+        border: 1px solid var(--color-border-hairline);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 20px;
       }
 
       #manifest-input::placeholder {
-        color: oklch(58% 0.03 255);
+        color: var(--color-text-tertiary);
       }
 
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-      }
-
-      button {
-        min-height: 42px;
-        padding: 0 16px;
-        border: 1px solid transparent;
-        border-radius: 999px;
-        cursor: pointer;
-        font-weight: 720;
-      }
-
-      #analyze-button {
-        color: oklch(98.5% 0.008 255);
-        background: var(--app-accent);
-        box-shadow: 0 9px 22px oklch(52% 0.16 260 / 0.24);
-      }
-
-      #analyze-button:hover {
-        background: var(--app-accent-strong);
-      }
-
-      #clear-button {
-        color: var(--app-text);
-        background: var(--app-surface);
-        border-color: var(--app-border);
-      }
-
-      #clear-button:hover {
-        background: var(--app-surface-muted);
-      }
-
-      #file-input {
-        max-width: 100%;
-        color: var(--app-muted);
-        font-size: 0.9rem;
-      }
-
-      #file-input::file-selector-button {
-        min-height: 42px;
-        margin-right: 10px;
-        padding: 0 14px;
-        color: var(--app-accent-strong);
-        background: var(--app-accent-soft);
-        border: 1px solid oklch(83% 0.055 260);
-        border-radius: 999px;
-        cursor: pointer;
-        font: inherit;
-        font-weight: 720;
+      .dock-copy {
+        margin: 0;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+        line-height: 20px;
       }
 
       #status-message {
-        min-height: 1.45em;
+        min-height: 20px;
         margin: 0;
-        color: var(--app-muted);
-        font-size: 0.92rem;
-        line-height: 1.45;
+        justify-self: end;
+        color: var(--color-text-secondary);
+        font-size: 13px;
+        line-height: 20px;
       }
 
       #status-message:not(:empty) {
-        width: fit-content;
         max-width: 100%;
-        padding: 8px 12px;
-        background: var(--app-accent-soft);
-        border: 1px solid oklch(86% 0.04 260);
-        border-radius: 999px;
+        padding: 7px 10px;
+        background: var(--color-bg-elevated);
+        border: 1px solid var(--color-border-hairline);
+        border-radius: 6px;
       }
 
       #status-message[data-kind="error"] {
-        color: var(--app-error);
-        background: var(--app-error-soft);
-        border-color: oklch(84% 0.06 29);
+        color: var(--color-accent-error);
       }
 
-      .inspector-card {
-        padding: 10px;
+      .inspector-shell {
+        min-height: 0;
+        background: var(--color-bg-tree-pane);
+        border: 1px solid var(--color-border-hairline);
+        border-radius: 0 0 10px 10px;
+        overflow: hidden;
       }
 
-      #inspector-host {
-        min-height: 360px;
+      #inspector-host,
+      #inspector-host manifest-inspector {
+        min-height: calc(100vh - 176px);
       }
 
-      @media (max-width: 760px) {
-        .page-shell {
-          width: min(100% - 20px, 1180px);
-          padding-top: 18px;
+      @media (max-width: 900px) {
+        .app-header {
+          padding: 0 16px;
         }
 
-        .hero {
+        .header-status {
+          display: none;
+        }
+
+        #app {
+          padding: 12px;
+        }
+
+        .control-dock {
+          grid-template-columns: 1fr auto;
+        }
+
+        .dock-copy,
+        #status-message {
+          grid-column: 1 / -1;
+          justify-self: start;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app-header {
+          height: 48px;
+          gap: 10px;
+        }
+
+        .brand-name {
+          font-size: 14px;
+        }
+
+        .header-actions {
+          gap: 6px;
+        }
+
+        #clear-button {
+          padding-inline: 10px;
+        }
+
+        .upload-button {
+          padding-inline: 12px;
+        }
+
+        #app {
+          min-height: calc(100vh - 48px);
+          padding: 8px;
+        }
+
+        .control-dock {
           grid-template-columns: 1fr;
-          align-items: start;
+          border-radius: 8px 8px 0 0;
         }
 
-        .privacy-note {
-          border-radius: 16px;
+        #analyze-button {
+          width: 100%;
         }
 
-        .input-panel,
-        .inspector-card {
-          border-radius: 18px;
+        .inspector-shell {
+          border-radius: 0 0 8px 8px;
+        }
+
+        #inspector-host,
+        #inspector-host manifest-inspector {
+          min-height: calc(100vh - 248px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Local manifest explainer</p>
-          <h1>Hover your manifest. Understand every field.</h1>
-          <p class="hero-copy">
-            Paste, choose, or drop a manifest.json to inspect the original source beside clear explanations.
-          </p>
+    <div class="app-frame">
+      <header class="app-header">
+        <div class="brand" aria-label="Manifest Inspector">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <p class="brand-name">Manifest Inspector</p>
         </div>
-        <p class="privacy-note">Processed locally in this browser. No manifest upload required.</p>
+        <p class="header-status">Local-first manifest explanations</p>
+        <div class="header-actions">
+          <button type="button" id="clear-button">Clear</button>
+          <label class="upload-button" for="file-input">Upload</label>
+          <input
+            class="visually-hidden"
+            type="file"
+            id="file-input"
+            accept="application/json,.json"
+            aria-label="Choose a manifest.json file"
+          />
+        </div>
       </header>
 
-      <main id="app">
-        <section class="input-panel">
-          <div class="input-panel-header">
-            <h2>Load a manifest</h2>
-            <p class="input-help">Paste JSON below, use the file picker, or drop a manifest onto the inspector.</p>
+      <main id="app" aria-labelledby="app-heading">
+        <h1 id="app-heading" class="visually-hidden">Manifest Inspector</h1>
+        <section class="control-dock" aria-labelledby="input-heading">
+          <div class="input-group">
+            <h2 id="input-heading" class="visually-hidden">Load a manifest</h2>
+            <label for="manifest-input">Paste manifest JSON</label>
+            <textarea
+              id="manifest-input"
+              rows="3"
+              spellcheck="false"
+              placeholder='{ "manifest_version": 3, "name": "Example", "version": "1.0.0" }'
+            ></textarea>
           </div>
-          <label for="manifest-input">Manifest source</label>
-          <textarea
-            id="manifest-input"
-            rows="8"
-            spellcheck="false"
-            placeholder='{ "manifest_version": 3, "name": "Example", "version": "1.0.0" }'
-          ></textarea>
-          <div class="actions">
-            <button type="button" id="analyze-button">Analyze locally</button>
-            <input
-              type="file"
-              id="file-input"
-              accept="application/json,.json"
-              aria-label="Choose a manifest.json file"
-            />
-            <button type="button" id="clear-button">Clear</button>
-          </div>
+          <button type="button" id="analyze-button">Analyze locally</button>
+          <p class="dock-copy">Drop a manifest.json onto the inspector, paste here, or upload a local file.</p>
           <p id="status-message" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="inspector-card" aria-labelledby="inspector-heading">
-          <h2 id="inspector-heading" class="visually-hidden">Manifest inspector</h2>
+        <section class="inspector-shell" aria-labelledby="inspector-heading">
+          <h2 id="inspector-heading" class="visually-hidden">Manifest inspector workspace</h2>
           <div id="inspector-host"></div>
         </section>
       </main>

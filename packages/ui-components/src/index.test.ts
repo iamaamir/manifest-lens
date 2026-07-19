@@ -222,10 +222,11 @@ describe("manifest-inspector empty state", () => {
     const host = mountInspector();
     const shadow = host.shadowRoot;
     const text = shadow?.textContent ?? "";
+    expect(text).toContain("Drop a manifest.json");
     expect(text).toContain(
-      "Paste or drop a manifest.json to understand what each field does.",
+      "Paste or drop a manifest.json here, or use Upload above.",
     );
-    expect(text).toContain("Your manifest is processed locally in this browser.");
+    expect(text).toContain("Processing stays local to this browser.");
     expect(text).not.toMatch(/diagnos|fix|health score|report|audit/i);
     host.remove();
   });
@@ -301,9 +302,7 @@ describe("manifest-inspector snapshot rendering", () => {
     host.loadSnapshot(makeSnapshot());
     host.clear();
     const text = host.shadowRoot?.textContent ?? "";
-    expect(text).toContain(
-      "Paste or drop a manifest.json to understand what each field does.",
-    );
+    expect(text).toContain("Drop a manifest.json");
     host.remove();
   });
 });
