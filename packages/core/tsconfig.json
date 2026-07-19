@@ -3,7 +3,14 @@
   "compilerOptions": {
     "composite": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../contracts" },
+    { "path": "../parser-json" },
+    { "path": "../manifest-domain" },
+    { "path": "../knowledge" }
+  ]
 }

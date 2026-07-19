@@ -181,6 +181,47 @@ export interface SemanticManifestSnapshot {
   readonly nodes: readonly SemanticNode[];
 }
 
+export type ExplanationId = Brand<string, "ExplanationId">;
+
+export interface DocumentationLink {
+  readonly label: string;
+  readonly url: string;
+}
+
+export interface ManifestExample {
+  readonly title: string;
+  readonly code: string;
+  readonly summary?: string;
+}
+
+export type FallbackExplanationReason =
+  | "unknown-field"
+  | "unknown-permission"
+  | "unknown-host-permission"
+  | "unknown-node-kind";
+
+export type ExplanationSource =
+  | { readonly kind: "knowledge"; readonly packId: string }
+  | { readonly kind: "fallback"; readonly reason: FallbackExplanationReason };
+
+export interface Explanation {
+  readonly id: ExplanationId;
+  readonly title: string;
+  readonly summary: string;
+  readonly details: readonly string[];
+  readonly relatedFields: readonly string[];
+  readonly examples: readonly ManifestExample[];
+  readonly docsLinks: readonly DocumentationLink[];
+  readonly source: ExplanationSource;
+}
+
+export interface AnalysisSnapshot {
+  readonly document: SourceDocument;
+  readonly parse: ParseSnapshot;
+  readonly semantic: SemanticManifestSnapshot;
+  readonly explanationsByNodeId: Readonly<Record<SemanticNodeId, Explanation>>;
+}
+
 export function assertNever(value: never): never {
   throw new Error(`Unexpected value: ${JSON.stringify(value)}`);
 }

@@ -5,5 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mvviewer/contracts": "0.0.0",
+    "@mvviewer/parser-json": "0.0.0",
+    "@mvviewer/manifest-domain": "0.0.0",
+    "@mvviewer/knowledge": "0.0.0"
   }
 }

@@ -53,7 +53,9 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 3 — Explanation Knowledge and Resolver is active/planned. Implementation has not started.
+Phase 4 — Application State and Interaction Model is next.
+
+Phase 3 — Explanation Knowledge and Resolver is complete, reviewed, and validated.
 
 Phase 2 — Semantic Manifest Model is complete, reviewed, and validated.
 
@@ -223,6 +225,13 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 3 implementation completed by external OpenCode agents on branch `ai-team-workflow-experiment` and accepted after coordinator synthesis plus specialist re-review.
+- Added serializable explanation contracts in `packages/contracts`, a static UI-independent knowledge registry/resolver in `packages/knowledge`, and a headless `analyzeManifest` core facade in `packages/core` that composes parser → semantic mapper → explanation resolver.
+- Phase 3 boundary fix completed: `packages/knowledge` resolves only `Readonly<Record<SemanticNodeId, Explanation>>`; `packages/core` constructs `AnalysisSnapshot` using the real `parseSnapshot` and `semanticSnapshot`.
+- Phase 3 review fixes completed: no `as never` remains, unknown host-permission fallback is reachable and covered by tests, explanation copy was neutralized away from advisory/risk/security-audit framing, and unused `@mvviewer/manifest-domain` dependency/reference was removed from `packages/knowledge`.
+- Phase 3 validation passed locally: `npm run typecheck`, `npm run test` (5 files, 50 tests), and `npm run build`.
+- Phase 3 specialist reviews passed after fixes: Staff Engineer package-boundary/architecture re-review passed, Code Reviewer re-review passed, and QA re-review passed.
+- Important follow-up: `packages/core/tsconfig.json` currently includes Node ambient types for fixture-reading tests; acceptable for now because production core remains headless, but consider moving fixture-heavy integration tests to root `tests/` or a test-specific tsconfig later.
 - Phase 3 planning completed for Explanation Knowledge and Resolver.
 - Created `docs/journey/phase3.md` as the implementation guide.
 - Created external-agent-ready task brief `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
