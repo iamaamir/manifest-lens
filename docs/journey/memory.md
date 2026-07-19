@@ -233,6 +233,11 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Staff Engineer and QA read-only reviews completed for architecture and quality through Phase 4 on branch `ai-team-workflow-experiment`; both passed with no blockers for starting Phase 5.
+- Staff review confirmed PRD/HLD alignment, clean dependency direction, pure serializable contracts/snapshots, no parser-library/DOM/host leakage into shared core packages, and no diagnostics/fixes/health-score/remote/AI scope creep in implemented packages.
+- QA review confirmed Phase 1–4 behavior coverage is strong across parser, semantic model, knowledge/core, and application state; QA ran `npm run test` and it passed locally (6 files, 90 tests).
+- Phase 5 guardrails from reviews: keep UI MVP explainer-only despite future-facing HLD diagnostic/report/security examples; add package dependencies and TypeScript project references as soon as `ui-components`, `host-web`, and `apps/web` begin importing workspace packages; add component/interaction/accessibility tests early.
+- Non-blocking follow-ups from reviews: update `fixtures/manifests/README.md` from planned to actual fixture catalog, consider removing `passWithNoTests: true`, consider lightweight automated package-boundary checks, and later remove Node ambient types from platform-independent package tsconfigs where only tests need Node.
 - External-agent workflow updated to avoid hardcoding OpenCode models: use local OpenCode default unless the user selects a specific model/capacity; Big Pickle is a known user preference to offer for larger/riskier tasks, not a default flag to force.
 - Updated `docs/agents/external-agents.md`, `docs/agents/external-quickstart.md`, `docs/agents/workflow.md`, `AGENTS.md`, and this memory file with the model-selection/native-delegation policy.
 - Phase 4 implementation completed by external OpenCode agents on branch `ai-team-workflow-experiment` and accepted after coordinator synthesis plus Staff Engineer, Code Reviewer, and QA re-reviews.
