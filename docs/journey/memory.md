@@ -53,7 +53,9 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 4 — Application State and Interaction Model is next.
+Phase 5 — Web Components UI MVP is next.
+
+Phase 4 — Application State and Interaction Model is complete, reviewed, and validated.
 
 Phase 3 — Explanation Knowledge and Resolver is complete, reviewed, and validated.
 
@@ -212,6 +214,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Open Working Questions
 
+- Phase 4 implementation guide exists: `docs/journey/phase4.md`.
+- Phase 4 external-agent task brief completed and moved to `docs/agents/tasks/done/phase4-application-state.md`.
 - Phase 3 implementation guide exists: `docs/journey/phase3.md`.
 - Phase 3 external-agent-ready task brief exists: `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
 - External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with compact repo-native onboarding.
@@ -227,6 +231,14 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 4 implementation completed by external OpenCode agents on branch `ai-team-workflow-experiment` and accepted after coordinator synthesis plus Staff Engineer, Code Reviewer, and QA re-reviews.
+- Added headless `@mvviewer/application` state/reducer/selectors for snapshot readiness, hover preview, pinned selection, active-node selection, click/tap selection, focus, and deterministic wrapped keyboard navigation over explainable semantic nodes.
+- `packages/application` depends only on `@mvviewer/contracts`; package metadata and TypeScript project reference match.
+- Phase 4 review fix completed: `node/focus`, `node/hover`, and `node/select` reject unknown/non-navigable IDs by requiring both `snapshot.semantic.nodes` membership and an explanation entry in `snapshot.explanationsByNodeId`.
+- Phase 4 tests now cover focus validation, orphan explanation IDs, hover/pin/restore behavior, touch via select, clear selection, keyboard navigation/wrapping, serializability, and absence of diagnostics/fixes/health-score concepts.
+- Phase 4 validation passed locally: `npm run typecheck`, `npm run test` (6 files, 90 tests), and `npm run build`.
+- No DOM/UI/host integration, diagnostics, fixes, health scores, remote behavior, or AI-generated behavior were introduced.
+- Non-blocking follow-up: `getActiveNodeId` trusts reducer-maintained focused-node invariants for arbitrary externally constructed state; acceptable for Phase 4, but future rehydration hardening may defensively validate focused IDs.
 - External-agent workflow improved to reduce token bloat and back-and-forth: added compact onboarding `docs/agents/external-quickstart.md`, self-review template `docs/agents/templates/external-self-review.md`, known-traps guidance in task briefs, and report/self-review requirements.
 - Future coordinators should use small task briefs plus known traps, one external implementation/fix run at a time by default, internal sub-agents for parallel read-only review, and one narrow external fix run only when review finds blockers.
 - Updated `docs/agents/external-agents.md`, `docs/agents/workflow.md`, `docs/agents/templates/task-brief.md`, `docs/agents/templates/agent-report.md`, and `AGENTS.md` to codify this policy.
