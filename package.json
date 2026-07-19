@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "build": "tsc -b",
+    "build:app:web": "npm run build --workspace=@mvviewer/web",
+    "local:preview": "npm run build:app:web && npx serve apps/web/dist",
     "typecheck": "tsc -b --pretty",
     "test": "vitest run",
     "test:watch": "vitest",

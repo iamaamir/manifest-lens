@@ -221,6 +221,30 @@ Suggested metrics:
 - User feedback on whether an explanation was helpful.
 - Time from manifest import to first explanation viewed.
 
+## Local Production Smoke Check
+
+Use Vite's production build or preview path when checking the web app locally:
+
+```sh
+npm run build:app:web
+npm run preview --workspace=@mvviewer/web
+```
+
+For the easiest local production smoke check, build and serve the generated `apps/web/dist` directory with one command:
+
+```sh
+npm run local:preview
+```
+
+Or run the build and static server separately:
+
+```sh
+npm run build:app:web
+npx serve apps/web/dist
+```
+
+Serving `apps/web` directly is not a production build. Its source `index.html` references `/src/main.ts`, and generic static servers may send `.ts` files as `video/mp2t`, causing strict browser module MIME errors.
+
 ## Quality Bar
 
 The first release should feel:
