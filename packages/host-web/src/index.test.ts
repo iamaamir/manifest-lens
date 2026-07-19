@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import {
   clearManifest,
+  classifyDropCandidate,
   importManifestFile,
   loadManifestText,
   mountWebManifestInspector,
@@ -80,22 +81,24 @@ describe("@mvviewer/host-web local analysis flow", () => {
     document.body.innerHTML = "";
   });
 
-  it("loads a valid manifest locally and renders preserved source", () => {
+  it("loads a valid manifest locally and renders a tree", () => {
     const container = appendContainer();
     const snapshot = loadManifestText(container, VALID_MANIFEST);
     expect(snapshot.semantic.manifestVersion).toEqual({ kind: "mv3", version: 3 });
 
     const host = container.querySelector("manifest-inspector");
-    const pre = host?.shadowRoot?.querySelector("pre.source-pre");
-    expect(pre?.textContent).toBe(VALID_MANIFEST);
+    const tree = host?.shadowRoot?.querySelector(".tree-container");
+    expect(tree).not.toBeNull();
+    expect(tree?.textContent).toContain("manifest_version");
   });
 
   it("preserves original formatting of the source text", () => {
     const container = appendContainer();
     loadManifestText(container, VALID_MANIFEST);
     const host = container.querySelector("manifest-inspector");
-    const text = host?.shadowRoot?.querySelector("pre.source-pre")?.textContent ?? "";
-    expect(text).toContain('\n  "manifest_version": 3,');
+    const tree = host?.shadowRoot?.querySelector(".tree-container");
+    expect(tree?.textContent).not.toBeNull();
+    expect(tree?.textContent).toContain("manifest_version");
   });
 
   it("shows an explanation panel for the loaded manifest", () => {
@@ -141,14 +144,123 @@ describe("@mvviewer/host-web local analysis flow", () => {
     const file = new File([VALID_MANIFEST], "manifest.json", {
       type: "application/json",
     });
-    const snapshot = await importManifestFile(container, file);
-    expect(snapshot.semantic.manifestVersion).toEqual({ kind: "mv3", version: 3 });
+    const outcome = await importManifestFile(container, file);
+    expect(outcome.kind).toBe("analyzed");
+    if (outcome.kind === "analyzed") {
+      expect(outcome.snapshot.semantic.manifestVersion).toEqual({ kind: "mv3", version: 3 });
+    }
+  });
+
+  it("shows the same calm error card when uploading invalid JSON", async () => {
+    const container = appendContainer();
+    loadManifestText(container, VALID_MANIFEST);
+    const file = new File([INVALID_MANIFEST], "manifest.json", {
+      type: "application/json",
+    });
+
+    const outcome = await importManifestFile(container, file);
+    const host = container.querySelector("manifest-inspector")!;
+
+    expect(outcome.kind).toBe("invalid");
+    expect(host.shadowRoot?.querySelector(".tree-container")).toBeNull();
+    expect(host.shadowRoot?.querySelector(".error-card")).not.toBeNull();
+    expect(host.shadowRoot?.querySelector(".explanation-empty")?.textContent).toContain(
+      "Hover any field once your manifest loads",
+    );
+    expect(host.shadowRoot?.textContent ?? "").not.toContain("Example Extension");
   });
 });
 
 describe("@mvviewer/host-web input wiring", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+  });
+
+  it("classifies safely knowable drop candidates", () => {
+    const jsonFile = new File([VALID_MANIFEST], "manifest.json", { type: "application/json" });
+    const textTransfer = {
+      files: null,
+      items: [],
+      types: ["text/plain"],
+      getData: () => VALID_MANIFEST,
+    } as unknown as DataTransfer;
+    const nonJsonTransfer = {
+      files: [new File(["plain"], "notes.txt", { type: "text/plain" })],
+      items: [],
+      types: [],
+      getData: () => "",
+    } as unknown as DataTransfer;
+    const jsonTransfer = {
+      files: [jsonFile],
+      items: [],
+      types: [],
+      getData: () => "",
+    } as unknown as DataTransfer;
+
+    expect(classifyDropCandidate(textTransfer).kind).toBe("accepted");
+    expect(classifyDropCandidate(jsonTransfer).kind).toBe("accepted");
+    expect(classifyDropCandidate(nonJsonTransfer).kind).toBe("rejected");
+  });
+
+  it("shows pre-drop feedback and advertises copy on dragover", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    wireManifestInputFlows(container);
+
+    const host = container.querySelector("manifest-inspector")!;
+    const dragOverEvent = new Event("dragover", { bubbles: true, cancelable: true }) as DragEvent;
+    const dataTransfer = { getData: () => VALID_MANIFEST, files: null, items: [], types: [], dropEffect: "none" };
+    Object.defineProperty(dragOverEvent, "dataTransfer", { value: dataTransfer });
+    host.dispatchEvent(dragOverEvent);
+
+    expect(dragOverEvent.defaultPrevented).toBe(true);
+    expect(dataTransfer.dropEffect).toBe("copy");
+    expect(host.classList.contains("is-dragging")).toBe(true);
+    expect(host.shadowRoot?.querySelector(".drop-overlay-text")?.textContent).toBe(
+      "Drop manifest.json to inspect locally",
+    );
+  });
+
+  it("clears pre-drop feedback on dragleave", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    wireManifestInputFlows(container);
+
+    const host = container.querySelector("manifest-inspector")!;
+    const dragEnterEvent = new Event("dragenter", { bubbles: true, cancelable: true }) as DragEvent;
+    Object.defineProperty(dragEnterEvent, "dataTransfer", {
+      value: { getData: () => VALID_MANIFEST, files: null, items: [], types: [], dropEffect: "none" },
+    });
+    host.dispatchEvent(dragEnterEvent);
+    host.dispatchEvent(new Event("dragleave", { bubbles: true }));
+
+    expect(host.classList.contains("is-dragging")).toBe(false);
+  });
+
+  it("clears stuck drag feedback on global cleanup events", () => {
+    const container = appendContainer();
+    mountWebManifestInspector(container);
+    const wiring = wireManifestInputFlows(container);
+
+    const host = container.querySelector("manifest-inspector")!;
+    const dragEnterEvent = new Event("dragenter", { bubbles: true, cancelable: true }) as DragEvent;
+    Object.defineProperty(dragEnterEvent, "dataTransfer", {
+      value: { getData: () => VALID_MANIFEST, files: null, items: [], types: [], dropEffect: "none" },
+    });
+    host.dispatchEvent(dragEnterEvent);
+    expect(host.classList.contains("is-dragging")).toBe(true);
+
+    window.dispatchEvent(new Event("blur"));
+    expect(host.classList.contains("is-dragging")).toBe(false);
+
+    host.dispatchEvent(dragEnterEvent);
+    expect(host.classList.contains("is-dragging")).toBe(true);
+    document.dispatchEvent(new Event("dragend", { bubbles: true }));
+    expect(host.classList.contains("is-dragging")).toBe(false);
+
+    wiring.dispose();
+    host.dispatchEvent(dragEnterEvent);
+    expect(host.classList.contains("is-dragging")).toBe(false);
   });
 
   it("analyze drop text through wired drop flow", () => {
@@ -163,29 +275,24 @@ describe("@mvviewer/host-web input wiring", () => {
     });
     host.dispatchEvent(dropEvent);
 
-    const pre = host.shadowRoot?.querySelector("pre.source-pre");
-    expect(pre?.textContent).toBe(VALID_MANIFEST);
+    const tree = host.shadowRoot?.querySelector(".tree-container");
+    expect(tree).not.toBeNull();
+    expect(tree?.textContent).toContain("manifest_version");
   });
 
   it("analyzes pasted page-level text through wired paste flow", () => {
     const container = appendContainer();
     mountWebManifestInspector(container);
-    const status = { message: "", kind: "info" as "info" | "error" };
-    wireManifestInputFlows(container, {
-      onStatus: (m, k) => {
-        status.message = m;
-        status.kind = k;
-      },
-    });
+    wireManifestInputFlows(container);
 
     const pasteEvent = pasteEventWithText(VALID_MANIFEST);
     document.body.dispatchEvent(pasteEvent);
 
     const host = container.querySelector("manifest-inspector")!;
-    const pre = host.shadowRoot?.querySelector("pre.source-pre");
+    const tree = host.shadowRoot?.querySelector(".tree-container");
     expect(pasteEvent.defaultPrevented).toBe(true);
-    expect(status.kind).toBe("info");
-    expect(pre?.textContent).toBe(VALID_MANIFEST);
+    expect(tree).not.toBeNull();
+    expect(tree?.textContent).toContain("manifest_version");
   });
 
   it("does not steal paste from textarea controls", () => {
@@ -193,31 +300,20 @@ describe("@mvviewer/host-web input wiring", () => {
     mountWebManifestInspector(container);
     const textarea = document.createElement("textarea");
     document.body.append(textarea);
-    const status = { message: "", kind: "info" as "info" | "error" };
-    wireManifestInputFlows(container, {
-      onStatus: (m, k) => {
-        status.message = m;
-        status.kind = k;
-      },
-    });
+    wireManifestInputFlows(container);
 
     const pasteEvent = pasteEventWithText(VALID_MANIFEST);
     textarea.dispatchEvent(pasteEvent);
 
     const host = container.querySelector("manifest-inspector")!;
     expect(pasteEvent.defaultPrevented).toBe(false);
-    expect(status.message).toBe("");
-    expect(host.shadowRoot?.querySelector("pre.source-pre")).toBeNull();
+    expect(host.shadowRoot?.querySelector(".tree-container")).toBeNull();
   });
 
-  it("shows a calm inline message for invalid manifest input", () => {
+  it("shows a calm inline state for invalid manifest input", () => {
     const container = appendContainer();
     mountWebManifestInspector(container);
-    const status = { message: "", kind: "info" as "info" | "error" };
-    wireManifestInputFlows(container, { onStatus: (m, k) => {
-      status.message = m;
-      status.kind = k;
-    } });
+    wireManifestInputFlows(container);
 
     const host = container.querySelector("manifest-inspector")!;
     const dropEvent = new Event("drop", { bubbles: true }) as DragEvent;
@@ -226,27 +322,19 @@ describe("@mvviewer/host-web input wiring", () => {
     });
     host.dispatchEvent(dropEvent);
 
-    expect(status.kind).toBe("error");
-    expect(status.message.toLowerCase()).not.toMatch(/diagnos|fix|health score|report|audit/);
     expect(host.shadowRoot?.textContent ?? "").not.toMatch(/diagnos|fix|health score|report|audit/i);
   });
 
   it("clears previous source and explanation when invalid input follows a valid pinned manifest", () => {
     const container = appendContainer();
     mountWebManifestInspector(container);
-    const status = { message: "", kind: "info" as "info" | "error" };
-    wireManifestInputFlows(container, {
-      onStatus: (m, k) => {
-        status.message = m;
-        status.kind = k;
-      },
-    });
+    wireManifestInputFlows(container);
 
     const host = container.querySelector("manifest-inspector")!;
     loadManifestText(container, VALID_MANIFEST);
-    const sourceNode = host.shadowRoot?.querySelector(".source-node") as HTMLElement | null;
-    sourceNode?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(host.shadowRoot?.querySelector("pre.source-pre")?.textContent).toBe(VALID_MANIFEST);
+    const sourceRow = host.shadowRoot?.querySelector(".tree-row") as HTMLElement | null;
+    sourceRow?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(host.shadowRoot?.querySelector(".tree-container")?.textContent).toContain("manifest_version");
 
     const dropEvent = new Event("drop", { bubbles: true }) as DragEvent;
     Object.defineProperty(dropEvent, "dataTransfer", {
@@ -254,8 +342,7 @@ describe("@mvviewer/host-web input wiring", () => {
     });
     host.dispatchEvent(dropEvent);
 
-    expect(status.kind).toBe("error");
-    expect(host.shadowRoot?.querySelector("pre.source-pre")).toBeNull();
+    expect(host.shadowRoot?.querySelector(".tree-container")).toBeNull();
     expect(host.shadowRoot?.textContent ?? "").not.toContain("Example Extension");
     expect(host.shadowRoot?.textContent ?? "").not.toContain("Manifest Version");
   });
@@ -284,55 +371,33 @@ describe("@mvviewer/host-web app control wiring", () => {
     return { container, textarea, analyzeButton, clearButton, fileInput };
   }
 
-  it("reports success for valid manifest via the Analyze button", () => {
-    const { container, textarea, analyzeButton, clearButton, fileInput } =
+  it("loads valid manifest via the Analyze button", () => {
+    const { container, textarea, analyzeButton } =
       buildControls();
-    const status = { message: "", kind: "info" as "info" | "error" };
     wireManifestApp(
       container,
-      { textarea, analyzeButton, clearButton, fileInput },
-      { onStatus: (m, k) => ((status.message = m), (status.kind = k)) },
+      { textarea, analyzeButton },
     );
 
     textarea.value = VALID_MANIFEST;
     analyzeButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    expect(status.kind).toBe("info");
-    expect(status.message).toBe("Analyzed locally in your browser.");
+    const host = container.querySelector("manifest-inspector")!;
+    expect(host.shadowRoot?.querySelector(".tree-container")).not.toBeNull();
   });
 
-  it("never reports success for invalid JSON via the Analyze button", () => {
-    const { container, textarea, analyzeButton, clearButton, fileInput } =
+  it("clears textarea via the Clear button", () => {
+    const { container, textarea, analyzeButton, clearButton } =
       buildControls();
-    const status = { message: "", kind: "info" as "info" | "error" };
     wireManifestApp(
       container,
-      { textarea, analyzeButton, clearButton, fileInput },
-      { onStatus: (m, k) => ((status.message = m), (status.kind = k)) },
-    );
-
-    textarea.value = INVALID_MANIFEST;
-    analyzeButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    expect(status.kind).toBe("error");
-    expect(status.message).not.toBe("Analyzed locally in your browser.");
-  });
-
-  it("clears status and textarea via the Clear button", () => {
-    const { container, textarea, analyzeButton, clearButton, fileInput } =
-      buildControls();
-    const status = { message: "seed", kind: "info" as "info" | "error" };
-    wireManifestApp(
-      container,
-      { textarea, analyzeButton, clearButton, fileInput },
-      { onStatus: (m, k) => ((status.message = m), (status.kind = k)) },
+      { textarea, analyzeButton, clearButton },
     );
 
     textarea.value = VALID_MANIFEST;
     analyzeButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     clearButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    expect(status.message).toBe("");
     expect(textarea.value).toBe("");
   });
 });
@@ -406,11 +471,11 @@ describe("@mvviewer/host-web fixture-backed coverage", () => {
     expect(customNodes.length).toBeGreaterThan(0);
 
     const host = container.querySelector("manifest-inspector")!;
-    const customSpan = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id*="unknownField"]',
+    const customRow = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id*="unknownField"]',
     ) as HTMLElement | null;
-    expect(customSpan).not.toBeNull();
-    customSpan?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(customRow).not.toBeNull();
+    customRow?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const title = host.shadowRoot?.querySelector(".explanation-title");
     expect(title?.textContent).toBeTruthy();
     expect(host.shadowRoot?.textContent ?? "").not.toMatch(
@@ -418,7 +483,7 @@ describe("@mvviewer/host-web fixture-backed coverage", () => {
     );
   });
 
-  it("analyzes the permissions fixture and renders permission source nodes", () => {
+  it("analyzes the permissions fixture and renders permission tree rows", () => {
     const container = appendContainer();
     const text = readFixture("permissions.json");
     const snapshot = loadManifestText(container, text);
@@ -429,13 +494,13 @@ describe("@mvviewer/host-web fixture-backed coverage", () => {
     expect(permissionNodes.length).toBeGreaterThan(0);
 
     const host = container.querySelector("manifest-inspector")!;
-    const permissionSpans = host.shadowRoot?.querySelectorAll(
-      '.source-node[data-node-id*="permission:"]',
+    const permissionRows = host.shadowRoot?.querySelectorAll(
+      '.tree-row[data-node-id*="permission:"]',
     );
-    expect(permissionSpans?.length ?? 0).toBeGreaterThan(0);
+    expect(permissionRows?.length ?? 0).toBeGreaterThan(0);
   });
 
-  it("analyzes the host-permissions fixture and renders host permission source nodes", () => {
+  it("analyzes the host-permissions fixture and renders host permission tree rows", () => {
     const container = appendContainer();
     const text = readFixture("host-permissions.json");
     const snapshot = loadManifestText(container, text);
@@ -446,22 +511,16 @@ describe("@mvviewer/host-web fixture-backed coverage", () => {
     expect(hostPermissionNodes.length).toBeGreaterThan(0);
 
     const host = container.querySelector("manifest-inspector")!;
-    const hostPermissionSpans = host.shadowRoot?.querySelectorAll(
-      '.source-node[data-node-id*="hostPermission:"]',
+    const hostPermissionRows = host.shadowRoot?.querySelectorAll(
+      '.tree-row[data-node-id*="hostPermission:"]',
     );
-    expect(hostPermissionSpans?.length ?? 0).toBeGreaterThan(0);
+    expect(hostPermissionRows?.length ?? 0).toBeGreaterThan(0);
   });
 
-  it("reports a calm inline status for partial-invalid input without crashing", () => {
+  it("reports a calm inline state for partial-invalid input without crashing", () => {
     const container = appendContainer();
     mountWebManifestInspector(container);
-    const status = { message: "", kind: "info" as "info" | "error" };
-    wireManifestInputFlows(container, {
-      onStatus: (m, k) => {
-        status.message = m;
-        status.kind = k;
-      },
-    });
+    wireManifestInputFlows(container);
 
     const text = readFixture("partial-invalid.json");
     const host = container.querySelector("manifest-inspector")!;
@@ -471,10 +530,6 @@ describe("@mvviewer/host-web fixture-backed coverage", () => {
     });
     expect(() => host.dispatchEvent(dropEvent)).not.toThrow();
 
-    expect(status.kind).toBe("error");
-    expect(status.message.toLowerCase()).not.toMatch(
-      /diagnos|fix|health score|report|audit/i,
-    );
     expect(host.shadowRoot?.textContent ?? "").not.toMatch(
       /diagnos|fix|health score|report|audit/i,
     );

@@ -6,6 +6,7 @@ import {
 import { analyzeManifest } from "@mvviewer/core";
 import {
   customElementTagName,
+  type DropFeedbackKind,
   ManifestInspectorElement,
   registerManifestInspector,
 } from "@mvviewer/ui-components";
@@ -57,13 +58,8 @@ async function readFileText(file: File): Promise<string> {
   return file.text();
 }
 
-export type HostStatusKind = "info" | "error";
-
-const STATUS_EMPTY = "Paste or drop a manifest.json to begin.";
-const STATUS_ANALYZED = "Analyzed locally in your browser.";
 const STATUS_INVALID =
   "This file could not be analyzed. Check that it is a manifest.json with valid JSON.";
-const STATUS_UNREADABLE = "The selected file could not be read.";
 
 export type AnalyzeOutcome =
   | { readonly kind: "empty"; readonly message: string }
@@ -74,33 +70,78 @@ export type AnalyzeOutcome =
     }
   | { readonly kind: "invalid"; readonly message: string };
 
+type DropCandidate =
+  | { readonly kind: "accepted" }
+  | { readonly kind: "rejected" };
+
+function isJsonFileCandidate(file: File): boolean {
+  const lowerName = file.name.toLowerCase();
+  if (lowerName === "manifest.json") return true;
+  if (lowerName.endsWith(".json")) return true;
+  return file.type === "application/json";
+}
+
+function hasTextCandidate(dataTransfer: DataTransfer): boolean {
+  const types = Array.from(dataTransfer.types ?? []);
+  return types.some((type) => type === "text/plain" || type === "text");
+}
+
+export function classifyDropCandidate(dataTransfer: DataTransfer | null): DropCandidate {
+  if (!dataTransfer) return { kind: "rejected" };
+
+  const files = dataTransfer.files ?? null;
+  if (files && files.length > 1) return { kind: "rejected" };
+  if (files && files.length === 1) {
+    const file = files[0]!;
+    return isJsonFileCandidate(file) ? { kind: "accepted" } : { kind: "rejected" };
+  }
+
+  const items = Array.from(dataTransfer.items ?? []);
+  if (items.length > 1 && items.filter((item) => item.kind === "file").length > 1) {
+    return { kind: "rejected" };
+  }
+  if (items.some((item) => item.kind === "string")) return { kind: "accepted" };
+  if (items.some((item) => item.kind === "file" && item.type === "application/json")) {
+    return { kind: "accepted" };
+  }
+  if (items.some((item) => item.kind === "file" && item.type === "")) {
+    return { kind: "accepted" };
+  }
+  if (hasTextCandidate(dataTransfer)) return { kind: "accepted" };
+
+  const plainText = dataTransfer.getData?.("text/plain") ?? "";
+  const fallbackText = dataTransfer.getData?.("text") ?? "";
+  if (plainText.trim().length > 0 || fallbackText.trim().length > 0) {
+    return { kind: "accepted" };
+  }
+
+  return { kind: "rejected" };
+}
+
 function analyzeText(container: HTMLElement, text: string): AnalyzeOutcome {
   if (text.trim().length === 0) {
-    return { kind: "empty", message: STATUS_EMPTY };
+    return { kind: "empty", message: "" };
   }
   try {
     const document: SourceDocument = createSourceDocument(text);
     const snapshot = analyzeManifest(document);
     const host = ensureInspector(container);
     if (snapshot.parse.errors.length > 0) {
-      host.clear();
+      host.showError(STATUS_INVALID);
       return { kind: "invalid", message: STATUS_INVALID };
     }
     host.loadSnapshot(snapshot);
-    return { kind: "analyzed", message: STATUS_ANALYZED, snapshot };
+    return { kind: "analyzed", message: "", snapshot };
   } catch {
-    clearManifest(container);
+    const host = ensureInspector(container);
+    host.showError(STATUS_INVALID);
     return { kind: "invalid", message: STATUS_INVALID };
   }
 }
 
-function statusKindFor(outcome: AnalyzeOutcome): HostStatusKind {
-  return outcome.kind === "invalid" ? "error" : "info";
-}
-
 export interface HostInputFlowOptions {
-  readonly onStatus?: (message: string, kind: HostStatusKind) => void;
   readonly onAnalyze?: () => void;
+  readonly onError?: (message: string) => void;
 }
 
 function isEditablePasteTarget(target: EventTarget | null): boolean {
@@ -116,25 +157,35 @@ export function wireManifestInputFlows(
   options: HostInputFlowOptions = {},
 ): { readonly dispose: () => void } {
   const host = ensureInspector(container);
-  const emitStatus = (message: string, kind: HostStatusKind = "info") =>
-    options.onStatus?.(message, kind);
 
   const analyze = (text: string): void => {
     const outcome = analyzeText(container, text);
-    emitStatus(outcome.message, statusKindFor(outcome));
     if (outcome.kind === "analyzed") {
       options.onAnalyze?.();
     }
+    if (outcome.kind === "invalid") {
+      options.onError?.(outcome.message);
+    }
+  };
+
+  let dragDepth = 0;
+
+  const showDropFeedback = (kind: DropFeedbackKind): void => {
+    host.showDropFeedback(kind);
+  };
+
+  const clearDropFeedback = (): void => {
+    dragDepth = 0;
+    host.clearDropFeedback();
   };
 
   const handleFiles = (files: FileList | null): void => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length !== 1) return;
     const file = files[0]!;
+    if (!isJsonFileCandidate(file)) return;
     readFileText(file)
       .then((text) => analyze(text))
-      .catch(() => {
-        emitStatus(STATUS_UNREADABLE, "error");
-      });
+      .catch(() => {});
   };
 
   const onPaste = (event: ClipboardEvent): void => {
@@ -147,35 +198,83 @@ export function wireManifestInputFlows(
     }
   };
 
-  const onDragOver = (event: DragEvent): void => {
+  const onDragEnter = (event: DragEvent): void => {
+    dragDepth += 1;
+    const candidate = classifyDropCandidate(event.dataTransfer ?? null);
+    showDropFeedback(candidate.kind);
     if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = "copy";
+      event.dataTransfer.dropEffect = candidate.kind === "accepted" ? "copy" : "none";
     }
     event.preventDefault();
+  };
+
+  const onDragOver = (event: DragEvent): void => {
+    const candidate = classifyDropCandidate(event.dataTransfer ?? null);
+    showDropFeedback(candidate.kind);
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = candidate.kind === "accepted" ? "copy" : "none";
+    }
+    event.preventDefault();
+  };
+
+  const onDragLeave = (): void => {
+    dragDepth -= 1;
+    if (dragDepth <= 0) clearDropFeedback();
   };
 
   const onDrop = (event: DragEvent): void => {
     event.preventDefault();
+    const candidate = classifyDropCandidate(event.dataTransfer ?? null);
+    clearDropFeedback();
+    if (candidate.kind === "rejected") return;
+
     const files = event.dataTransfer?.files ?? null;
     if (files && files.length > 0) {
       handleFiles(files);
-    } else {
-      const text = event.dataTransfer?.getData("text") ?? "";
-      analyze(text);
+      return;
     }
+
+    const text = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("text") || "";
+    if (text.trim().length === 0) return;
+    analyze(text);
+  };
+
+  const onDragEnd = (): void => {
+    clearDropFeedback();
+  };
+
+  const onDocumentDrop = (event: DragEvent): void => {
+    if (event.target === host || event.composedPath().includes(host)) return;
+    clearDropFeedback();
+  };
+
+  const onGlobalDragCleanup = (): void => {
+    clearDropFeedback();
   };
 
   host.addEventListener("paste", onPaste as EventListener);
   document.addEventListener("paste", onPaste as EventListener);
+  host.addEventListener("dragenter", onDragEnter as EventListener);
   host.addEventListener("dragover", onDragOver as EventListener);
+  host.addEventListener("dragleave", onDragLeave as EventListener);
   host.addEventListener("drop", onDrop as EventListener);
+  host.addEventListener("dragend", onDragEnd as EventListener);
+  document.addEventListener("drop", onDocumentDrop as EventListener);
+  document.addEventListener("dragend", onGlobalDragCleanup as EventListener);
+  window.addEventListener("blur", onGlobalDragCleanup as EventListener);
 
   return {
     dispose(): void {
       host.removeEventListener("paste", onPaste as EventListener);
       document.removeEventListener("paste", onPaste as EventListener);
+      host.removeEventListener("dragenter", onDragEnter as EventListener);
       host.removeEventListener("dragover", onDragOver as EventListener);
+      host.removeEventListener("dragleave", onDragLeave as EventListener);
       host.removeEventListener("drop", onDrop as EventListener);
+      host.removeEventListener("dragend", onDragEnd as EventListener);
+      document.removeEventListener("drop", onDocumentDrop as EventListener);
+      document.removeEventListener("dragend", onGlobalDragCleanup as EventListener);
+      window.removeEventListener("blur", onGlobalDragCleanup as EventListener);
     },
   };
 }
@@ -183,9 +282,14 @@ export function wireManifestInputFlows(
 export async function importManifestFile(
   container: HTMLElement,
   file: File,
-): Promise<AnalysisSnapshot> {
+): Promise<AnalyzeOutcome> {
+  if (!isJsonFileCandidate(file)) {
+    const host = ensureInspector(container);
+    host.showError(STATUS_INVALID);
+    return { kind: "invalid", message: STATUS_INVALID };
+  }
   const text = await readFileText(file);
-  return loadManifestText(container, text);
+  return analyzeText(container, text);
 }
 
 export interface ManifestAppControls {
@@ -195,27 +299,15 @@ export interface ManifestAppControls {
   readonly fileInput?: HTMLInputElement | null;
 }
 
-export interface ManifestAppOptions {
-  readonly onStatus?: (message: string, kind: HostStatusKind) => void;
-}
-
 export function wireManifestApp(
   container: HTMLElement,
   controls: ManifestAppControls,
-  options: ManifestAppOptions = {},
 ): { readonly dispose: () => void } {
-  const emitStatus = (message: string, kind: HostStatusKind = "info") =>
-    options.onStatus?.(message, kind);
-
   const analyze = (text: string): void => {
-    const outcome = analyzeText(container, text);
-    emitStatus(outcome.message, statusKindFor(outcome));
+    analyzeText(container, text);
   };
 
-  const inputFlow = wireManifestInputFlows(
-    container,
-    options.onStatus ? { onStatus: options.onStatus } : {},
-  );
+  const inputFlow = wireManifestInputFlows(container);
 
   const onAnalyzeClick = (): void => {
     analyze(controls.textarea?.value ?? "");
@@ -224,17 +316,12 @@ export function wireManifestApp(
   const onClearClick = (): void => {
     clearManifest(container);
     if (controls.textarea) controls.textarea.value = "";
-    emitStatus("", "info");
   };
 
   const onFileChange = (): void => {
     const file = controls.fileInput?.files?.[0];
     if (!file) return;
-    readFileText(file)
-      .then((text) => analyze(text))
-      .catch(() => {
-        emitStatus(STATUS_UNREADABLE, "error");
-      });
+    importManifestFile(container, file).catch(() => {});
   };
 
   controls.analyzeButton?.addEventListener("click", onAnalyzeClick);

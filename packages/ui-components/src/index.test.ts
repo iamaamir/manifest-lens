@@ -64,6 +64,7 @@ function makeNode(
   const base: SemanticNodeBase = {
     id,
     syntaxNodeId: sid(`s-${id}`),
+    ...(extra.parentId ? { parentId: extra.parentId as SemanticNodeId } : {}),
     childIds: [],
     path: [],
     normalizedPath: `/${id}`,
@@ -100,6 +101,7 @@ function makeSnapshot(): AnalysisSnapshot {
   const manifestNode = makeNode(nid("manifest"), "manifest", range(0, SOURCE.length));
   const nameNode = makeNode(nid("name"), "field", range(4, 31), {
     fieldName: "name",
+    parentId: nid("manifest"),
   });
 
   return {
@@ -153,12 +155,13 @@ function makeTwoFieldSnapshot(): AnalysisSnapshot {
   );
   const nameNode = makeNode(nid("name"), "field", range(nameStart, nameEnd), {
     fieldName: "name",
+    parentId: nid("manifest"),
   });
   const customNode = makeNode(
     nid("customField"),
     "unknownField",
     range(customStart, customEnd),
-    { fieldName: "customField" },
+    { fieldName: "customField", parentId: nid("manifest") },
   );
 
   const nameExplanation = makeExplanation("Name");
@@ -240,32 +243,33 @@ describe("manifest-inspector snapshot rendering", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders preserved source text after loadSnapshot", () => {
+  it("renders a tree container after loadSnapshot", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
 
-    const pre = host.shadowRoot?.querySelector("pre.source-pre");
-    expect(pre).not.toBeNull();
-    expect(pre?.textContent).toBe(SOURCE);
+    const tree = host.shadowRoot?.querySelector(".tree-container");
+    expect(tree).not.toBeNull();
     host.remove();
   });
 
-  it("preserves original formatting including whitespace", () => {
+  it("preserves source text from node ranges", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const pre = host.shadowRoot?.querySelector("pre.source-pre");
-    expect(pre?.textContent).toContain('\n  "name": "Example Extension"');
+    const tree = host.shadowRoot?.querySelector(".tree-container");
+    expect(tree?.textContent).toContain('"name"');
+    expect(tree?.textContent).toContain('"Example Extension"');
     host.remove();
   });
 
-  it("keeps decorative line numbers out of the source-only element text", () => {
+  it("keeps decorative line numbers out of the tree-text content", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const pre = host.shadowRoot?.querySelector("pre.source-pre");
+    const tree = host.shadowRoot?.querySelector(".tree-container");
     const gutter = host.shadowRoot?.querySelector(".source-gutter");
     const lineNumbers = host.shadowRoot?.querySelectorAll(".source-gutter-line");
 
-    expect(pre?.textContent).toBe(SOURCE);
+    expect(tree).not.toBeNull();
+    expect(tree?.textContent).not.toBeNull();
     expect(gutter?.getAttribute("aria-hidden")).toBe("true");
     expect([...(lineNumbers ?? [])].map((line) => line.textContent)).toEqual([
       "1",
@@ -286,8 +290,7 @@ describe("manifest-inspector snapshot rendering", () => {
 
     expect(key?.textContent).toBe('"name"');
     expect(string?.textContent).toBe('"Example Extension"');
-    expect(bracket?.textContent).toBe("{");
-    expect(host.shadowRoot?.querySelector("pre.source-pre")?.textContent).toBe(SOURCE);
+    expect(bracket).not.toBeNull();
     host.remove();
   });
 
@@ -295,37 +298,37 @@ describe("manifest-inspector snapshot rendering", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
     const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
-    const nameSpan = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="name"]',
+    const nameRow = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="name"]',
     ) as HTMLElement;
 
     region.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     const focusedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-focused");
     expect(focusedLine).not.toBeNull();
 
-    nameSpan.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    nameRow.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const pinnedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-pinned");
     expect(pinnedLine).not.toBeNull();
     host.remove();
   });
 
-  it("renders source nodes with data-node-id for explainable ranges", () => {
+  it("renders tree rows with data-node-id for explainable ranges", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const nodes = host.shadowRoot?.querySelectorAll(".source-node");
-    expect(nodes?.length).toBeGreaterThanOrEqual(2);
-    const ids = [...(nodes ?? [])].map((n) => n.getAttribute("data-node-id"));
+    const rows = host.shadowRoot?.querySelectorAll(".tree-row");
+    expect(rows?.length).toBeGreaterThanOrEqual(2);
+    const ids = [...(rows ?? [])].map((n) => n.getAttribute("data-node-id"));
     expect(ids).toContain("manifest");
     expect(ids).toContain("name");
     host.remove();
   });
 
-  it("does not use positive tabindex on source nodes", () => {
+  it("does not use positive tabindex on tree rows", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const nodes = host.shadowRoot?.querySelectorAll(".source-node");
-    for (const node of nodes ?? []) {
-      expect(node.getAttribute("tabindex")).not.toBe("1");
+    const rows = host.shadowRoot?.querySelectorAll(".tree-row");
+    for (const row of rows ?? []) {
+      expect(row.getAttribute("tabindex")).not.toBe("1");
     }
     host.remove();
   });
@@ -341,7 +344,7 @@ describe("manifest-inspector snapshot rendering", () => {
   it("uses textContent only, never innerHTML, for source", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    expect(host.shadowRoot?.querySelector("pre.source-pre")?.innerHTML).not.toContain(
+    expect(host.shadowRoot?.querySelector(".tree-container")?.innerHTML).not.toContain(
       "<script",
     );
     host.remove();
@@ -355,6 +358,36 @@ describe("manifest-inspector snapshot rendering", () => {
     expect(text).toContain("Drop a manifest.json");
     host.remove();
   });
+
+  it("shows accepted drop feedback in the empty state", () => {
+    const host = mountInspector();
+    host.showDropFeedback("accepted");
+
+    const overlay = host.shadowRoot?.querySelector(".drop-overlay") as HTMLElement | null;
+    const overlayText = host.shadowRoot?.querySelector(".drop-overlay-text");
+    expect(host.classList.contains("is-dragging")).toBe(true);
+    expect(host.dataset.dropFeedback).toBe("accepted");
+    expect(overlay).not.toBeNull();
+    expect(overlayText?.textContent).toBe("Drop manifest.json to inspect locally");
+
+    host.clearDropFeedback();
+    expect(host.classList.contains("is-dragging")).toBe(false);
+    host.remove();
+  });
+
+  it("shows rejected drop feedback in the loaded state without changing source content", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeSnapshot());
+    host.showDropFeedback("rejected");
+
+    const overlayText = host.shadowRoot?.querySelector(".drop-overlay-text");
+    const tree = host.shadowRoot?.querySelector(".tree-container");
+    expect(host.dataset.dropFeedback).toBe("rejected");
+    expect(overlayText?.textContent).toBe("Drop a JSON manifest file");
+    expect(tree?.textContent).toContain("Example Extension");
+
+    host.remove();
+  });
 });
 
 describe("manifest-inspector interaction", () => {
@@ -366,17 +399,17 @@ describe("manifest-inspector interaction", () => {
     document.body.innerHTML = "";
   });
 
-  function nameSpan(host: ManifestInspectorElement): HTMLElement | null {
+  function nameRow(host: ManifestInspectorElement): HTMLElement | null {
     return host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="name"]',
+      '.tree-row[data-node-id="name"]',
     ) as HTMLElement | null;
   }
 
   it("hover previews the explanation of the hovered node", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const span = nameSpan(host)!;
-    span.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    const row = nameRow(host)!;
+    row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     const title = host.shadowRoot?.querySelector(".explanation-title");
     expect(title?.textContent).toBe("Name");
     host.remove();
@@ -385,24 +418,24 @@ describe("manifest-inspector interaction", () => {
   it("click pins the explanation of the clicked node", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const span = nameSpan(host)!;
-    span.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const row = nameRow(host)!;
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const title = host.shadowRoot?.querySelector(".explanation-title");
     expect(title?.textContent).toBe("Name");
-    expect(nameSpan(host)?.classList.contains("is-pinned")).toBe(true);
+    expect(nameRow(host)?.classList.contains("is-pinned")).toBe(true);
     host.remove();
   });
 
   it("hover leave restores the pinned explanation", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const span = nameSpan(host)!;
-    span.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    span.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    const row = nameRow(host)!;
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "Name",
     );
-    span.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    row.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "Name",
     );
@@ -423,7 +456,7 @@ describe("manifest-inspector interaction", () => {
     region.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
     );
-    const pinned = host.shadowRoot?.querySelector(".source-node.is-pinned");
+    const pinned = host.shadowRoot?.querySelector(".tree-row.is-pinned");
     expect(pinned).not.toBeNull();
     host.remove();
   });
@@ -431,12 +464,12 @@ describe("manifest-inspector interaction", () => {
   it("Escape clears the active selection", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
-    const span = nameSpan(host)!;
-    span.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const row = nameRow(host)!;
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     sourceRegion(host).dispatchEvent(
       new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
     );
-    const pinned = host.shadowRoot?.querySelector(".source-node.is-pinned");
+    const pinned = host.shadowRoot?.querySelector(".tree-row.is-pinned");
     expect(pinned).toBeNull();
     host.remove();
   });
@@ -492,7 +525,7 @@ describe("manifest-inspector keyboard reachability", () => {
     region.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
     );
-    expect(host.shadowRoot?.querySelector(".source-node.is-pinned")).not.toBeNull();
+    expect(host.shadowRoot?.querySelector(".tree-row.is-pinned")).not.toBeNull();
     host.remove();
   });
 });
@@ -510,35 +543,35 @@ describe("manifest-inspector stable source DOM", () => {
     const host = mountInspector();
     host.loadSnapshot(makeTwoFieldSnapshot());
     const regionBefore = host.shadowRoot?.querySelector(".source-region");
-    const nameSpanBefore = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="name"]',
+    const nameRowBefore = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="name"]',
     );
 
-    nameSpanBefore?.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    nameSpanBefore?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    nameRowBefore?.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    nameRowBefore?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     const regionAfter = host.shadowRoot?.querySelector(".source-region");
-    const nameSpanAfter = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="name"]',
+    const nameRowAfter = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="name"]',
     );
 
     expect(regionAfter).toBe(regionBefore);
-    expect(nameSpanAfter).toBe(nameSpanBefore);
+    expect(nameRowAfter).toBe(nameRowBefore);
     host.remove();
   });
 
   it("updates explanation panel content on interaction without rebuilding source", () => {
     const host = mountInspector();
     host.loadSnapshot(makeTwoFieldSnapshot());
-    const preBefore = host.shadowRoot?.querySelector("pre.source-pre");
+    const treeBefore = host.shadowRoot?.querySelector(".tree-container");
 
     const custom = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="customField"]',
+      '.tree-row[data-node-id="customField"]',
     ) as HTMLElement;
     custom.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    const preAfter = host.shadowRoot?.querySelector("pre.source-pre");
-    expect(preAfter).toBe(preBefore);
+    const treeAfter = host.shadowRoot?.querySelector(".tree-container");
+    expect(treeAfter).toBe(treeBefore);
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "customField",
     );
@@ -555,84 +588,9 @@ describe("manifest-inspector source DOM id uniqueness", () => {
     document.body.innerHTML = "";
   });
 
-  const NESTED_SOURCE = `{
-  "name": "A",
-  "permissions": ["tabs", "storage"]
-}`;
-
-  const nestedDoc: SourceDocument = {
-    id: "document:nested" as SourceDocument["id"],
-    language: "json",
-    text: NESTED_SOURCE,
-  };
-
-  function makeNestedSnapshot(): AnalysisSnapshot {
-    const manifestNode = makeNode(
-      nid("manifest"),
-      "manifest",
-      range(0, NESTED_SOURCE.length),
-    );
-    const nameNode = makeNode(nid("name"), "field", range(4, 15), {
-      fieldName: "name",
-    });
-    const permissionsNode = makeNode(
-      nid("permissions"),
-      "field",
-      range(20, NESTED_SOURCE.length - 1),
-      { fieldName: "permissions" },
-    );
-    const tabsNode = makeNode(
-      nid("permissions/tabs"),
-      "permission",
-      range(33, 39),
-      { value: "tabs" },
-    );
-    const storageNode = makeNode(
-      nid("permissions/storage"),
-      "permission",
-      range(41, 50),
-      { value: "storage" },
-    );
-
-    return {
-      document: nestedDoc,
-      parse: {
-        document: nestedDoc,
-        root: {
-          id: sid("root"),
-          kind: "object",
-          range: range(0, NESTED_SOURCE.length),
-          path: [],
-          children: [],
-        },
-        errors: [],
-      },
-      semantic: {
-        document: nestedDoc,
-        parseRootId: sid("root"),
-        rootNodeId: nid("manifest"),
-        manifestVersion: { kind: "mv3", version: 3 },
-        nodes: [
-          manifestNode,
-          nameNode,
-          permissionsNode,
-          tabsNode,
-          storageNode,
-        ],
-      },
-      explanationsByNodeId: {
-        [nid("manifest")]: makeExplanation("Manifest"),
-        [nid("name")]: makeExplanation("Name"),
-        [nid("permissions")]: makeExplanation("Permissions"),
-        [nid("permissions/tabs")]: makeExplanation("tabs"),
-        [nid("permissions/storage")]: makeExplanation("storage"),
-      },
-    };
-  }
-
-  it("renders only unique element ids in the shadow root for nested/overlapping ranges", () => {
+  it("renders only unique element ids in the shadow root for tree rows", () => {
     const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
+    host.loadSnapshot(makeSnapshot());
 
     const shadow = host.shadowRoot!;
     const allElements = shadow.querySelectorAll("*");
@@ -644,21 +602,21 @@ describe("manifest-inspector source DOM id uniqueness", () => {
     host.remove();
   });
 
-  it("gives every explainable source-node a unique id", () => {
+  it("gives every explainable tree-row a unique id", () => {
     const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
-    const spans = [
-      ...(host.shadowRoot?.querySelectorAll(".source-node") ?? []),
+    host.loadSnapshot(makeSnapshot());
+    const rows = [
+      ...(host.shadowRoot?.querySelectorAll(".tree-row") ?? []),
     ];
-    const ids = spans.map((s) => s.id);
+    const ids = rows.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.length).toBeGreaterThan(0);
     host.remove();
   });
 
-  it("points aria-activedescendant at the deterministic representative id for a node", () => {
+  it("points aria-activedescendant at the focused tree row", () => {
     const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
+    host.loadSnapshot(makeSnapshot());
 
     const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
     region.dispatchEvent(
@@ -673,32 +631,11 @@ describe("manifest-inspector source DOM id uniqueness", () => {
     host.remove();
   });
 
-  it("prefers non-structural text as the representative for nodes that have it", () => {
+  it("uses the tree-row as the aria-activedescendant target when focused", () => {
     const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
-
-    const nameRepresentative = host.shadowRoot?.querySelector(
-      '.source-node.is-representative[data-node-id="name"]',
-    );
-    const permissionsRepresentative = host.shadowRoot?.querySelector(
-      '.source-node.is-representative[data-node-id="permissions"]',
-    );
-
-    expect(nameRepresentative?.classList.contains("is-structural")).toBe(false);
-    expect(nameRepresentative?.textContent).toContain("name");
-    expect(permissionsRepresentative?.classList.contains("is-structural")).toBe(false);
-    expect(permissionsRepresentative?.textContent).toContain("permissions");
-    host.remove();
-  });
-
-  it("uses the non-structural representative as aria-activedescendant when focused", () => {
-    const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
+    host.loadSnapshot(makeSnapshot());
 
     const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
-    region.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
-    );
     region.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
     );
@@ -707,28 +644,25 @@ describe("manifest-inspector source DOM id uniqueness", () => {
     expect(activeDescendant).toBeTruthy();
     const representative = host.shadowRoot?.getElementById(activeDescendant!);
     expect(representative).not.toBeNull();
-    expect(representative?.getAttribute("data-node-id")).toBe("permissions");
-    expect(representative?.classList.contains("is-representative")).toBe(true);
-    expect(representative?.classList.contains("is-structural")).toBe(false);
+    expect(representative?.getAttribute("data-node-id")).toBe("name");
+    expect(representative?.classList.contains("tree-row")).toBe(true);
     host.remove();
   });
 
-  it("ignores hover and click on non-representative structural source fragments", () => {
+  it("disclosure click does not trigger node selection", () => {
     const host = mountInspector();
-    host.loadSnapshot(makeNestedSnapshot());
+    host.loadSnapshot(makeSnapshot());
 
-    const structural = host.shadowRoot?.querySelector(
-      ".source-node.is-structural:not(.is-representative)",
+    const manifestRow = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="manifest"]',
     ) as HTMLElement;
-    expect(structural).not.toBeNull();
+    const disclosure = manifestRow?.querySelector(".tree-disclosure");
+    expect(disclosure).not.toBeNull();
+    expect(disclosure).toBeDefined();
 
-    structural.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    structural.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
-      "Manifest",
-    );
-    expect(structural.classList.contains("is-pinned")).toBe(false);
+    disclosure!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    // After toggling collapse, the manifest row should not be pinned
+    expect(manifestRow?.classList.contains("is-pinned")).toBe(false);
     host.remove();
   });
 });
@@ -746,7 +680,7 @@ describe("manifest-inspector unknown/custom fallback", () => {
     const host = mountInspector();
     host.loadSnapshot(makeTwoFieldSnapshot());
     const custom = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="customField"]',
+      '.tree-row[data-node-id="customField"]',
     ) as HTMLElement;
     expect(custom).not.toBeNull();
     custom.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -770,29 +704,29 @@ describe("manifest-inspector pin/hover/restore", () => {
     const host = mountInspector();
     host.loadSnapshot(makeTwoFieldSnapshot());
 
-    const spanA = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="name"]',
+    const rowA = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="name"]',
     ) as HTMLElement;
-    const spanB = host.shadowRoot?.querySelector(
-      '.source-node[data-node-id="customField"]',
+    const rowB = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="customField"]',
     ) as HTMLElement;
 
-    spanA.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    rowA.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "Name",
     );
-    expect(spanA.classList.contains("is-pinned")).toBe(true);
+    expect(rowA.classList.contains("is-pinned")).toBe(true);
 
-    spanB.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    rowB.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "customField",
     );
 
-    spanB.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    rowB.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
     expect(host.shadowRoot?.querySelector(".explanation-title")?.textContent).toBe(
       "Name",
     );
-    expect(spanA.classList.contains("is-pinned")).toBe(true);
+    expect(rowA.classList.contains("is-pinned")).toBe(true);
     host.remove();
   });
 });

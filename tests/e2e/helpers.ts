@@ -43,25 +43,29 @@ export function locators(page: Page) {
     clearButton: page.locator("#clear-button"),
     uploadButton: page.locator(".upload-button"),
     fileInput: page.locator("#file-input"),
+    helpButton: page.locator("#help-button"),
 
     inspector: page.locator("manifest-inspector"),
     emptyGlyph: page.locator("manifest-inspector").locator(".empty-glyph"),
     emptyHeading: page.locator("manifest-inspector").locator(".empty-state h2"),
-    emptyNote: page.locator("manifest-inspector").locator(".empty-state p"),
+    emptyNote: page.locator("manifest-inspector").locator(".empty-state p").first(),
     explanationEmpty: page.locator("manifest-inspector").locator(".explanation-empty"),
     sourceFrame: page.locator("manifest-inspector").locator(".source-frame"),
     sourceRegion: page.locator("manifest-inspector").locator('[part="source-region"]'),
+    dropOverlay: page.locator("manifest-inspector").locator(".drop-overlay"),
+    dropOverlayText: page.locator("manifest-inspector").locator(".drop-overlay-text"),
     sourcePane: page.locator("manifest-inspector").locator('[part="source-pane"]'),
-    sourcePre: page.locator("manifest-inspector").locator("pre.source-pre"),
+    sourceTree: page.locator("manifest-inspector").locator(".tree-container"),
+    sourcePre: page.locator("manifest-inspector").locator(".tree-container"),
     sourceGutter: page.locator("manifest-inspector").locator(".source-gutter"),
     sourceNode: (ariaLabel: string) =>
       page
         .locator("manifest-inspector")
-        .locator(`[role="option"][aria-label="${ariaLabel}"].is-representative`),
+        .locator(`[role="option"][aria-label="${ariaLabel}"]`),
     sourceNodes: () =>
-      page.locator("manifest-inspector").locator('.source-node:not(.is-structural)'),
+      page.locator("manifest-inspector").locator('.tree-row'),
     sourcePinned: () =>
-      page.locator("manifest-inspector").locator(".source-node.is-pinned"),
+      page.locator("manifest-inspector").locator(".tree-row.is-pinned"),
     explanationPane: page.locator("manifest-inspector").locator('[part="explanation-panel"]'),
     explanationTitle: page.locator("manifest-inspector").locator(".explanation-title"),
     explanationSummary: page.locator("manifest-inspector").locator(".explanation-summary"),
@@ -72,6 +76,8 @@ export function locators(page: Page) {
     paneHeader: page.locator("manifest-inspector").locator(".pane-header"),
     paneTitle: page.locator("manifest-inspector").locator(".pane-title"),
     mobileInlineCard: page.locator("manifest-inspector").locator(".mobile-inline-card"),
+    errorCard: page.locator("manifest-inspector").locator(".error-card"),
+    errorCardHeadline: page.locator("manifest-inspector").locator(".error-card-headline"),
   };
 }
 

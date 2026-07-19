@@ -86,7 +86,6 @@
         flex: none;
         border-radius: 999px;
         background: var(--color-accent-primary);
-        box-shadow: 0 0 20px rgba(94, 234, 212, 0.48);
       }
 
       .brand-name {
@@ -102,7 +101,7 @@
       .header-actions {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 16px;
         flex: none;
       }
 
@@ -121,12 +120,14 @@
         line-height: 20px;
       }
 
-      #clear-button {
+      #clear-button,
+      #load-sample-button {
         color: var(--color-text-secondary);
         background: transparent;
       }
 
-      #clear-button:hover {
+      #clear-button:hover,
+      #load-sample-button:hover {
         color: var(--color-text-primary);
         text-decoration: underline;
         text-underline-offset: 4px;
@@ -176,13 +177,13 @@
         min-height: 0;
       }
 
-      @media (max-width: 900px) {
+      @media (max-width: 1199px) {
         .app-header {
           padding: 0 16px;
         }
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 767px) {
         .app-header {
           height: 48px;
           gap: 10px;
@@ -194,6 +195,10 @@
 
         .header-actions {
           gap: 6px;
+        }
+
+        #load-sample-button {
+          display: none !important;
         }
 
         #clear-button {
@@ -210,13 +215,10 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          scroll-behavior: auto !important;
-          transition-duration: 0.01ms !important;
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
+        body,
+        .app-frame,
+        .inspector-shell {
+          scroll-behavior: auto;
         }
       }
     </style>
@@ -229,14 +231,16 @@
           <p class="brand-name">Manifest Inspector</p>
         </div>
         <div class="header-actions">
+          <button type="button" id="load-sample-button" hidden>Load sample</button>
           <button type="button" id="clear-button" hidden>Clear</button>
-          <label class="upload-button" for="file-input">Upload</label>
+          <button type="button" class="upload-button" id="upload-button">Upload</button>
           <input
             class="visually-hidden"
             type="file"
             id="file-input"
             accept="application/json,.json"
             aria-label="Choose a manifest.json file"
+            tabindex="-1"
           />
         </div>
       </header>

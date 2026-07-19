@@ -34,7 +34,8 @@ test.describe("14. Invalid-After-Valid Regression", () => {
     }, INVALID_JSON);
 
     await expect(l.sourcePre).not.toBeAttached({ timeout: 3000 });
-    await expect(l.emptyHeading).toBeVisible();
+    await expect(l.errorCard).toBeVisible();
+    await expect(l.errorCardHeadline).toHaveText("This isn't valid JSON");
   });
 });
 

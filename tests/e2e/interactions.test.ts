@@ -240,9 +240,176 @@ test.describe("10. Keyboard Path", () => {
     await page.keyboard.press(" ");
 
     await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+    // 10e: pinned row after Space has correct aria-selected
+    await expect(l.sourcePinned().first()).toHaveAttribute("aria-selected", "true");
 
     await page.keyboard.press("Escape");
     await expect(l.sourcePinned()).toHaveCount(0, { timeout: 3000 });
+
+    // 10d: after clearing with Escape, keyboard navigation still works
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("10a: ArrowDown navigates through top-level fields with distinct titles", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    await expect(l.explanationTitle).toBeVisible({ timeout: 3000 });
+
+    const titles: (string | null)[] = [await l.explanationTitle.textContent()];
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("ArrowDown");
+      titles.push(await l.explanationTitle.textContent());
+    }
+
+    const unique = new Set(titles);
+    expect(unique.size).toBe(titles.length);
+
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("10b: ArrowUp navigates backwards with wrapping", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    await page.keyboard.press("ArrowDown"); // pos 1: Manifest Version
+    await page.keyboard.press("ArrowDown"); // pos 2: Extension Name
+    await page.keyboard.press("ArrowDown"); // pos 3: Extension Version
+    const titleAt3 = await l.explanationTitle.textContent();
+
+    await page.keyboard.press("ArrowUp"); // back to pos 2: Extension Name
+    await expect(l.explanationTitle).toHaveText("Extension Name", { timeout: 3000 });
+
+    await page.keyboard.press("ArrowUp"); // pos 1: Manifest Version
+    await page.keyboard.press("ArrowUp"); // pos 0: Manifest
+    const titleAtRoot = await l.explanationTitle.textContent();
+
+    await page.keyboard.press("ArrowUp"); // wraps to last
+    const wrappedTitle = await l.explanationTitle.textContent();
+    expect(wrappedTitle).not.toBe(titleAtRoot);
+    expect(wrappedTitle).not.toBe(titleAt3);
+  });
+
+  test("10c: ArrowUp wraps to last field at top boundary", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    await expect(l.explanationTitle).toHaveText("Manifest", { timeout: 3000 });
+
+    await page.keyboard.press("ArrowUp");
+    const wrappedTitle = await l.explanationTitle.textContent();
+    expect(wrappedTitle).not.toBe("Manifest");
+
+    await page.keyboard.press("ArrowDown");
+    await expect(l.explanationTitle).toHaveText("Manifest", { timeout: 3000 });
+  });
+
+  test("10f: Navigate into nested containers via keyboard", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    // Navigate past top-level fields and array children into deeply nested fields
+    // Position 120 is a nested field run_at (content_scripts[].run_at)
+    for (let i = 0; i < 120; i++) {
+      await page.keyboard.press("ArrowDown");
+    }
+
+    await expect(l.explanationTitle).toBeVisible({ timeout: 3000 });
+    const currentTitle = await l.explanationTitle.textContent();
+
+    // Verify we're showing a nested field's explanation (not a top-level one)
+    const titles = ["Manifest", "Manifest Version", "Extension Name", "Extension Version",
+      "Description", "Permissions", "Host Permissions", "Content Scripts",
+      "Background", "Action (Toolbar Button)"];
+    expect(titles).not.toContain(currentTitle);
+
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("10g: Many ArrowDown presses do not crash", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") errors.push(msg.text());
+    });
+
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    for (let i = 0; i < 25; i++) {
+      await page.keyboard.press("ArrowDown");
+    }
+
+    expect(errors).toHaveLength(0);
+    await expect(l.sourcePre).toBeVisible();
+    await expect(l.sourceNodes().first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("10h: Focus + Enter on container node pins the container", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    // Navigate from root (position 0) to permissions (position 24)
+    for (let i = 0; i < 24; i++) {
+      await page.keyboard.press("ArrowDown");
+    }
+    await expect(l.explanationTitle).toHaveText("Permissions", { timeout: 3000 });
+
+    // Enter pins the container
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+    await expect(l.explanationTitle).toHaveText("Permissions", { timeout: 3000 });
+
+    // Escape to clear
+    await page.keyboard.press("Escape");
+    await expect(l.sourcePinned()).toHaveCount(0, { timeout: 3000 });
+  });
+
+  test("10i: Keyboard navigation after clear still works", async ({ page }) => {
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceRegion.focus();
+
+    // First round: navigate and pin
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
+
+    // Clear via Escape
+    await page.keyboard.press("Escape");
+    await expect(l.sourcePinned()).toHaveCount(0, { timeout: 3000 });
+
+    // Second round: navigate and pin — should still work
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });
   });
 });
 

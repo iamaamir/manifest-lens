@@ -4,6 +4,7 @@ import type {
   SemanticNodeId,
 } from "@mvviewer/contracts";
 import {
+  buildFlatTree,
   createInitialInspectorState,
   getActiveExplanation,
   getActiveNodeId,
@@ -11,6 +12,7 @@ import {
   inspectorReducer,
   type InspectorAction,
   type InspectorState,
+  type TreeRowInfo,
 } from "@mvviewer/application";
 
 const MANIFEST_INSPECTOR_TAG = "manifest-inspector";
@@ -20,6 +22,13 @@ const EMPTY_STATE_LOCAL_NOTE =
   "Or paste it anywhere on this page, or click Upload above.";
 const SOURCE_KEYBOARD_INSTRUCTIONS =
   "Use arrow keys to move between explainable fields, Enter or Space to pin an explanation, and Escape to clear.";
+
+export type DropFeedbackKind = "accepted" | "rejected";
+
+const DROP_FEEDBACK_COPY: Record<DropFeedbackKind, string> = {
+  accepted: "Drop manifest.json to inspect locally",
+  rejected: "Drop a JSON manifest file",
+};
 
 type SourceTokenKind =
   | "whitespace"
@@ -328,10 +337,73 @@ const STYLE = `
     gap: 1px;
   }
 
-  @media (max-width: 820px) {
+  @media (max-width: 767px) {
     .inspector {
       grid-template-columns: minmax(0, 1fr);
     }
+  }
+
+  .drop-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    place-items: center;
+    padding: 32px;
+    color: var(--color-text-primary);
+    background: rgba(18, 18, 20, 0.88);
+    border: 1px solid rgba(94, 234, 212, 0.4);
+    border-radius: var(--mi-radius-lg);
+    box-shadow:
+      inset 0 0 0 1px rgba(94, 234, 212, 0.18),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+
+  :host(.is-dragging) .drop-overlay {
+    display: grid;
+  }
+
+  :host(.is-dragging[data-drop-feedback="rejected"]) .drop-overlay {
+    border-color: rgba(248, 113, 113, 0.48);
+    box-shadow:
+      inset 0 0 0 1px rgba(248, 113, 113, 0.18),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .drop-overlay-card {
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    max-width: min(420px, 100%);
+    padding: 16px 18px;
+    background: rgba(32, 32, 39, 0.92);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-lg);
+  }
+
+  .drop-overlay-glyph {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--color-accent-primary);
+    border: 1px solid currentColor;
+    border-radius: var(--mi-radius-sm);
+    font-family: var(--mi-font-code);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  :host([data-drop-feedback="rejected"]) .drop-overlay-glyph {
+    color: var(--color-accent-error);
+  }
+
+  .drop-overlay-text {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
   }
 
   .source-pane,
@@ -343,43 +415,17 @@ const STYLE = `
   }
 
   .source-pane {
+    position: relative;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    padding: 24px;
+    padding: 32px;
     background: var(--color-bg-tree-pane);
   }
 
   .explanation-pane {
-    padding: 24px;
+    padding: 32px;
     background: var(--color-bg-panel);
     color: var(--color-text-explanation);
-  }
-
-  .pane-header {
-    display: flex;
-    gap: 16px;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--color-border-hairline);
-  }
-
-  .pane-title {
-    margin: 0;
-    color: var(--color-text-primary);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 16px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .pane-kicker {
-    margin: 0;
-    color: var(--color-text-tertiary);
-    font-size: 11px;
-    line-height: 16px;
   }
 
   .source-instructions {
@@ -400,6 +446,7 @@ const STYLE = `
     position: relative;
     min-height: 100%;
     overflow: auto;
+    scroll-behavior: auto;
     color: var(--color-text-secondary);
     background: #101013;
     border: 1px solid var(--color-border-hairline);
@@ -459,60 +506,120 @@ const STYLE = `
     content: "•";
   }
 
-  .source-region {
-    display: block;
-    min-width: max-content;
+  .tree-container {
+    min-height: 100%;
+    padding: 8px 0;
     border-radius: 0;
+    outline: none;
+    scroll-behavior: auto;
   }
 
-  .source-region:focus-visible {
+  .tree-container:focus-visible {
     outline: 2px solid var(--color-border-focus);
     outline-offset: -2px;
   }
 
-  .source-pre {
-    min-height: 100%;
-    margin: 0;
-    padding: 16px;
-    color: var(--color-text-secondary);
-    background: transparent;
-    border: 0;
-    border-radius: 0;
+  .tree-row {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    min-height: 20px;
     font-family: var(--mi-font-code);
     font-size: 13px;
     line-height: 20px;
-    white-space: pre;
-    tab-size: 2;
-    overflow: visible;
-  }
-
-  .source-node {
-    border-radius: var(--mi-radius-sm);
+    white-space: nowrap;
     cursor: pointer;
-    padding: 0 0.08em;
-    color: inherit;
-    background: transparent;
-    transition:
-      background-color 120ms cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 120ms cubic-bezier(0.4, 0, 0.2, 1),
-      color 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--mi-radius-sm);
   }
 
-  .source-node:hover {
-    background: var(--mi-color-hover);
+  .tree-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: var(--guide-bg, none);
+  }
+
+  .tree-row:hover {
+    background: rgba(32, 32, 39, 0.4);
     box-shadow: inset 0 -1px 0 0 var(--color-accent-primary);
   }
 
-  .source-node.is-active {
-    background: var(--mi-color-highlight);
-    box-shadow: inset 0 -2px 0 0 var(--color-accent-primary);
+  .tree-row.is-hovered {
+    background: rgba(32, 32, 39, 0.4);
+    box-shadow: inset 0 -1px 0 0 var(--color-accent-primary);
   }
 
-  .source-node.is-pinned {
-    background: var(--mi-color-pinned);
+  .tree-row.is-focused {
+    background: rgba(32, 32, 39, 0.4);
+    box-shadow: inset 0 -1px 0 0 var(--color-accent-primary);
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .tree-row.is-pinned {
+    background: var(--color-bg-elevated);
     box-shadow:
       inset 0 -2px 0 0 var(--color-accent-primary),
       0 0 0 1px rgba(94, 234, 212, 0.16);
+  }
+
+  .tree-disclosure {
+    flex: none;
+    width: 12px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    user-select: none;
+    font-size: 10px;
+    line-height: 1;
+    margin-right: 2px;
+  }
+
+  .tree-disclosure.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .tree-key {
+    flex: none;
+    color: var(--color-json-key);
+    margin-right: 2px;
+  }
+
+  .tree-key.is-unknown {
+    color: var(--color-text-secondary);
+  }
+
+  .tree-sep {
+    flex: none;
+    color: var(--color-json-bracket);
+    margin-right: 4px;
+  }
+
+  .tree-value {
+    flex: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tree-value-collapsed {
+    color: var(--color-text-tertiary);
+  }
+
+  .tree-row-more {
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    padding-left: calc(var(--more-depth, 0) * 24px + 36px);
+  }
+
+  .tree-row-more:hover {
+    color: var(--color-text-primary);
   }
 
   .source-token-key {
@@ -541,32 +648,6 @@ const STYLE = `
 
   .source-token-whitespace {
     color: inherit;
-  }
-
-  .source-node.is-structural {
-    padding-inline: 0;
-    color: var(--color-json-bracket);
-    cursor: default;
-  }
-
-  .source-node.is-structural:not(.is-representative) {
-    pointer-events: none;
-  }
-
-  .source-node.is-structural:not(.is-representative-focused) {
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .source-node.is-structural.is-representative {
-    cursor: pointer;
-  }
-
-  .source-node.is-representative-focused {
-    background: var(--mi-color-highlight);
-    box-shadow:
-      inset 0 -2px 0 0 var(--color-accent-primary),
-      0 0 0 2px rgba(94, 234, 212, 0.3);
   }
 
   .explanation-title {
@@ -728,8 +809,6 @@ const STYLE = `
     place-items: center;
     margin-bottom: 16px;
     color: var(--color-text-tertiary);
-    border: 1px solid var(--color-border-hairline);
-    border-radius: var(--mi-radius-lg);
     font-family: var(--mi-font-code);
     font-size: 20px;
     line-height: 1;
@@ -752,12 +831,84 @@ const STYLE = `
     line-height: 22px;
   }
 
+  .sample-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--color-accent-primary);
+    background: transparent;
+    border: none;
+    border-radius: var(--mi-radius-sm);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-family: inherit;
+  }
+
+  .sample-link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .sample-link:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .error-card {
+    padding: 32px;
+    border-left: 4px solid var(--color-accent-error);
+    background: var(--color-bg-elevated);
+    margin: 24px;
+    border-radius: 10px;
+  }
+
+  .error-card-headline {
+    margin: 0 0 8px;
+    color: var(--color-text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+  }
+
+  .error-card-message {
+    margin: 0 0 16px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .error-card-try-again {
+    padding: 0;
+    color: var(--color-accent-primary);
+    background: transparent;
+    border: none;
+    border-radius: var(--mi-radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 20px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .error-card-try-again:hover {
+    color: var(--color-text-primary);
+  }
+
+  .error-card-try-again:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
   :host(:focus-visible) {
     outline: 2px solid var(--color-border-focus);
     outline-offset: 3px;
   }
 
-  @media (max-width: 820px) {
+  @media (max-width: 767px) {
     .source-pane,
     .explanation-pane {
       padding: 16px;
@@ -877,18 +1028,21 @@ const STYLE = `
     .explanation-pane {
       display: none !important;
     }
-
-    .mobile-inline-card.is-visible {
-      position: absolute;
-      z-index: 10;
-      left: 48px;
-      right: 0;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .source-node {
-      transition-duration: 0.01ms;
+    .source-frame,
+    .tree-container {
+      scroll-behavior: auto;
+    }
+
+    .drop-overlay,
+    .tree-row,
+    .sample-link,
+    .error-card-try-again,
+    .explanation-docs a {
+      transition: none;
+      animation: none;
     }
   }
 
@@ -904,9 +1058,7 @@ const STYLE = `
   }
 
   @media (prefers-contrast: more) {
-    .source-node.is-active,
-    .source-node.is-pinned,
-    .source-node.is-representative-focused {
+    .tree-row.is-pinned {
       outline: 2px solid CanvasText;
       outline-offset: 1px;
     }
@@ -926,6 +1078,10 @@ export class ManifestInspectorElement extends HTMLElement {
   private explanationPane: HTMLElement | null = null;
   private mobileInlineCard: HTMLElement | null = null;
   private representativeIdByNode = new Map<SemanticNodeId, string>();
+  private treeRowsInfo: TreeRowInfo[] = [];
+  private collapsedNodeIds = new Set<SemanticNodeId>();
+  private expandedTruncatedIds = new Set<SemanticNodeId>();
+  private rowIdCounter = 0;
 
   constructor() {
     super();
@@ -940,7 +1096,20 @@ export class ManifestInspectorElement extends HTMLElement {
   loadSnapshot(snapshot: AnalysisSnapshot): void {
     this.snapshot = snapshot;
     this.state = inspectorReducer(this.state, { type: "snapshot/set", snapshot });
+    this.clearDropFeedback();
     this.render();
+  }
+
+  showDropFeedback(kind: DropFeedbackKind): void {
+    this.classList.add("is-dragging");
+    this.dataset.dropFeedback = kind;
+    const overlay = this.root.querySelector<HTMLElement>(".drop-overlay-text");
+    if (overlay) overlay.textContent = DROP_FEEDBACK_COPY[kind];
+  }
+
+  clearDropFeedback(): void {
+    this.classList.remove("is-dragging");
+    delete this.dataset.dropFeedback;
   }
 
   clear(): void {
@@ -949,8 +1118,71 @@ export class ManifestInspectorElement extends HTMLElement {
     this.explanationPane = null;
     this.mobileInlineCard = null;
     this.representativeIdByNode = new Map();
+    this.treeRowsInfo = [];
+    this.collapsedNodeIds = new Set();
+    this.expandedTruncatedIds = new Set();
     this.state = inspectorReducer(this.state, { type: "snapshot/clear" });
+    this.clearDropFeedback();
     this.renderEmptyState();
+  }
+
+  showError(message: string): void {
+    this.snapshot = null;
+    this.sourceRegion = null;
+    this.explanationPane = null;
+    this.mobileInlineCard = null;
+    this.representativeIdByNode = new Map();
+    this.treeRowsInfo = [];
+    this.collapsedNodeIds = new Set();
+    this.expandedTruncatedIds = new Set();
+    this.state = inspectorReducer(this.state, { type: "snapshot/clear" });
+    this.clearDropFeedback();
+
+    const style = document.createElement("style");
+    style.textContent = STYLE;
+
+    const container = document.createElement("section");
+    container.className = "inspector";
+
+    const sourcePane = document.createElement("section");
+    sourcePane.className = "source-pane";
+
+    const errorCard = document.createElement("div");
+    errorCard.className = "error-card";
+
+    const headline = document.createElement("h3");
+    headline.className = "error-card-headline";
+    headline.textContent = "This isn't valid JSON";
+
+    const errMessage = document.createElement("p");
+    errMessage.className = "error-card-message";
+    errMessage.textContent = message;
+
+    const tryAgainBtn = document.createElement("button");
+    tryAgainBtn.className = "error-card-try-again";
+    tryAgainBtn.textContent = "Try again";
+    tryAgainBtn.addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("clear", { bubbles: true, composed: true }),
+      );
+      this.clear();
+    });
+
+    errorCard.append(headline, errMessage, tryAgainBtn);
+    sourcePane.append(errorCard, this.createDropOverlay("accepted"));
+
+    const explanationPane = document.createElement("section");
+    explanationPane.className = "explanation-pane";
+    explanationPane.setAttribute("part", "explanation-panel");
+
+    const placeholder = document.createElement("p");
+    placeholder.className = "explanation-empty";
+    placeholder.textContent =
+      "Hover any field once your manifest loads, and its explanation appears here.";
+    explanationPane.append(placeholder);
+
+    container.append(sourcePane, explanationPane);
+    this.root.replaceChildren(style, container);
   }
 
   private dispatch(action: InspectorAction): void {
@@ -990,8 +1222,23 @@ export class ManifestInspectorElement extends HTMLElement {
     const note = document.createElement("p");
     note.textContent = EMPTY_STATE_LOCAL_NOTE;
 
-    emptyState.append(glyph, heading, note);
-    sourcePane.append(emptyState);
+    const localNote = document.createElement("p");
+    localNote.textContent = "Processing stays local to this browser.";
+    localNote.style.marginTop = "16px";
+    localNote.style.fontSize = "12px";
+    localNote.style.color = "var(--color-text-tertiary)";
+
+    const sampleLink = document.createElement("button");
+    sampleLink.className = "sample-link";
+    sampleLink.textContent = "Try a sample manifest instead";
+    sampleLink.addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("load-sample", { bubbles: true, composed: true }),
+      );
+    });
+
+    emptyState.append(glyph, heading, note, localNote, sampleLink);
+    sourcePane.append(emptyState, this.createDropOverlay("accepted"));
 
     const explanationPane = document.createElement("section");
     explanationPane.className = "explanation-pane";
@@ -1006,6 +1253,27 @@ export class ManifestInspectorElement extends HTMLElement {
     container.append(sourcePane, explanationPane);
 
     this.root.replaceChildren(style, container);
+  }
+
+  private createDropOverlay(kind: DropFeedbackKind): HTMLElement {
+    const overlay = document.createElement("div");
+    overlay.className = "drop-overlay";
+    overlay.setAttribute("aria-hidden", "true");
+
+    const card = document.createElement("div");
+    card.className = "drop-overlay-card";
+
+    const glyph = document.createElement("span");
+    glyph.className = "drop-overlay-glyph";
+    glyph.textContent = "{}";
+
+    const text = document.createElement("span");
+    text.className = "drop-overlay-text";
+    text.textContent = DROP_FEEDBACK_COPY[kind];
+
+    card.append(glyph, text);
+    overlay.append(card);
+    return overlay;
   }
 
   private render(): void {
@@ -1034,20 +1302,7 @@ export class ManifestInspectorElement extends HTMLElement {
     const pane = document.createElement("section");
     pane.className = "source-pane";
     pane.setAttribute("part", "source-pane");
-
-    const header = document.createElement("div");
-    header.className = "pane-header";
-
-    const heading = document.createElement("h2");
-    heading.className = "pane-title";
-    heading.textContent = "Source";
-
-    const kicker = document.createElement("p");
-    kicker.className = "pane-kicker";
-    kicker.textContent = "Original formatting preserved";
-
-    header.append(heading, kicker);
-    pane.append(header);
+    pane.setAttribute("aria-label", "Source");
 
     const instructions = document.createElement("p");
     instructions.id = "source-instructions";
@@ -1070,85 +1325,379 @@ export class ManifestInspectorElement extends HTMLElement {
       gutter.append(lineNumber);
     }
 
-    const pre = document.createElement("pre");
-    pre.className = "source-pre source-region";
-    pre.setAttribute("part", "source-region");
-    pre.setAttribute("tabindex", "0");
-    pre.setAttribute("role", "listbox");
-    pre.setAttribute("aria-label", "Explainable manifest fields");
-    pre.setAttribute("aria-describedby", "source-instructions");
+    const treeContainer = document.createElement("div");
+    treeContainer.className = "tree-container source-region";
+    treeContainer.setAttribute("part", "source-region");
+    treeContainer.setAttribute("tabindex", "0");
+    treeContainer.setAttribute("role", "listbox");
+    treeContainer.setAttribute("aria-label", "Explainable manifest fields");
+    treeContainer.setAttribute("aria-describedby", "source-instructions");
 
-    const segments = splitIntoSegments(this.snapshot!);
-    const navigableIds = new Set(getNavigableNodeIds(this.snapshot!));
+    const snapshot = this.snapshot!;
+    const navigableIds = new Set(getNavigableNodeIds(snapshot));
+    const treeInfo = buildFlatTree(snapshot);
+    this.treeRowsInfo = treeInfo;
+    this.rowIdCounter = 0;
+
+    this.collapsedNodeIds = new Set(
+      treeInfo
+        .filter((t) => t.isContainer && t.depth >= 3)
+        .map((t) => t.nodeId),
+    );
 
     const representativeIdByNode = new Map<SemanticNodeId, string>();
-    const representativeIsStructuralByNode = new Map<SemanticNodeId, boolean>();
-    let segmentIndex = 0;
 
-    for (const segment of segments) {
-      if (segment.nodeId === null || !navigableIds.has(segment.nodeId)) {
-        const token = document.createElement("span");
-        token.className = sourceTokenClass(segment.tokenKind);
-        token.textContent = segment.text;
-        pre.append(token);
-        continue;
+    let pendingMore: TreeRowInfo | null = null;
+
+    for (const info of treeInfo) {
+      if (this.shouldHideNode(info)) continue;
+
+      if (pendingMore && info.depth <= pendingMore.depth) {
+        treeContainer.append(this.createMoreRow(pendingMore));
+        pendingMore = null;
       }
 
-      segmentIndex += 1;
-      const domId = `source-node-${segment.nodeId}-${segmentIndex}`;
-      const isStructural = isStructuralSourceSegment(segment);
-      const existing = representativeIdByNode.get(segment.nodeId);
-      const existingIsStructural = representativeIsStructuralByNode.get(segment.nodeId);
-      if (existing === undefined || (existingIsStructural === true && !isStructural)) {
-        representativeIdByNode.set(segment.nodeId, domId);
-        representativeIsStructuralByNode.set(segment.nodeId, isStructural);
-      }
+      if (this.shouldTruncateNode(info)) continue;
 
-      const span = document.createElement("span");
-      span.className = isStructural
-        ? `source-node is-structural ${sourceTokenClass(segment.tokenKind)}`
-        : `source-node ${sourceTokenClass(segment.tokenKind)}`;
-      span.setAttribute("part", "source-node");
-      span.dataset.nodeId = segment.nodeId;
-      span.id = domId;
-      span.setAttribute("role", "option");
-      span.setAttribute("aria-selected", "false");
-      span.setAttribute("aria-label", nodeLabel(this.snapshot!, segment.nodeId));
-      span.textContent = segment.text;
-      pre.append(span);
+      const rowEl = this.createTreeRowElement(info, navigableIds, representativeIdByNode);
+      treeContainer.append(rowEl);
+
+      if (info.isContainer && info.childCount > 8 && this.isArrayNode(info.nodeId) && !this.expandedTruncatedIds.has(info.nodeId)) {
+        pendingMore = info;
+      }
     }
 
-    const sourceNodes = pre.querySelectorAll<HTMLElement>(".source-node");
-    sourceNodes.forEach((span) => {
-      const nodeId = span.dataset.nodeId as SemanticNodeId | undefined;
-      if (!nodeId) return;
-      const representativeId = representativeIdByNode.get(nodeId);
-      if (!representativeId) return;
-      span.dataset.representativeId = representativeId;
-      span.classList.toggle("is-representative", span.id === representativeId);
-    });
+    if (pendingMore) {
+      treeContainer.append(this.createMoreRow(pendingMore));
+    }
 
     this.representativeIdByNode = representativeIdByNode;
 
-    pre.addEventListener("mouseover", this.handleSourcePointerOver);
-    pre.addEventListener("mouseout", this.handleSourcePointerOut);
-    pre.addEventListener("click", this.handleSourceClick);
-    pre.addEventListener("keydown", this.handleSourceKeydown);
+    treeContainer.addEventListener("mouseover", this.handleTreePointerOver);
+    treeContainer.addEventListener("mouseout", this.handleTreePointerOut);
+    treeContainer.addEventListener("click", this.handleTreeClick);
+    treeContainer.addEventListener("keydown", this.handleSourceKeydown);
 
-    this.sourceRegion = pre;
+    this.sourceRegion = treeContainer;
     this.sourceGutter = gutter;
-    sourceFrame.append(gutter, pre);
+
+    sourceFrame.append(gutter, treeContainer, this.createDropOverlay("accepted"));
+
     pane.append(sourceFrame);
 
     const mobileCard = document.createElement("div");
     mobileCard.className = "mobile-inline-card";
-    sourceFrame.append(mobileCard);
+    treeContainer.append(mobileCard);
     this.mobileInlineCard = mobileCard;
 
     return pane;
   }
 
-  private updateSourceHighlight(pre: HTMLElement): void {
+  private shouldHideNode(info: TreeRowInfo): boolean {
+    let parentId = info.parentId;
+    while (parentId) {
+      if (this.collapsedNodeIds.has(parentId)) return true;
+      const parentInfo = this.treeRowsInfo.find(
+        (t) => t.nodeId === parentId,
+      );
+      parentId = parentInfo?.parentId;
+    }
+    return false;
+  }
+
+  private shouldTruncateNode(info: TreeRowInfo): boolean {
+    if (!info.parentId) return false;
+    if (this.expandedTruncatedIds.has(info.parentId)) return false;
+    const parentInfo = this.treeRowsInfo.find(
+      (t) => t.nodeId === info.parentId,
+    );
+    if (!parentInfo || parentInfo.childCount <= 8) return false;
+    if (!this.isArrayNode(info.parentId)) return false;
+    return info.siblingIndex >= 8;
+  }
+
+  private createTreeRowElement(
+    info: TreeRowInfo,
+    navigableIds: Set<SemanticNodeId>,
+    representativeIdByNode: Map<SemanticNodeId, string>,
+  ): HTMLElement {
+    if (!this.snapshot) throw new Error("No snapshot");
+
+    const row = document.createElement("div");
+    const rowId = `tn-${String(this.rowIdCounter)}`;
+    this.rowIdCounter += 1;
+    row.className = "tree-row";
+    row.id = rowId;
+    row.dataset.nodeId = info.nodeId;
+    row.setAttribute("role", "option");
+    row.setAttribute("aria-selected", "false");
+    row.setAttribute("aria-label", nodeLabel(this.snapshot, info.nodeId));
+
+    const paddingLeft = info.depth * 24 + 20;
+    row.style.paddingLeft = `${paddingLeft}px`;
+
+    const guideBgParts: string[] = [];
+    for (const guideDepth of info.guideDepths) {
+      const x = guideDepth * 24 + 11;
+      guideBgParts.push(
+        `linear-gradient(var(--color-border-hairline), var(--color-border-hairline)) no-repeat ${x}px 0 / 1px 100%`,
+      );
+    }
+    if (guideBgParts.length > 0) {
+      row.style.setProperty("--guide-bg", guideBgParts.join(", "));
+    }
+
+    representativeIdByNode.set(info.nodeId, rowId);
+
+    if (info.isContainer) {
+      const disclosure = document.createElement("span");
+      disclosure.className = "tree-disclosure";
+      const isCollapsed = this.collapsedNodeIds.has(info.nodeId);
+      disclosure.textContent = isCollapsed ? "\u25B8" : "\u25BE";
+      disclosure.dataset.disclosure = info.nodeId;
+      row.append(disclosure);
+    } else {
+      const spacer = document.createElement("span");
+      spacer.className = "tree-disclosure is-hidden";
+      spacer.textContent = "\u25B8";
+      row.append(spacer);
+    }
+
+    const keyLabel = this.getNodeKeyText(info.nodeId);
+    if (keyLabel) {
+      const keySpan = document.createElement("span");
+      const node = this.snapshot.semantic.nodes.find(n => n.id === info.nodeId);
+      const isUnknown = node?.kind === "unknownField";
+      keySpan.className = isUnknown ? "tree-key is-unknown" : "tree-key source-token-key";
+      keySpan.textContent = keyLabel;
+      row.append(keySpan);
+
+      const sep = document.createElement("span");
+      sep.className = "tree-sep";
+      sep.textContent = ": ";
+      row.append(sep);
+    }
+
+    if (info.childCount > 0 && this.collapsedNodeIds.has(info.nodeId)) {
+      const collapsedSpan = document.createElement("span");
+      collapsedSpan.className = "tree-value-collapsed";
+      const label = this.collapsedLabel(info);
+      collapsedSpan.textContent = label;
+      row.append(collapsedSpan);
+    } else {
+      const valueEl = this.createValuePreview(info.nodeId);
+      row.append(valueEl);
+    }
+
+    return row;
+  }
+
+  private collapsedLabel(info: TreeRowInfo): string {
+    if (info.childCount === 0) return "";
+    const noun =
+      this.isArrayNode(info.nodeId) ? "items" : "keys";
+    return `{ ${String(info.childCount)} ${noun} }`;
+  }
+
+  private isArrayNode(nodeId: SemanticNodeId): boolean {
+    if (!this.snapshot) return false;
+    const node = this.snapshot.semantic.nodes.find(
+      (n) => n.id === nodeId,
+    );
+    if (!node) return false;
+    if (
+      node.kind === "field" &&
+      (node.fieldName === "permissions" ||
+        node.fieldName === "host_permissions" ||
+        node.fieldName === "content_scripts")
+    ) {
+      return true;
+    }
+    const children = this.snapshot.semantic.nodes.filter(
+      (n) => n.parentId === nodeId,
+    );
+    const explainableChildren = children.filter(
+      (n) => n.id in this.snapshot!.explanationsByNodeId,
+    );
+    if (explainableChildren.length === 0) return false;
+    return explainableChildren.some(
+      (c) => c.kind === "permission" || c.kind === "hostPermission" || c.kind === "arrayItem" || c.kind === "contentScript",
+    );
+  }
+
+  private getNodeKeyText(nodeId: SemanticNodeId): string {
+    if (!this.snapshot) return "";
+    const node = this.snapshot.semantic.nodes.find(
+      (n) => n.id === nodeId,
+    );
+    if (!node) return "";
+    switch (node.kind) {
+      case "manifest":
+        return "";
+      case "field":
+        return `"${node.fieldName}"`;
+      case "unknownField":
+        return `"${node.fieldName}"`;
+      case "contentScriptField":
+        return `"${node.fieldName}"`;
+      case "contentScript":
+        return `[${String(node.index)}]`;
+      case "permission":
+      case "hostPermission":
+      case "contentScriptMatch":
+      case "contentScriptFile":
+      case "arrayItem":
+        return "";
+    }
+  }
+
+  private createValuePreview(nodeId: SemanticNodeId): HTMLElement {
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "tree-value";
+
+    if (!this.snapshot) return valueSpan;
+
+    const node = this.snapshot.semantic.nodes.find(
+      (n) => n.id === nodeId,
+    );
+    if (!node) return valueSpan;
+
+    const valueText = this.getNodeValueSourceText(node);
+    if (!valueText) return valueSpan;
+
+    const lexemes = lexSourceText(valueText);
+    const fragment = document.createDocumentFragment();
+
+    for (const lexeme of lexemes) {
+      const tokenSpan = document.createElement("span");
+      tokenSpan.className = sourceTokenClass(lexeme.kind);
+      if (lexeme.kind === "whitespace") {
+        tokenSpan.textContent = valueText.slice(lexeme.start, lexeme.end);
+      } else {
+        tokenSpan.textContent = valueText.slice(lexeme.start, lexeme.end);
+      }
+      fragment.append(tokenSpan);
+    }
+
+    valueSpan.append(fragment);
+    return valueSpan;
+  }
+
+  private getNodeValueSourceText(node: SemanticNode): string {
+    if (!this.snapshot) return "";
+    const text = this.snapshot.document.text;
+
+    if ("valueRange" in node && node.valueRange) {
+      return text.slice(
+        node.valueRange.start.offset,
+        node.valueRange.end.offset,
+      );
+    }
+
+    if (
+      node.kind === "manifest" ||
+      node.kind === "contentScript" ||
+      (node.kind === "field" && this.isContainerNode(node))
+    ) {
+      const openingBracket = text[node.sourceRange.start.offset];
+      if (openingBracket === "{" || openingBracket === "[") {
+        return openingBracket;
+      }
+    }
+
+    return text.slice(
+      node.sourceRange.start.offset,
+      node.sourceRange.end.offset,
+    );
+  }
+
+  private isContainerNode(
+    node: SemanticNode,
+  ): boolean {
+    return this.treeRowsInfo.some(
+      (t) => t.nodeId === node.id && t.isContainer,
+    );
+  }
+
+  private createMoreRow(info: TreeRowInfo): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "tree-row-more";
+    row.style.setProperty("--more-depth", String(info.depth + 1));
+    const hiddenCount = info.childCount - 8;
+    row.textContent = `+${String(hiddenCount)} more`;
+    row.dataset.truncatedParent = info.nodeId;
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.expandTruncated(info.nodeId);
+    });
+    return row;
+  }
+
+  private expandTruncated(nodeId: SemanticNodeId): void {
+    this.expandedTruncatedIds.add(nodeId);
+    if (this.sourceRegion) {
+      this.rebuildTreeContainer(this.sourceRegion);
+    }
+  }
+
+  private toggleCollapse(nodeId: SemanticNodeId): void {
+    if (this.collapsedNodeIds.has(nodeId)) {
+      this.collapsedNodeIds.delete(nodeId);
+    } else {
+      this.collapsedNodeIds.add(nodeId);
+    }
+    if (this.sourceRegion) {
+      this.rebuildTreeContainer(this.sourceRegion);
+    }
+  }
+
+  private rebuildTreeContainer(container: HTMLElement): void {
+    if (!this.snapshot) return;
+
+    const navigableIds = new Set(getNavigableNodeIds(this.snapshot));
+    const representativeIdByNode = new Map<SemanticNodeId, string>();
+
+    container.replaceChildren();
+    this.rowIdCounter = 0;
+
+    let pendingMore: TreeRowInfo | null = null;
+
+    for (const info of this.treeRowsInfo) {
+      if (this.shouldHideNode(info)) continue;
+
+      if (pendingMore && info.depth <= pendingMore.depth) {
+        container.append(this.createMoreRow(pendingMore));
+        pendingMore = null;
+      }
+
+      if (this.shouldTruncateNode(info)) continue;
+
+      const rowEl = this.createTreeRowElement(
+        info,
+        navigableIds,
+        representativeIdByNode,
+      );
+      container.append(rowEl);
+
+      if (
+        info.isContainer &&
+        info.childCount > 8 &&
+        this.isArrayNode(info.nodeId) &&
+        !this.expandedTruncatedIds.has(info.nodeId)
+      ) {
+        pendingMore = info;
+      }
+    }
+
+    if (pendingMore) {
+      container.append(this.createMoreRow(pendingMore));
+    }
+
+    this.representativeIdByNode = representativeIdByNode;
+    this.updateInteractionState();
+  }
+
+  private updateSourceHighlight(container: HTMLElement): void {
     if (!this.snapshot) return;
 
     const activeId = getActiveNodeId(this.state);
@@ -1170,24 +1719,28 @@ export class ManifestInspectorElement extends HTMLElement {
       ? this.representativeIdByNode.get(focusedId)
       : undefined;
 
-    const spans = pre.querySelectorAll<HTMLElement>(".source-node");
-    spans.forEach((span) => {
-      const nodeId = span.dataset.nodeId ?? "";
-      const isActive = nodeId === activeId || nodeId === hoveredId;
-      const isPinned = nodeId === pinnedId;
+    const rows = container.querySelectorAll<HTMLElement>(".tree-row");
+    rows.forEach((row) => {
+      const nodeId = row.dataset.nodeId ?? "";
+      const isPinned =
+        nodeId === pinnedId ||
+        (nodeId === activeId &&
+          this.state.selection.kind === "pinned");
+      const isHovered = nodeId === hoveredId;
       const isFocused = nodeId === focusedId;
-      const isRepresentativeFocused = isFocused && span.id === representativeId;
-      span.classList.toggle("is-active", isActive);
-      span.classList.toggle("is-pinned", isPinned);
-      span.classList.toggle("is-focused", isFocused);
-      span.classList.toggle("is-representative-focused", isRepresentativeFocused);
-      span.setAttribute("aria-selected", isPinned ? "true" : "false");
+      row.classList.toggle("is-hovered", isHovered);
+      row.classList.toggle("is-pinned", isPinned);
+      row.classList.toggle("is-focused", isFocused);
+      row.setAttribute("aria-selected", isPinned ? "true" : "false");
     });
 
     if (representativeId) {
-      pre.setAttribute("aria-activedescendant", representativeId);
+      container.setAttribute(
+        "aria-activedescendant",
+        representativeId,
+      );
     } else {
-      pre.removeAttribute("aria-activedescendant");
+      container.removeAttribute("aria-activedescendant");
     }
 
     this.updateSourceGutter(activeId, pinnedId, focusedId);
@@ -1231,116 +1784,102 @@ export class ManifestInspectorElement extends HTMLElement {
     return lines;
   }
 
-  private closestInteractiveSourceNode(target: EventTarget | null): HTMLElement | null {
+  private closestTreeRow(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof HTMLElement)) return null;
-    const sourceNode = target.closest<HTMLElement>(".source-node");
-    if (!sourceNode || !sourceNode.dataset.nodeId) return null;
-    if (
-      sourceNode.classList.contains("is-structural") &&
-      !sourceNode.classList.contains("is-representative")
-    ) {
-      return null;
-    }
-    return sourceNode;
+    return target.closest<HTMLElement>(".tree-row");
   }
 
-  private handleSourcePointerOver = (event: MouseEvent): void => {
+  private handleTreePointerOver = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    const target = this.closestInteractiveSourceNode(event.target);
-    if (!target || !target.dataset.nodeId) return;
-    this.dispatch({ type: "node/hover", nodeId: target.dataset.nodeId as SemanticNodeId });
+    const row = this.closestTreeRow(event.target);
+    if (!row || !row.dataset.nodeId) return;
+    this.dispatch({
+      type: "node/hover",
+      nodeId: row.dataset.nodeId as SemanticNodeId,
+    });
   };
 
-  private handleSourcePointerOut = (event: MouseEvent): void => {
+  private handleTreePointerOut = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    if (this.closestInteractiveSourceNode(event.relatedTarget)) return;
+    if (this.closestTreeRow(event.relatedTarget)) return;
     this.dispatch({ type: "node/hoverEnd" });
   };
 
-  private handleSourceClick = (event: MouseEvent): void => {
+  private handleTreeClick = (event: MouseEvent): void => {
     if (!this.snapshot) return;
-    const target = this.closestInteractiveSourceNode(event.target);
-    if (!target || !target.dataset.nodeId) return;
-    this.dispatch({ type: "node/select", nodeId: target.dataset.nodeId as SemanticNodeId });
+
+    const disclosure = (event.target as HTMLElement).closest(
+      ".tree-disclosure",
+    ) as HTMLElement | null;
+    if (
+      disclosure &&
+      disclosure.dataset.disclosure
+    ) {
+      event.stopPropagation();
+      this.toggleCollapse(
+        disclosure.dataset.disclosure as SemanticNodeId,
+      );
+      return;
+    }
+
+    const row = this.closestTreeRow(event.target);
+    if (!row || !row.dataset.nodeId) return;
+    this.dispatch({
+      type: "node/select",
+      nodeId: row.dataset.nodeId as SemanticNodeId,
+    });
   };
 
   private renderExplanationPane(): HTMLElement {
     const pane = document.createElement("section");
     pane.className = "explanation-pane";
+    pane.setAttribute("aria-label", "Explanation");
     pane.setAttribute("part", "explanation-panel");
 
-    const header = document.createElement("div");
-    header.className = "pane-header";
-
-    const heading = document.createElement("h2");
-    heading.className = "pane-title";
-    heading.textContent = "Explanation";
-
-    const kicker = document.createElement("p");
-    kicker.className = "pane-kicker";
-    kicker.textContent = "Hover, tap, or pin a field";
-
-    header.append(heading, kicker);
-    pane.append(header, this.buildExplanationContent());
+    pane.append(this.buildExplanationContent());
     return pane;
   }
 
   private updateExplanationPane(): void {
     if (!this.explanationPane) return;
     const content = this.buildExplanationContent();
-    const header = this.explanationPane.querySelector(".pane-header");
-    if (header) {
-      this.explanationPane.replaceChildren(header, content);
-    } else {
-      this.explanationPane.replaceChildren(content);
-    }
+    this.explanationPane.replaceChildren(content);
   }
 
   private updateMobileCard(): void {
     const card = this.mobileInlineCard;
     if (!card) return;
 
+    card.remove();
+    card.classList.remove("is-visible");
+
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    if (!isMobile) {
-      card.classList.remove("is-visible");
-      return;
-    }
+    if (!isMobile) return;
 
     const showCard =
       this.state.selection.kind === "pinned" ||
       this.state.selection.kind === "hoverPreview";
-    if (!showCard) {
-      card.classList.remove("is-visible");
-      return;
-    }
+    if (!showCard) return;
 
     const explanation = getActiveExplanation(this.state);
-    if (!explanation) {
-      card.classList.remove("is-visible");
-      return;
-    }
+    if (!explanation) return;
+
+    const activeId = getActiveNodeId(this.state);
+    if (!activeId) return;
+
+    const representativeId = this.representativeIdByNode.get(activeId);
+    if (!representativeId) return;
+
+    const activeRow = this.root.getElementById(representativeId);
+    if (!activeRow) return;
+
+    const treeContainer = activeRow.closest(".tree-container");
+    if (!treeContainer) return;
 
     const content = this.buildExplanationContent();
     card.replaceChildren(content);
     card.classList.add("is-visible");
-
-    const sourceFrame = card.parentElement;
-    if (sourceFrame) {
-      const activeId = getActiveNodeId(this.state);
-      if (activeId) {
-        const representativeId = this.representativeIdByNode.get(activeId);
-        if (representativeId) {
-          const span = this.root.getElementById(representativeId);
-          if (span) {
-            const frameRect = sourceFrame.getBoundingClientRect();
-            const spanRect = span.getBoundingClientRect();
-            const gap = 8;
-            card.style.top = `${spanRect.bottom - frameRect.top + gap}px`;
-          }
-        }
-      }
-    }
-
+    activeRow.insertAdjacentElement("afterend", card);
     card.scrollIntoView({ block: "nearest" });
   }
 
@@ -1458,18 +1997,33 @@ export class ManifestInspectorElement extends HTMLElement {
         event.preventDefault();
         this.dispatch({ type: "node/focusNext" });
         this.scrollFocusedIntoView();
+        if (this.state.focusedNodeId) {
+          this.dispatch({
+            type: "node/hover",
+            nodeId: this.state.focusedNodeId,
+          });
+        }
         break;
       case "ArrowUp":
       case "ArrowLeft":
         event.preventDefault();
         this.dispatch({ type: "node/focusPrevious" });
         this.scrollFocusedIntoView();
+        if (this.state.focusedNodeId) {
+          this.dispatch({
+            type: "node/hover",
+            nodeId: this.state.focusedNodeId,
+          });
+        }
         break;
       case "Enter":
       case " ":
         event.preventDefault();
         if (this.state.focusedNodeId) {
-          this.dispatch({ type: "node/select", nodeId: this.state.focusedNodeId });
+          this.dispatch({
+            type: "node/select",
+            nodeId: this.state.focusedNodeId,
+          });
         }
         break;
       case "Escape":
@@ -1487,6 +2041,7 @@ export class ManifestInspectorElement extends HTMLElement {
     const span = this.root.getElementById(representativeId);
     span?.scrollIntoView({ block: "nearest" });
   }
+
 }
 
 export function registerManifestInspector(): void {

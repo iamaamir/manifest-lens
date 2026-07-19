@@ -272,3 +272,122 @@ export function findSmallestExplainableNodeAtOffset(
   );
   return sorted[0];
 }
+
+export interface TreeRowInfo {
+  readonly nodeId: SemanticNodeId;
+  readonly depth: number;
+  readonly childCount: number;
+  readonly guideDepths: readonly number[];
+  readonly siblingIndex: number;
+  readonly totalSiblings: number;
+  readonly parentId: SemanticNodeId | undefined;
+  readonly isContainer: boolean;
+}
+
+export function buildFlatTree(
+  snapshot: AnalysisSnapshot,
+): TreeRowInfo[] {
+  const explainableNodes = snapshot.semantic.nodes.filter(
+    (n) => n.id in snapshot.explanationsByNodeId,
+  );
+  if (explainableNodes.length === 0) return [];
+
+  const nodeMap = new Map<SemanticNodeId, SemanticNode>();
+  for (const node of explainableNodes) {
+    nodeMap.set(node.id, node);
+  }
+
+  const childrenByParent = new Map<
+    SemanticNodeId | undefined,
+    SemanticNode[]
+  >();
+  for (const node of explainableNodes) {
+    const parentKey =
+      node.parentId && nodeMap.has(node.parentId)
+        ? node.parentId
+        : undefined;
+    const group = childrenByParent.get(parentKey) ?? [];
+    group.push(node);
+    childrenByParent.set(parentKey, group);
+  }
+
+  const depthCache = new Map<SemanticNodeId, number>();
+  function getDepth(nodeId: SemanticNodeId): number {
+    const cached = depthCache.get(nodeId);
+    if (cached !== undefined) return cached;
+    const node = nodeMap.get(nodeId);
+    if (!node || !node.parentId) {
+      depthCache.set(nodeId, 0);
+      return 0;
+    }
+    const d = getDepth(node.parentId) + 1;
+    depthCache.set(nodeId, d);
+    return d;
+  }
+
+  const result: TreeRowInfo[] = [];
+
+  function computeGuideDepths(nodeId: SemanticNodeId): number[] {
+    const guides: number[] = [];
+    const nodeDepth = getDepth(nodeId);
+    if (nodeDepth <= 0) return [];
+
+    let current: SemanticNode | undefined = nodeMap.get(nodeId);
+    if (!current) return [];
+
+    for (let level = nodeDepth - 1; level >= 0; level -= 1) {
+      if (!current) break;
+
+      const pid: SemanticNodeId | undefined = current.parentId;
+      const parent: SemanticNode | undefined = pid ? nodeMap.get(pid) : undefined;
+      if (!parent) break;
+
+      const siblings: SemanticNode[] = childrenByParent.get(parent.id) ?? [];
+      const siblingIndex = siblings.findIndex((s) => s.id === current!.id);
+
+      if (siblingIndex >= 0 && siblingIndex < siblings.length - 1) {
+        guides.push(level);
+      }
+
+      current = parent;
+    }
+
+    return guides.sort((a, b) => a - b);
+  }
+
+  function visit(node: SemanticNode): void {
+    const depth = getDepth(node.id);
+    const children = childrenByParent.get(node.id) ?? [];
+    const childCount = children.length;
+    const siblings = node.parentId
+      ? childrenByParent.get(node.parentId) ?? [node]
+      : [node];
+    const siblingIndex = siblings.findIndex((s) => s.id === node.id);
+
+    result.push({
+      nodeId: node.id,
+      depth,
+      childCount,
+      guideDepths: computeGuideDepths(node.id),
+      siblingIndex,
+      totalSiblings: siblings.length,
+      parentId: node.parentId
+        ? nodeMap.has(node.parentId)
+          ? node.parentId
+          : undefined
+        : undefined,
+      isContainer: childCount > 0,
+    });
+
+    for (const child of children) {
+      visit(child);
+    }
+  }
+
+  const roots = childrenByParent.get(undefined) ?? [];
+  for (const root of roots) {
+    visit(root);
+  }
+
+  return result;
+}
