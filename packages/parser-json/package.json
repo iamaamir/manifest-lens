@@ -1,0 +1,13 @@
+{
+  "name": "@mvviewer/parser-json",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mvviewer/contracts": "0.0.0",
+    "jsonc-parser": "^3.3.1"
+  }
+}

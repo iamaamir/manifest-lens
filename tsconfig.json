@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/parser-json" },
+    { "path": "packages/manifest-domain" },
+    { "path": "packages/knowledge" },
+    { "path": "packages/core" },
+    { "path": "packages/application" },
+    { "path": "packages/engine-worker" },
+    { "path": "packages/ui-components" },
+    { "path": "packages/host-web" },
+    { "path": "apps/web" }
+  ]
+}
