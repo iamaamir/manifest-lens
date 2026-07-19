@@ -111,7 +111,30 @@ export type ManifestFieldName =
   | "options_ui"
   | "web_accessible_resources"
   | "content_security_policy"
-  | "declarative_net_request";
+  | "declarative_net_request"
+  | "default_locale"
+  | "short_name"
+  | "version_name"
+  | "homepage_url"
+  | "author"
+  | "developer"
+  | "options_page"
+  | "optional_permissions"
+  | "optional_host_permissions"
+  | "devtools_page"
+  | "omnibox"
+  | "side_panel"
+  | "incognito"
+  | "browser_specific_settings"
+  | "externally_connectable"
+  | "chrome_settings_overrides"
+  | "chrome_url_overrides"
+  | "oauth2"
+  | "sandbox"
+  | "storage"
+  | "minimum_chrome_version"
+  | "key"
+  | "update_url";
 
 export interface BreadcrumbSegment {
   readonly label: string;

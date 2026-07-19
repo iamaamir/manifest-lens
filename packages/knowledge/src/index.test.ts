@@ -179,6 +179,19 @@ describe("Resolver", () => {
     expect(explanation.source).toEqual({ kind: "fallback", reason: "unknown-field" });
   });
 
+  it("resolves optional permission values through permission knowledge", () => {
+    const registry = createKnowledgeRegistry();
+    const optionalPermission = makeNode({
+      kind: "permission",
+      value: "cookies",
+      normalizedPath: "optional_permissions[]",
+    });
+    const explanation = resolveNodeExplanation(optionalPermission, registry);
+
+    expect(explanation.title).toBe("Cookies Permission");
+    expect(explanation.source.kind).toBe("knowledge");
+  });
+
   it("falls back gracefully for unknown permission values", () => {
     const registry = createKnowledgeRegistry();
     const unknownPerm = makeNode({

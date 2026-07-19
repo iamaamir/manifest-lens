@@ -144,6 +144,29 @@ describe("buildSemanticManifestSnapshot", () => {
       "web_accessible_resources",
       "content_security_policy",
       "declarative_net_request",
+      "default_locale",
+      "short_name",
+      "version_name",
+      "homepage_url",
+      "author",
+      "developer",
+      "options_page",
+      "optional_permissions",
+      "optional_host_permissions",
+      "devtools_page",
+      "omnibox",
+      "side_panel",
+      "incognito",
+      "browser_specific_settings",
+      "externally_connectable",
+      "chrome_settings_overrides",
+      "chrome_url_overrides",
+      "oauth2",
+      "sandbox",
+      "storage",
+      "minimum_chrome_version",
+      "key",
+      "update_url",
     ] as const;
     const properties = fieldNames.map((fieldName, index) =>
       propertyNode([fieldName], fieldName === "manifest_version" ? numberNode([fieldName], 3, index + 10) : stringNode([fieldName], "value", index + 10), index),
@@ -198,6 +221,31 @@ describe("buildSemanticManifestSnapshot", () => {
     expect(findSemanticNodeByPath(snapshot, ["permissions", "0"])?.kind).toBe("permission");
     expect(findSemanticNodeByPath(snapshot, ["permissions", "0"])?.normalizedPath).toBe("permissions[]");
     expect(findSemanticNodeByPath(snapshot, ["host_permissions", "0"])?.kind).toBe("hostPermission");
+  });
+
+  it("creates selectable optional permission and optional host permission item nodes", () => {
+    const optionalPermissionsValue = arrayNode(
+      ["optional_permissions"],
+      [stringNode(["optional_permissions", "0"], "cookies", 80)],
+      70,
+    );
+    const optionalHostPermissionsValue = arrayNode(
+      ["optional_host_permissions"],
+      [stringNode(["optional_host_permissions", "0"], "https://example.com/*", 120)],
+      110,
+    );
+    const snapshot = buildSemanticManifestSnapshot(
+      parseSnapshot([
+        propertyNode(["manifest_version"], numberNode(["manifest_version"], 3), 1),
+        propertyNode(["optional_permissions"], optionalPermissionsValue, 60),
+        propertyNode(["optional_host_permissions"], optionalHostPermissionsValue, 100),
+      ]),
+    );
+
+    expect(findSemanticNodeByPath(snapshot, ["optional_permissions"])?.kind).toBe("field");
+    expect(findSemanticNodeByPath(snapshot, ["optional_permissions", "0"])?.kind).toBe("permission");
+    expect(findSemanticNodeByPath(snapshot, ["optional_permissions", "0"])?.normalizedPath).toBe("optional_permissions[]");
+    expect(findSemanticNodeByPath(snapshot, ["optional_host_permissions", "0"])?.kind).toBe("hostPermission");
   });
 
   it("creates content script semantic nodes for script objects, matches, files, and fields", () => {

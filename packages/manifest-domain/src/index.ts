@@ -30,6 +30,29 @@ const knownTopLevelFields = new Set<string>([
   "web_accessible_resources",
   "content_security_policy",
   "declarative_net_request",
+  "default_locale",
+  "short_name",
+  "version_name",
+  "homepage_url",
+  "author",
+  "developer",
+  "options_page",
+  "optional_permissions",
+  "optional_host_permissions",
+  "devtools_page",
+  "omnibox",
+  "side_panel",
+  "incognito",
+  "browser_specific_settings",
+  "externally_connectable",
+  "chrome_settings_overrides",
+  "chrome_url_overrides",
+  "oauth2",
+  "sandbox",
+  "storage",
+  "minimum_chrome_version",
+  "key",
+  "update_url",
 ]);
 
 type PropertySyntaxNode = Extract<SyntaxNode, { readonly kind: "property" }>;
@@ -383,11 +406,11 @@ function isObjectSyntaxNode(node: SyntaxNode): node is ObjectSyntaxNode {
 }
 
 function isPermissionsProperty(property: SyntaxNode): boolean {
-  return pathEquals(property.path, ["permissions"]);
+  return pathEquals(property.path, ["permissions"]) || pathEquals(property.path, ["optional_permissions"]);
 }
 
 function isHostPermissionsProperty(property: SyntaxNode): boolean {
-  return pathEquals(property.path, ["host_permissions"]);
+  return pathEquals(property.path, ["host_permissions"]) || pathEquals(property.path, ["optional_host_permissions"]);
 }
 
 function isContentScriptsProperty(property: SyntaxNode): boolean {
@@ -395,11 +418,11 @@ function isContentScriptsProperty(property: SyntaxNode): boolean {
 }
 
 function classifyPropertyKind(node: SyntaxNode): SemanticNode["kind"] {
-  if (node.path[0] === "permissions" && node.path.length === 2) {
+  if ((node.path[0] === "permissions" || node.path[0] === "optional_permissions") && node.path.length === 2) {
     return "permission";
   }
 
-  if (node.path[0] === "host_permissions" && node.path.length === 2) {
+  if ((node.path[0] === "host_permissions" || node.path[0] === "optional_host_permissions") && node.path.length === 2) {
     return "hostPermission";
   }
 

@@ -324,20 +324,17 @@ test.describe("10. Keyboard Path", () => {
     const l = locators(page);
     await l.sourceRegion.focus();
 
-    // Navigate past top-level fields and array children into deeply nested fields
-    // Position 120 is a nested field run_at (content_scripts[].run_at)
-    for (let i = 0; i < 120; i++) {
+    let reachedRunAt = false;
+    for (let i = 0; i < 220; i++) {
       await page.keyboard.press("ArrowDown");
+      const currentTitle = await l.explanationTitle.textContent();
+      if (currentTitle === "Run At") {
+        reachedRunAt = true;
+        break;
+      }
     }
 
-    await expect(l.explanationTitle).toBeVisible({ timeout: 3000 });
-    const currentTitle = await l.explanationTitle.textContent();
-
-    // Verify we're showing a nested field's explanation (not a top-level one)
-    const titles = ["Manifest", "Manifest Version", "Extension Name", "Extension Version",
-      "Description", "Permissions", "Host Permissions", "Content Scripts",
-      "Background", "Action (Toolbar Button)"];
-    expect(titles).not.toContain(currentTitle);
+    expect(reachedRunAt).toBe(true);
 
     await page.keyboard.press("Enter");
     await expect(l.sourcePinned().first()).toBeVisible({ timeout: 3000 });

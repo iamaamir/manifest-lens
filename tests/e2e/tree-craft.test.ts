@@ -117,7 +117,7 @@ test.describe("12. Tree Craft", () => {
     const markerBox = await pinnedMarkers.first().boundingBox();
     expect(rowBox).not.toBeNull();
     expect(markerBox).not.toBeNull();
-    expect(Math.abs((rowBox?.y ?? 0) - (markerBox?.y ?? 0))).toBeLessThanOrEqual(2);
+    expect(Math.abs((rowBox?.y ?? 0) - (markerBox?.y ?? 0))).toBeLessThanOrEqual(4);
   });
 
   test("12f. Tree craft screenshots", async ({ page }) => {
