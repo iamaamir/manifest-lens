@@ -2,6 +2,14 @@
 
 > Hover your manifest. Understand every field.
 
+
+
+
+https://github.com/user-attachments/assets/645f609b-69b3-4f46-8ca0-5336f4801485
+
+
+
+
 Manifest Lens is a local-first web explainer for browser extension `manifest.json` files. Paste, upload, or drop a manifest and explore a source-backed semantic tree with contextual explanations for fields, sections, permissions, host access, content scripts, background configuration, and other common extension concepts.
 
 The first release is intentionally an explainer, not a linter or publishing-readiness checker. It focuses on helping developers understand what a manifest means directly in context.
