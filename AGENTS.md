@@ -149,11 +149,13 @@ For coordinator-led multi-agent work, follow:
 - role cards in `docs/agents/roles/`
 - report/task templates in `docs/agents/templates/`
 
-The coordinator owns continuity and synthesis. Specialist/external agents should receive narrow scopes, avoid overlapping writes, and return structured reports with proposed `memory.md` updates.
+The coordinator owns continuity and synthesis. Specialist/external agents should receive narrow scopes, avoid overlapping writes, complete required self-review when implementing/fixing, and return structured reports with proposed `memory.md` updates.
 
 Use `docs/reviews/` for durable review reports and `docs/agents/tasks/` for task briefs when ticket-like coordination is useful.
 
 For implementation/test-writing/fix work, prefer external agents such as `opencode` via ACP or another verified external-agent mechanism. Do not assume ACP support exists until verified and documented in `docs/agents/external-agents.md`.
+
+When using external agents, prefer compact repo-native onboarding: point them to `docs/agents/external-quickstart.md`, the active task brief, and `docs/agents/templates/external-self-review.md` instead of pasting long repeated prompts. Default to one external implementation agent at a time on the active working tree; use internal sub-agents for parallel read-only review/QA.
 
 ## Sub-Agent Usage
 

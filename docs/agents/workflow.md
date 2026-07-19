@@ -59,25 +59,25 @@ For low-effort, well-scoped implementation tasks, unit-test writing, fixture exp
 
 Preferred path for low-level coding tasks:
 
-1. Coordinator creates a narrow task brief.
-2. Coordinator delegates to an external implementation agent using the current workaround:
+1. Coordinator creates a narrow task brief with write scope, acceptance criteria, known traps, and validation.
+2. Coordinator delegates to an external implementation agent using compact repo-native onboarding and the current workaround:
 
    ```sh
-   opencode run --pure "<prompt envelope + task brief>"
+   opencode run --pure "Read docs/agents/external-quickstart.md, then follow <task brief>. Complete docs/agents/templates/external-self-review.md before returning."
    ```
 
 3. Implementation agent gets a disjoint write scope.
 4. Implementation agent edits only assigned files.
-5. Implementation agent runs requested validation and reports results.
-6. Coordinator synthesizes the report, triggers code review/QA, updates memory, and commits if branch policy allows.
+5. Implementation agent runs requested validation, completes self-review, and reports results.
+6. Coordinator synthesizes the report, runs validation if appropriate, triggers read-only Staff/Code/QA review in parallel, updates memory, and commits if branch policy allows.
 
 Zed-configured ACP agent servers are useful for user-facing agent sessions, but this coordinator does not currently have a tool-callable way to spawn a configured ACP agent thread and await the result. Use `opencode run --pure` until native parent-agent ACP delegation exists.
 
-Avoid multiple agents editing the same files simultaneously.
+Avoid multiple agents editing the same files simultaneously. Default to one external implementation agent at a time in the active working tree. Use parallel internal sub-agents for read-only review/QA. Only run parallel external implementation when write scopes are disjoint and preferably isolated by separate branches or worktrees.
 
-Quality stays with the coordinator-led process: external-agent implementation must still go through synthesis, review/QA, validation, and memory updates before commit.
+Quality stays with the coordinator-led process: external-agent implementation must still go through self-review, coordinator synthesis, validation, review/QA, and memory updates before commit.
 
-See `docs/agents/external-agents.md` for external-agent policy, `opencode run --pure` prompt envelope, two-layer workflow, and ACP status.
+See `docs/agents/external-agents.md` for external-agent policy, compact onboarding, `opencode run --pure` prompt envelope, two-layer workflow, token-saving strategy, and ACP status.
 
 ## Review Workflow
 

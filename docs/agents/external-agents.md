@@ -39,19 +39,29 @@ Limitations of the workaround:
 
 ## Prompt Envelope for Immediate Use
 
+Use compact repo-native onboarding instead of pasting long instructions. Prefer prompts that point to:
+
+```text
+docs/agents/external-quickstart.md
+docs/agents/templates/external-self-review.md
+```
+
 Use a strong prompt envelope:
 
 ```text
 You are an external specialist agent for mvviewer.
+Read docs/agents/external-quickstart.md first.
 Read-only unless explicitly authorized.
-Read the referenced docs before acting.
+Read the referenced task brief/docs before acting.
 Stay within the assigned scope.
+Complete docs/agents/templates/external-self-review.md before returning.
 Return:
 1. Findings
 2. Evidence
 3. Suggested next actions
 4. Validation run, or why none was run
-5. Whether durable memory/docs updates are proposed
+5. Self-review checklist result
+6. Whether durable memory/docs updates are proposed
 ```
 
 For implementation tasks, add:
@@ -60,6 +70,7 @@ For implementation tasks, add:
 You are authorized to edit only the files listed in the write scope.
 Do not modify unrelated files.
 Run the requested validation commands.
+Complete the external self-review checklist.
 Return a structured implementation report.
 ```
 
@@ -86,6 +97,31 @@ The coordinator preserves control by:
 - committing only after quality gates pass
 
 This keeps implementation throughput high while preserving architecture and product quality.
+
+## Token and Quality Strategy
+
+External agents launched through `opencode run --pure` are effectively fresh synchronous runs. They do not preserve a parent-managed continuation session, so the coordinator should reduce repeated context loading by using durable repo artifacts.
+
+Best practices:
+
+- Use `docs/agents/external-quickstart.md` as the compact onboarding file.
+- Put detailed scope, known traps, write scope, and acceptance criteria in task briefs.
+- For narrow fix-up tasks, tell the external agent to read only the quickstart, the prompt/task brief, and the files being changed.
+- Avoid asking external agents to reread the full HLD/PRD unless the task requires product or architecture reinterpretation.
+- Require the self-review checklist before accepting a report.
+- Prefer one external implementation agent at a time on a working tree unless write scopes are disjoint and isolated by branch/worktree.
+- Use internal Zed sub-agents for parallel read-only Staff/Code/QA review after implementation.
+
+The expected pattern is:
+
+```text
+small task brief + known traps
+→ one external implementation/fix run
+→ coordinator validation
+→ parallel internal read-only review
+→ one narrow external fix run only if needed
+→ memory update and commit
+```
 
 ## Two-Layer Workflow
 
@@ -162,15 +198,19 @@ Task briefs should include:
 - exact files/write scope
 - in-scope/out-of-scope work
 - package boundary rules
+- known traps / common failure modes
 - validation commands
 - expected report format
+- self-review checklist requirement
 - proposed memory update requirements
 
 Use:
 
 ```text
+docs/agents/external-quickstart.md
 docs/agents/templates/task-brief.md
 docs/agents/templates/agent-report.md
+docs/agents/templates/external-self-review.md
 ```
 
 ## Report Requirements
@@ -180,6 +220,7 @@ External implementation agents must return:
 - summary
 - files changed
 - validation commands/results
+- self-review checklist result
 - risks/follow-ups
 - proposed `docs/journey/memory.md` update
 

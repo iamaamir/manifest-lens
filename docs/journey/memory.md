@@ -214,17 +214,22 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 - Phase 3 implementation guide exists: `docs/journey/phase3.md`.
 - Phase 3 external-agent-ready task brief exists: `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
-- External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with a strong prompt envelope.
+- External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with compact repo-native onboarding.
 - Zed supports external ACP agents via `agent_servers` such as `opencode acp`, but this coordinator thread does not currently appear to have a tool-callable way to spawn/use a configured ACP agent and wait for its result.
 - Phase guides and task briefs should be clear enough that either the user or an external implementation agent can pick them up without chat history.
 - External agents are encouraged for low-effort, well-scoped implementation tasks, unit-test writing, fixture expansion, targeted fixes, mechanical refactors, and validation/reporting.
-- Coordinator preserves control through narrow write scopes, quality gates, review/QA, validation, memory updates, and commits only after synthesis.
+- Coordinator preserves control through narrow write scopes, known-traps sections, required external self-review, quality gates, review/QA, validation, memory updates, and commits only after synthesis.
 - For non-trivial external-agent work, create a task brief under `docs/agents/tasks/active/`, run OpenCode against it, and collect stdout or a report under `docs/agents/tasks/done/`.
+- Token-saving external-agent approach: point external agents to `docs/agents/external-quickstart.md`, the task brief, and `docs/agents/templates/external-self-review.md` instead of pasting long repeated prompts; for narrow fixes, ask them to read only quickstart + task/prompt + touched files.
+- Concurrency rule: default to one external implementation agent at a time in the active working tree; use internal sub-agents for parallel read-only Staff/Code/QA review; consider separate branches/worktrees before parallel external implementation.
 - Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
 - Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
 
 ## Latest Update
 
+- External-agent workflow improved to reduce token bloat and back-and-forth: added compact onboarding `docs/agents/external-quickstart.md`, self-review template `docs/agents/templates/external-self-review.md`, known-traps guidance in task briefs, and report/self-review requirements.
+- Future coordinators should use small task briefs plus known traps, one external implementation/fix run at a time by default, internal sub-agents for parallel read-only review, and one narrow external fix run only when review finds blockers.
+- Updated `docs/agents/external-agents.md`, `docs/agents/workflow.md`, `docs/agents/templates/task-brief.md`, `docs/agents/templates/agent-report.md`, and `AGENTS.md` to codify this policy.
 - Phase 3 implementation completed by external OpenCode agents on branch `ai-team-workflow-experiment` and accepted after coordinator synthesis plus specialist re-review.
 - Added serializable explanation contracts in `packages/contracts`, a static UI-independent knowledge registry/resolver in `packages/knowledge`, and a headless `analyzeManifest` core facade in `packages/core` that composes parser → semantic mapper → explanation resolver.
 - Phase 3 boundary fix completed: `packages/knowledge` resolves only `Readonly<Record<SemanticNodeId, Explanation>>`; `packages/core` constructs `AnalysisSnapshot` using the real `parseSnapshot` and `semanticSnapshot`.
