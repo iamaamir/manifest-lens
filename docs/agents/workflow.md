@@ -63,7 +63,7 @@ Preferred path for low-level coding tasks:
 2. Coordinator delegates to an external implementation agent using compact repo-native onboarding and the current workaround:
 
    ```sh
-   opencode run --pure --model big-pickle "Read docs/agents/external-quickstart.md, then follow <task brief>. Complete docs/agents/templates/external-self-review.md before returning."
+   opencode run --pure "Read docs/agents/external-quickstart.md, then follow <task brief>. Complete docs/agents/templates/external-self-review.md before returning."
    ```
 
 3. Implementation agent gets a disjoint write scope.
@@ -79,7 +79,7 @@ Avoid multiple agents editing the same files simultaneously. Default to one exte
 
 Quality stays with the coordinator-led process: external-agent implementation must still go through self-review, coordinator synthesis, validation, review/QA, and memory updates before commit.
 
-See `docs/agents/external-agents.md` for external-agent policy, compact onboarding, Big Pickle/model-capacity guidance, `opencode run --pure` prompt envelope, two-layer workflow, token-saving strategy, and ACP status.
+See `docs/agents/external-agents.md` for external-agent policy, compact onboarding, model/capacity guidance, `opencode run --pure` prompt envelope, two-layer workflow, token-saving strategy, and ACP status.
 
 ## Review Workflow
 

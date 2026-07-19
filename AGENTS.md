@@ -157,7 +157,7 @@ For implementation/test-writing/fix work, prefer external agents such as `openco
 
 When using external agents, prefer compact repo-native onboarding: point them to `docs/agents/external-quickstart.md`, the active task brief, and `docs/agents/templates/external-self-review.md` instead of pasting long repeated prompts. Default to one external implementation agent at a time on the active working tree; use internal sub-agents for parallel read-only review/QA.
 
-OpenCode preference: the user usually uses Big Pickle for OpenCode. Prefer Big Pickle for normal external implementation/test/fix work, using `--model big-pickle` when that local alias is configured or the equivalent OpenCode agent/default model when already selected. If the coordinator is running inside OpenCode, prefer OpenCode-native internal agents/subagents over recursively shelling out to `opencode run`.
+OpenCode model selection: do not hardcode a model by default. Use the local OpenCode default unless the user requests a specific model/capacity for the task. The user often uses Big Pickle, so it is reasonable to offer Big Pickle as an option for OpenCode work, but ask before adding `--model big-pickle`. If the coordinator is running inside OpenCode, prefer OpenCode-native internal agents/subagents over recursively shelling out to `opencode run`.
 
 ## Sub-Agent Usage
 

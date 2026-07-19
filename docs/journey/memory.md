@@ -218,7 +218,7 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 - Phase 4 external-agent task brief completed and moved to `docs/agents/tasks/done/phase4-application-state.md`.
 - Phase 3 implementation guide exists: `docs/journey/phase3.md`.
 - Phase 3 external-agent-ready task brief exists: `docs/agents/tasks/active/phase3-explanation-knowledge-resolver.md`.
-- External implementation-agent workflow is defined for now: from Zed, use `opencode run --pure "<prompt>"` from the shell with compact repo-native onboarding; prefer Big Pickle for normal OpenCode implementation/test/fix work when configured.
+- External implementation-agent workflow is defined for now: from Zed, use `opencode run --pure "<prompt>"` from the shell with compact repo-native onboarding; do not hardcode a model by default.
 - Zed supports external ACP agents via `agent_servers` such as `opencode acp`, but this coordinator thread does not currently appear to have a tool-callable way to spawn/use a configured ACP agent and wait for its result.
 - If the coordinator is running inside OpenCode, prefer OpenCode-native internal agents/subagents or task mechanisms instead of recursively shelling out to `opencode run`, unless explicitly needed.
 - Phase guides and task briefs should be clear enough that either the user or an external implementation agent can pick them up without chat history.
@@ -226,15 +226,15 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 - Coordinator preserves control through narrow write scopes, known-traps sections, required external self-review, quality gates, review/QA, validation, memory updates, and commits only after synthesis.
 - For non-trivial external-agent work, create a task brief under `docs/agents/tasks/active/`, run OpenCode against it, and collect stdout or a report under `docs/agents/tasks/done/`.
 - Token-saving external-agent approach: point external agents to `docs/agents/external-quickstart.md`, the task brief, and `docs/agents/templates/external-self-review.md` instead of pasting long repeated prompts; for narrow fixes, ask them to read only quickstart + task/prompt + touched files.
-- OpenCode model/capacity rule: use Big Pickle by default for normal implementation/test/fix tasks; use cheaper/default capacity only for tiny mechanical work; use high/max variants or configured deep-thinking agents for architecture-sensitive changes, hard bugs, or review-blocker fixes.
+- OpenCode model/capacity rule: use the local OpenCode default unless the user selects a specific model/capacity. The user often uses Big Pickle, so offer it for larger/riskier tasks, but ask before adding `--model big-pickle`. Use high/max variants or configured deep-thinking agents only when selected for architecture-sensitive changes, hard bugs, or review-blocker fixes.
 - Concurrency rule: default to one external implementation agent at a time in the active working tree; use internal sub-agents for parallel read-only Staff/Code/QA review; consider separate branches/worktrees before parallel external implementation.
 - Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
 - Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
 
 ## Latest Update
 
-- External-agent workflow updated with OpenCode preference: use Big Pickle for normal OpenCode implementation/test/fix work when configured, choose model/variant capacity by task risk, and avoid recursive `opencode run` when the coordinator is already running inside OpenCode and can use OpenCode-native internal agents/subagents.
-- Updated `docs/agents/external-agents.md`, `docs/agents/external-quickstart.md`, `docs/agents/workflow.md`, `AGENTS.md`, and this memory file with the Big Pickle/model-capacity/native-delegation policy.
+- External-agent workflow updated to avoid hardcoding OpenCode models: use local OpenCode default unless the user selects a specific model/capacity; Big Pickle is a known user preference to offer for larger/riskier tasks, not a default flag to force.
+- Updated `docs/agents/external-agents.md`, `docs/agents/external-quickstart.md`, `docs/agents/workflow.md`, `AGENTS.md`, and this memory file with the model-selection/native-delegation policy.
 - Phase 4 implementation completed by external OpenCode agents on branch `ai-team-workflow-experiment` and accepted after coordinator synthesis plus Staff Engineer, Code Reviewer, and QA re-reviews.
 - Added headless `@mvviewer/application` state/reducer/selectors for snapshot readiness, hover preview, pinned selection, active-node selection, click/tap selection, focus, and deterministic wrapped keyboard navigation over explainable semantic nodes.
 - `packages/application` depends only on `@mvviewer/contracts`; package metadata and TypeScript project reference match.
