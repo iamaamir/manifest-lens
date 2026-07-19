@@ -53,7 +53,7 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 5 — Web Components UI MVP is next.
+Phase 5 — Web Components UI MVP is active/planned.
 
 Phase 4 — Application State and Interaction Model is complete, reviewed, and validated.
 
@@ -214,6 +214,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Open Working Questions
 
+- Phase 5 implementation guide exists: `docs/journey/phase5.md`.
+- Phase 5 first active task brief exists: `docs/agents/tasks/active/phase5-ui-mvp-slice1.md`.
 - Phase 4 implementation guide exists: `docs/journey/phase4.md`.
 - Phase 4 external-agent task brief completed and moved to `docs/agents/tasks/done/phase4-application-state.md`.
 - Phase 3 implementation guide exists: `docs/journey/phase3.md`.
@@ -233,6 +235,12 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 5 planning completed with Product Manager, Core Engineer, Frontend Expert, QA Engineer, and Staff Engineer read-only reviews; created `docs/journey/phase5.md` and first narrow task brief `docs/agents/tasks/active/phase5-ui-mvp-slice1.md`.
+- Phase 5 MVP scope confirmed: first usable local Web Components explainer UI with paste/drop/import path, preserved source split view, explanation panel, hover preview, click/tap pinning, keyboard navigation, source/explanation synchronization, unknown fallback, basic responsive layout, and accessibility/privacy checks.
+- Phase 5 package plan: `ui-components` owns Web Components/rendering and should consume only `contracts` + `application`; `host-web` owns browser adapters and direct local `core/analyzeManifest`; `apps/web` remains a thin Vite composition root.
+- Phase 5 guardrails: direct in-browser engine first; no workers, diagnostics, fixes, health scores, reports/exports, security audits, compatibility matrices, remote analysis, AI-generated explanations, browser extension, VS Code extension, or CLI.
+- Phase 5 source-rendering trap: semantic ranges overlap/nest, so avoid naïvely wrapping every range; render preserved `document.text` safely with text nodes/escaped substrings, map interactions to smallest explainable semantic node, and never inject manifest source via raw `innerHTML`.
+- Phase 5 planning noted `modern-web-guidance` returned useful accessibility/layout guidance but warned its local skill metadata is slightly out of date; upgrade the skill later if deeper UI guidance is needed.
 - Updated `docs/agents/roles/coordinator.md` to improve whole-team coordination: Product Manager should be used heavily as MVP/product-scope guardian, Core Engineer should review headless/shared API and UI-consumed core/application concerns, and default phase workflow now includes planning/review gates by role.
 - Staff Engineer and QA read-only reviews completed for architecture and quality through Phase 4 on branch `ai-team-workflow-experiment`; both passed with no blockers for starting Phase 5.
 - Staff review confirmed PRD/HLD alignment, clean dependency direction, pure serializable contracts/snapshots, no parser-library/DOM/host leakage into shared core packages, and no diagnostics/fixes/health-score/remote/AI scope creep in implemented packages.
