@@ -277,10 +277,6 @@ function sourceTokenClass(kind: SourceTokenKind): string {
   }
 }
 
-function sourceLineCount(text: string): number {
-  return Math.max(1, text.split("\n").length);
-}
-
 const STYLE = `
   :host {
     display: block;
@@ -456,7 +452,7 @@ const STYLE = `
 
   .source-gutter {
     margin: 0;
-    padding: 16px 10px 16px 0;
+    padding: 8px 10px 8px 0;
     color: var(--color-text-tertiary);
     border-right: 1px solid rgba(42, 42, 49, 0.72);
     font-family: var(--mi-font-code);
@@ -1074,7 +1070,7 @@ export class ManifestInspectorElement extends HTMLElement {
   private state: InspectorState = createInitialInspectorState();
   private snapshot: AnalysisSnapshot | null = null;
   private sourceRegion: HTMLElement | null = null;
-  private sourceGutter: HTMLElement | null = null;
+  private sourceGutter: HTMLOListElement | null = null;
   private explanationPane: HTMLElement | null = null;
   private mobileInlineCard: HTMLElement | null = null;
   private representativeIdByNode = new Map<SemanticNodeId, string>();
@@ -1313,18 +1309,6 @@ export class ManifestInspectorElement extends HTMLElement {
     const sourceFrame = document.createElement("div");
     sourceFrame.className = "source-frame";
 
-    const gutter = document.createElement("ol");
-    gutter.className = "source-gutter";
-    gutter.setAttribute("aria-hidden", "true");
-    const lineCount = sourceLineCount(this.snapshot!.document.text);
-    for (let line = 1; line <= lineCount; line += 1) {
-      const lineNumber = document.createElement("li");
-      lineNumber.className = "source-gutter-line";
-      lineNumber.dataset.line = String(line);
-      lineNumber.textContent = String(line);
-      gutter.append(lineNumber);
-    }
-
     const treeContainer = document.createElement("div");
     treeContainer.className = "tree-container source-region";
     treeContainer.setAttribute("part", "source-region");
@@ -1379,9 +1363,9 @@ export class ManifestInspectorElement extends HTMLElement {
     treeContainer.addEventListener("keydown", this.handleSourceKeydown);
 
     this.sourceRegion = treeContainer;
-    this.sourceGutter = gutter;
+    this.sourceGutter = this.createSourceGutter(treeContainer);
 
-    sourceFrame.append(gutter, treeContainer, this.createDropOverlay("accepted"));
+    sourceFrame.append(this.sourceGutter, treeContainer, this.createDropOverlay("accepted"));
 
     pane.append(sourceFrame);
 
@@ -1587,22 +1571,23 @@ export class ManifestInspectorElement extends HTMLElement {
     if (!this.snapshot) return "";
     const text = this.snapshot.document.text;
 
-    if ("valueRange" in node && node.valueRange) {
-      return text.slice(
-        node.valueRange.start.offset,
-        node.valueRange.end.offset,
-      );
-    }
-
     if (
       node.kind === "manifest" ||
       node.kind === "contentScript" ||
       (node.kind === "field" && this.isContainerNode(node))
     ) {
-      const openingBracket = text[node.sourceRange.start.offset];
+      const valueStartOffset = node.valueRange?.start.offset ?? node.sourceRange.start.offset;
+      const openingBracket = text[valueStartOffset];
       if (openingBracket === "{" || openingBracket === "[") {
         return openingBracket;
       }
+    }
+
+    if ("valueRange" in node && node.valueRange) {
+      return text.slice(
+        node.valueRange.start.offset,
+        node.valueRange.end.offset,
+      );
     }
 
     return text.slice(
@@ -1694,7 +1679,55 @@ export class ManifestInspectorElement extends HTMLElement {
     }
 
     this.representativeIdByNode = representativeIdByNode;
+    this.syncSourceGutterRows(container);
     this.updateInteractionState();
+  }
+
+  private createSourceGutter(container: HTMLElement): HTMLOListElement {
+    const gutter = document.createElement("ol");
+    gutter.className = "source-gutter";
+    gutter.setAttribute("aria-hidden", "true");
+    this.appendGutterRows(gutter, container);
+    return gutter;
+  }
+
+  private syncSourceGutterRows(container: HTMLElement): void {
+    if (!this.sourceGutter) return;
+    this.sourceGutter.replaceChildren();
+    this.appendGutterRows(this.sourceGutter, container);
+  }
+
+  private appendGutterRows(gutter: HTMLOListElement, container: HTMLElement): void {
+    for (const child of Array.from(container.children)) {
+      if (!(child instanceof HTMLElement)) continue;
+      if (child.classList.contains("tree-row")) {
+        gutter.append(this.createSemanticGutterLine(child));
+      }
+      if (child.classList.contains("tree-row-more")) {
+        gutter.append(this.createMoreGutterLine());
+      }
+    }
+  }
+
+  private createSemanticGutterLine(row: HTMLElement): HTMLLIElement {
+    const lineNumber = document.createElement("li");
+    lineNumber.className = "source-gutter-line";
+    const nodeId = row.dataset.nodeId as SemanticNodeId | undefined;
+    if (nodeId) {
+      const node = this.snapshot?.semantic.nodes.find(
+        (candidate) => candidate.id === nodeId,
+      );
+      lineNumber.dataset.nodeId = nodeId;
+      lineNumber.textContent = node ? String(node.sourceRange.start.line) : "";
+    }
+    return lineNumber;
+  }
+
+  private createMoreGutterLine(): HTMLLIElement {
+    const lineNumber = document.createElement("li");
+    lineNumber.className = "source-gutter-line is-more";
+    lineNumber.textContent = "…";
+    return lineNumber;
   }
 
   private updateSourceHighlight(container: HTMLElement): void {
@@ -1753,35 +1786,15 @@ export class ManifestInspectorElement extends HTMLElement {
   ): void {
     if (!this.snapshot || !this.sourceGutter) return;
 
-    const activeLines = this.lineSetForNodeId(activeId);
-    const pinnedLines = this.lineSetForNodeId(pinnedId);
-    const focusedLines = this.lineSetForNodeId(focusedId);
-
     const lines = this.sourceGutter.querySelectorAll<HTMLElement>(
       ".source-gutter-line",
     );
     lines.forEach((line) => {
-      const lineNumber = Number(line.dataset.line);
-      line.classList.toggle("is-active", activeLines.has(lineNumber));
-      line.classList.toggle("is-pinned", pinnedLines.has(lineNumber));
-      line.classList.toggle("is-focused", focusedLines.has(lineNumber));
+      const nodeId = line.dataset.nodeId ?? null;
+      line.classList.toggle("is-active", nodeId === activeId);
+      line.classList.toggle("is-pinned", nodeId === pinnedId);
+      line.classList.toggle("is-focused", nodeId === focusedId);
     });
-  }
-
-  private lineSetForNodeId(nodeId: SemanticNodeId | null): ReadonlySet<number> {
-    const lines = new Set<number>();
-    if (!this.snapshot || !nodeId) return lines;
-    const node = this.snapshot.semantic.nodes.find(
-      (candidate) => candidate.id === nodeId,
-    );
-    if (!node) return lines;
-
-    const startLine = Math.max(1, node.sourceRange.start.line);
-    const endLine = Math.max(startLine, node.sourceRange.end.line);
-    for (let line = startLine; line <= endLine; line += 1) {
-      lines.add(line);
-    }
-    return lines;
   }
 
   private closestTreeRow(target: EventTarget | null): HTMLElement | null {

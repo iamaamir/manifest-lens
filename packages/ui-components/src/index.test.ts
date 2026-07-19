@@ -28,9 +28,18 @@ const SOURCE = `{
 }`;
 
 function range(start: number, end: number): SourceRange {
+  return rangeOnLines(start, end, 1, 1);
+}
+
+function rangeOnLines(
+  start: number,
+  end: number,
+  startLine: number,
+  endLine: number,
+): SourceRange {
   return {
-    start: { line: 0, column: 0, offset: start },
-    end: { line: 0, column: 0, offset: end },
+    start: { line: startLine, column: 0, offset: start },
+    end: { line: endLine, column: 0, offset: end },
   };
 }
 
@@ -70,6 +79,8 @@ function makeNode(
     normalizedPath: `/${id}`,
     breadcrumb: [{ label: String(id), path: [] }],
     sourceRange,
+    ...(extra.keyRange ? { keyRange: extra.keyRange as SourceRange } : {}),
+    ...(extra.valueRange ? { valueRange: extra.valueRange as SourceRange } : {}),
   };
   switch (kind) {
     case "field":
@@ -198,6 +209,84 @@ function makeTwoFieldSnapshot(): AnalysisSnapshot {
   };
 }
 
+const NESTED_CONTAINER_SOURCE = `{
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1"
+      }
+    ]
+  }
+}`;
+
+const nestedContainerDoc: SourceDocument = {
+  id: "document:nested-container" as SourceDocument["id"],
+  language: "json",
+  text: NESTED_CONTAINER_SOURCE,
+};
+
+function makeNestedContainerSnapshot(): AnalysisSnapshot {
+  const fieldStart = NESTED_CONTAINER_SOURCE.indexOf("  \"declarative_net_request\"");
+  const valueStart = NESTED_CONTAINER_SOURCE.indexOf("{", fieldStart);
+  const valueEnd = NESTED_CONTAINER_SOURCE.lastIndexOf("}");
+  const childStart = NESTED_CONTAINER_SOURCE.indexOf("    \"rule_resources\"");
+  const childValueStart = NESTED_CONTAINER_SOURCE.indexOf("[", childStart);
+  const childValueEnd = NESTED_CONTAINER_SOURCE.lastIndexOf("]") + 1;
+
+  const manifestNode = makeNode(
+    nid("manifest"),
+    "manifest",
+    rangeOnLines(0, NESTED_CONTAINER_SOURCE.length, 1, 9),
+  );
+  const dnrNode = makeNode(
+    nid("declarative_net_request"),
+    "field",
+    rangeOnLines(fieldStart, valueEnd, 2, 8),
+    {
+      fieldName: "declarative_net_request",
+      parentId: nid("manifest"),
+      valueRange: rangeOnLines(valueStart, valueEnd, 2, 8),
+    },
+  );
+  const ruleResourcesNode = makeNode(
+    nid("rule_resources"),
+    "unknownField",
+    rangeOnLines(childStart, childValueEnd, 3, 7),
+    {
+      fieldName: "rule_resources",
+      parentId: nid("declarative_net_request"),
+      valueRange: rangeOnLines(childValueStart, childValueEnd, 3, 7),
+    },
+  );
+
+  return {
+    document: nestedContainerDoc,
+    parse: {
+      document: nestedContainerDoc,
+      root: {
+        id: sid("nested-root"),
+        kind: "object",
+        range: rangeOnLines(0, NESTED_CONTAINER_SOURCE.length, 1, 9),
+        path: [],
+        children: [],
+      },
+      errors: [],
+    },
+    semantic: {
+      document: nestedContainerDoc,
+      parseRootId: sid("nested-root"),
+      rootNodeId: nid("manifest"),
+      manifestVersion: { kind: "missing" },
+      nodes: [manifestNode, dnrNode, ruleResourcesNode],
+    },
+    explanationsByNodeId: {
+      [nid("manifest")]: makeExplanation("Manifest"),
+      [nid("declarative_net_request")]: makeExplanation("Declarative Net Request"),
+      [nid("rule_resources")]: makeExplanation("Rule Resources"),
+    },
+  };
+}
+
 function mountInspector(): ManifestInspectorElement {
   const host = document.createElement(customElementTagName) as ManifestInspectorElement;
   document.body.append(host);
@@ -271,12 +360,12 @@ describe("manifest-inspector snapshot rendering", () => {
     expect(tree).not.toBeNull();
     expect(tree?.textContent).not.toBeNull();
     expect(gutter?.getAttribute("aria-hidden")).toBe("true");
-    expect([...(lineNumbers ?? [])].map((line) => line.textContent)).toEqual([
-      "1",
-      "2",
-      "3",
+    expect(lineNumbers?.length).toBe(tree?.querySelectorAll(".tree-row").length);
+    expect([...(lineNumbers ?? [])].map((line) => line.getAttribute("data-node-id"))).toEqual([
+      "manifest",
+      "name",
     ]);
-    expect(host.shadowRoot?.querySelector(".source-frame")?.textContent).toContain("123");
+    expect(host.shadowRoot?.querySelector(".source-frame")?.textContent).toContain("11");
     host.remove();
   });
 
@@ -294,7 +383,7 @@ describe("manifest-inspector snapshot rendering", () => {
     host.remove();
   });
 
-  it("marks the source gutter when a line is focused or pinned", () => {
+  it("marks the source gutter row when a tree row is focused or pinned", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
     const region = host.shadowRoot?.querySelector(".source-region") as HTMLElement;
@@ -303,12 +392,46 @@ describe("manifest-inspector snapshot rendering", () => {
     ) as HTMLElement;
 
     region.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-    const focusedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-focused");
-    expect(focusedLine).not.toBeNull();
+    const focusedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-focused") as HTMLElement;
+    expect(focusedLine?.dataset.nodeId).toBe("name");
 
     nameRow.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    const pinnedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-pinned");
-    expect(pinnedLine).not.toBeNull();
+    const pinnedLine = host.shadowRoot?.querySelector(".source-gutter-line.is-pinned") as HTMLElement;
+    expect(pinnedLine?.dataset.nodeId).toBe("name");
+    host.remove();
+  });
+
+  it("keeps gutter markers aligned to one visible row for a multi-line semantic node", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeNestedContainerSnapshot());
+    const row = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="declarative_net_request"]',
+    ) as HTMLElement;
+
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const rows = host.shadowRoot?.querySelectorAll(".tree-row");
+    const gutterLines = host.shadowRoot?.querySelectorAll(".source-gutter-line");
+    const pinnedLines = host.shadowRoot?.querySelectorAll(".source-gutter-line.is-pinned");
+
+    expect(gutterLines?.length).toBe(rows?.length);
+    expect(pinnedLines?.length).toBe(1);
+    expect((pinnedLines?.[0] as HTMLElement | undefined)?.dataset.nodeId).toBe(
+      "declarative_net_request",
+    );
+    host.remove();
+  });
+
+  it("previews expanded containers with only their original opening delimiter", () => {
+    const host = mountInspector();
+    host.loadSnapshot(makeNestedContainerSnapshot());
+    const row = host.shadowRoot?.querySelector(
+      '.tree-row[data-node-id="declarative_net_request"]',
+    ) as HTMLElement;
+    const value = row.querySelector(".tree-value");
+
+    expect(value?.textContent).toBe("{");
+    expect(row.textContent).not.toContain("rule_resources");
     host.remove();
   });
 

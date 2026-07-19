@@ -99,7 +99,28 @@ test.describe("12. Tree Craft", () => {
     await expect(l.sourceNode("permission (permissions[])").first()).toBeVisible();
   });
 
-  test("12e. Tree craft screenshots", async ({ page }) => {
+  test("12e. Deep selected row keeps gutter marker aligned", async ({ page }) => {
+    const l = locators(page);
+
+    const row = l.sourceNode(sourceNodeLabel("declarative_net_request"));
+    await row.scrollIntoViewIfNeeded();
+    await row.click();
+
+    const pinnedMarkers = l.sourceGutter.locator(".source-gutter-line.is-pinned");
+    await expect(pinnedMarkers).toHaveCount(1);
+    await expect(pinnedMarkers.first()).toHaveAttribute(
+      "data-node-id",
+      /declarative_net_request/,
+    );
+
+    const rowBox = await row.boundingBox();
+    const markerBox = await pinnedMarkers.first().boundingBox();
+    expect(rowBox).not.toBeNull();
+    expect(markerBox).not.toBeNull();
+    expect(Math.abs((rowBox?.y ?? 0) - (markerBox?.y ?? 0))).toBeLessThanOrEqual(2);
+  });
+
+  test("12f. Tree craft screenshots", async ({ page }) => {
     const l = locators(page);
 
     await l.sourceNode(sourceNodeLabel("x_custom_metadata")).click();
