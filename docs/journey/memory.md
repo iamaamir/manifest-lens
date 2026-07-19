@@ -211,17 +211,21 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 ## Open Working Questions
 
 - Phase 3 needs an implementation guide before work begins.
-- External implementation-agent integration needs verification: investigate ACP and/or opencode spawning before coordinator delegates code/test-writing tasks to external agents.
-- ACP documentation was requested but not verified in this session because network fetch permission was denied.
+- External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with a strong prompt envelope.
+- Zed supports external ACP agents via `agent_servers` such as `opencode acp`, but this coordinator thread does not currently appear to have a tool-callable way to spawn/use a configured ACP agent and wait for its result.
+- For non-trivial external-agent work, create a task brief under `docs/agents/tasks/active/`, run OpenCode against it, and collect stdout or a report under `docs/agents/tasks/done/`.
 - Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
 - Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
 
 ## Latest Update
 
 - User clarified coordinator boundary: coordinator must orchestrate/manage/instruct only, not directly implement product code, write tests, or perform low-level coding tasks.
-- User preference recorded: implementation/test-writing/fix tasks should be delegated to specialized/external agents, preferably `opencode` via ACP or another verified external-agent mechanism once configured.
+- User clarified current Zed ACP reality: external ACP agents can be configured through `agent_servers` such as `opencode acp`, but a running Zed agent thread does not currently have a tool-callable way to spawn/use that configured ACP agent and await a result.
+- External-agent workaround recorded: use `opencode run --pure "<prompt>"` with a strong prompt envelope.
+- Two-layer workflow recorded: direct `opencode run --pure` for small/review tasks; task brief in `docs/agents/tasks/active/` plus report/stdout synthesis for non-trivial work.
+- User preference recorded: implementation/test-writing/fix tasks should be delegated to specialized/external agents, preferably `opencode run --pure` for now.
 - User preference recorded: do not use Lavish for reports or UI artifacts; Lavish is reserved only for debugging/testing if explicitly requested.
-- Added `docs/agents/external-agents.md` documenting external-agent policy, coordinator boundary, and unverified ACP status.
+- Updated `docs/agents/external-agents.md` documenting external-agent policy, coordinator boundary, Zed ACP limitation, and OpenCode workaround.
 - Completed Phase 1 Source-Aware Parser Foundation and Phase 2 Semantic Manifest Model on branch `ai-team-workflow-experiment`.
 - Implemented parser contracts and `@mvviewer/parser-json` source-aware JSON parser using `jsonc-parser` behind the parser boundary.
 - Phase 1 parser preserves source text, produces serializable syntax snapshots, deterministic syntax node IDs, key/value/object/array/item ranges and paths, parse errors for invalid JSON, JSON-only errors for comments/trailing commas, partial recovery where practical, and range-index lookup for smallest containing nodes.

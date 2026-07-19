@@ -58,15 +58,22 @@ If the user asks for agent-led implementation, the coordinator must delegate imp
 Preferred path for low-level coding tasks:
 
 1. Coordinator creates a narrow task brief.
-2. Coordinator delegates to an external implementation agent such as `opencode` once configured, preferably via ACP or another verified external-agent mechanism.
+2. Coordinator delegates to an external implementation agent using the current workaround:
+
+   ```sh
+   opencode run --pure "<prompt envelope + task brief>"
+   ```
+
 3. Implementation agent gets a disjoint write scope.
 4. Implementation agent edits only assigned files.
 5. Implementation agent runs requested validation and reports results.
 6. Coordinator synthesizes the report, triggers code review/QA, updates memory, and commits if branch policy allows.
 
+Zed-configured ACP agent servers are useful for user-facing agent sessions, but this coordinator does not currently have a tool-callable way to spawn a configured ACP agent thread and await the result. Use `opencode run --pure` until native parent-agent ACP delegation exists.
+
 Avoid multiple agents editing the same files simultaneously.
 
-See `docs/agents/external-agents.md` for external-agent policy and ACP status.
+See `docs/agents/external-agents.md` for external-agent policy, `opencode run --pure` prompt envelope, two-layer workflow, and ACP status.
 
 ## Review Workflow
 

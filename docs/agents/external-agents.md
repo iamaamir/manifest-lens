@@ -4,9 +4,94 @@ This project uses a coordinator-led workflow.
 
 The coordinator must not directly implement product code, write test cases, or perform low-level coding tasks. The coordinator orchestrates, plans, delegates, reviews, and updates durable docs/memory.
 
+## Current Zed / ACP Reality
+
+Zed supports external ACP agents through `agent_servers` in settings. For example, an OpenCode server can be launched with:
+
+```sh
+opencode acp
+```
+
+However, from inside a running Zed agent thread, there does not currently appear to be a tool-callable mechanism for the parent agent to say:
+
+```text
+Spawn/use the configured external ACP agent named opencode for this subtask, wait for its result, and return that result to the parent agent.
+```
+
+So configured Zed ACP agents may be available to the user in Zed, but they are not currently available to this coordinator as a direct subtask tool.
+
+## Immediate External Agent Workaround
+
+For now, use OpenCode through the shell:
+
+```sh
+opencode run --pure "<task prompt>"
+```
+
+This gives real external-agent execution, but it is not the same as using Zed's configured ACP agent thread.
+
+Limitations of the workaround:
+
+- no native Zed ACP session visibility
+- no structured ACP continuation from the parent agent
+- no Zed ACP cancellation/timeout UI for the delegated task
+- no direct parent-agent result plumbing beyond stdout/files
+
+## Prompt Envelope for Immediate Use
+
+Use a strong prompt envelope:
+
+```text
+You are an external specialist agent for mvviewer.
+Read-only unless explicitly authorized.
+Read the referenced docs before acting.
+Stay within the assigned scope.
+Return:
+1. Findings
+2. Evidence
+3. Suggested next actions
+4. Validation run, or why none was run
+5. Whether durable memory/docs updates are proposed
+```
+
+For implementation tasks, add:
+
+```text
+You are authorized to edit only the files listed in the write scope.
+Do not modify unrelated files.
+Run the requested validation commands.
+Return a structured implementation report.
+```
+
+## Two-Layer Workflow
+
+### Layer 1 — Immediate external agent
+
+Use direct shell execution when the task is small or review-only:
+
+```sh
+opencode run --pure "<prompt envelope + task>"
+```
+
+The coordinator then reads stdout, synthesizes findings, and updates memory/docs if needed.
+
+### Layer 2 — Formalized project workflow
+
+For non-trivial work:
+
+1. Coordinator creates a task brief in `docs/agents/tasks/active/`.
+2. Coordinator runs OpenCode against that brief using `opencode run --pure`.
+3. External agent writes a report to `docs/agents/tasks/done/` or returns stdout.
+4. Coordinator reviews/synthesizes.
+5. Coordinator triggers code review/QA as needed.
+6. Coordinator updates `docs/journey/memory.md`.
+7. Coordinator commits if branch policy/user instruction allows.
+
+This gives most of the value of external implementation agents with minimal infrastructure.
+
 ## Preferred External Implementation Agents
 
-For implementation, test-writing, and low-level code modification tasks, prefer external coding agents such as `opencode` once they are configured for this repository.
+For implementation, test-writing, and low-level code modification tasks, prefer external coding agents such as `opencode`.
 
 Expected use cases:
 
@@ -15,27 +100,6 @@ Expected use cases:
 - applying targeted fixes
 - running validation and reporting results
 - producing structured implementation reports
-
-## Agent Client Protocol / ACP
-
-ACP is the preferred direction for external agent spawning and coordination if available in the environment.
-
-Current status:
-
-- ACP integration is not yet configured in this repository.
-- ACP documentation was requested but not verified in this session because network fetch permission was denied.
-- Do not claim ACP support is available until it is explicitly verified and documented.
-
-Before using ACP, document:
-
-- installed client/CLI
-- how to list available external agents
-- how to spawn an external implementation agent
-- how to pass task briefs
-- how to collect reports/results
-- how write scopes are enforced
-- how validation output is returned
-- how coordinator resumes after external work
 
 ## Coordinator Boundary
 
@@ -93,3 +157,9 @@ External implementation agents must return:
 - proposed `docs/journey/memory.md` update
 
 The coordinator then synthesizes, requests review/QA, updates memory, and commits if appropriate.
+
+## Future ACP Follow-up
+
+If Zed exposes a tool-callable parent-agent API for configured ACP agents later, update this policy to replace or supplement `opencode run --pure` with native ACP delegation.
+
+Until then, do not claim native parent-agent-to-ACP delegation is available from inside this coordinator thread.
