@@ -3,3 +3,5 @@ dist/
 coverage/
 .lavish/
 *.tsbuildinfo
+test-results/
+playwright-report/

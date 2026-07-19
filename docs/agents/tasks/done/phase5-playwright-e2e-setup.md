@@ -1,5 +1,31 @@
 # Task Brief — Phase 5 Playwright E2E Setup
 
+## Completion
+
+Completed by external OpenCode E2E/UX QA agent and coordinator-reviewed on 2026-07-19.
+
+Delivered:
+
+- `@playwright/test` setup with root E2E scripts.
+- `playwright.config.ts` with Vite `webServer` and Chromium/headless defaults.
+- 20 Playwright E2E tests under `tests/e2e/`.
+- Coverage for empty shell, comprehensive fixture load, known field interactions, deep scroll, unknown fallback, pin/preview/restore, keyboard path, paste, upload, drag/drop text, invalid-after-valid, mobile viewport, and local-only privacy.
+- Screenshot artifacts generated under ignored `test-results/screenshots/` for designer review.
+
+Coordinator validation passed:
+
+```sh
+npm run typecheck
+npm run test                    # 8 files, 151 tests
+npm run build
+npm run build --workspace=@mvviewer/web
+npm run e2e                     # 20 passed
+npx playwright install chromium # completed during setup
+git diff --check
+```
+
+Note: `.gitignore` and `vitest.config.ts` were adjusted as mechanical integration changes so Playwright artifacts stay untracked and Vitest does not try to execute Playwright tests.
+
 ## Context
 
 Phase 5 is the Web Components UI MVP and is currently in a design-led Observatory reset. The product is a local-first Web Extension Manifest Explainer.
