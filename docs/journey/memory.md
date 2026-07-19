@@ -17,7 +17,7 @@ If the chat/session is lost, start here, then read:
 
 Build a local-first Web Extension Manifest Explainer.
 
-The user writes the implementation. The agent acts primarily as tutor, guide, reviewer, planner, and QA coordinator. The agent may code only when explicitly asked or when the user asks for help with a specific implementation step.
+The coordinator agent orchestrates, plans, delegates, reviews, and updates durable memory/docs. The coordinator must not directly implement product code, write tests, or perform low-level coding tasks. Implementation/test-writing/fix work should be done by the user or delegated to specialist/external implementation agents such as `opencode` once configured.
 
 ## Product North Star
 
@@ -44,6 +44,8 @@ Initial release priority is explanation and interaction clarity, not validation.
   - Human contributor checklist and review expectations.
 - AI team model: `docs/agents/team.md` and `docs/agents/workflow.md`
   - Coordinator-led, artifact-driven, role-specialized agent workflow.
+- External agent policy: `docs/agents/external-agents.md`
+  - Coordinator boundary, external implementation-agent preference, and ACP status.
 - Agent role/persona cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
   - Specialist responsibilities, persona prompts, and report/task formats.
 - Persona loading guide: `docs/agents/persona-loading.md`
@@ -72,8 +74,10 @@ Coordinator agent:
 
 - Maintains roadmap and journey docs.
 - Explains architecture and implementation steps.
-- Reviews user changes.
+- Reviews user/external-agent changes.
 - Uses specialist sub-agents for focused planning/review/QA when useful.
+- Delegates implementation, test-writing, and low-level fixes to the user or specialist/external agents; does not directly code these tasks.
+- Prefers external implementation agents such as `opencode` via ACP or another verified mechanism once configured.
 - Synthesizes specialist reports and resolves conflicts.
 - Keeps this memory file updated after major milestones, phase changes, architecture decisions, scope changes, validated setup/test results, blockers, or important user preferences.
 
@@ -82,6 +86,7 @@ Coordinator agent:
 - Follow `docs/agents/team.md`, `docs/agents/workflow.md`, and role/persona cards in `docs/agents/roles/`.
 - Can be coordinator-spawned or manually started by the user with a persona file.
 - Receive narrow scopes from the coordinator when part of coordinated work.
+- Implementation agents own product-code/test edits when agent-led coding is requested.
 - Avoid overlapping writes.
 - Return structured reports with findings, validation, and proposed `memory.md` updates.
 
@@ -110,6 +115,8 @@ Delegated/future agents:
 - Web Components for shared UI.
 - Host capabilities isolate platform-specific behavior.
 - Direct browser execution first; worker execution later if needed.
+- Coordinator-only boundary: coordinator orchestrates and edits docs/memory/task briefs, but product-code/test implementation must go through user or delegated specialist/external agents.
+- Lavish tooling is not to be used for project reports or UI artifacts; reserve it only for debugging/testing if explicitly requested.
 
 ## Initial Package Plan
 
@@ -198,17 +205,23 @@ Keep updates concise. Prefer editing existing sections over appending noisy logs
 If starting a fresh agent session, use this prompt:
 
 ```text
-We are building mvviewer, a local-first Web Extension Manifest Explainer. Read docs/journey/memory.md first, then AGENTS.md, web-extension-manifest-inspector-hld.md, docs/PRD.md, docs/roadmap-v1.md, the current docs/journey/phaseN.md, docs/architecture/coding-style.md, and, for multi-agent work, docs/agents/team.md and docs/agents/workflow.md. Act as tutor/reviewer/coordinator more than implementor. Preserve HLD architecture, but implement PRD priority: explainer-first MVP. Follow the guiding style: pragmatic FP + ADTs + simple DSA when needed + boring design patterns at boundaries. Keep docs/journey/memory.md updated after major decisions, phase changes, validations, blockers, and user workflow preferences. If using sub-agents, instruct them to report any durable memory updates. Do not code unless asked or unless creating/updating guide docs.
+We are building mvviewer, a local-first Web Extension Manifest Explainer. Read docs/journey/memory.md first, then AGENTS.md, web-extension-manifest-inspector-hld.md, docs/PRD.md, docs/roadmap-v1.md, the current docs/journey/phaseN.md, docs/architecture/coding-style.md, and, for multi-agent work, docs/agents/team.md, docs/agents/workflow.md, and docs/agents/external-agents.md. Act as coordinator/tutor/reviewer, not implementor. Preserve HLD architecture, but implement PRD priority: explainer-first MVP. Follow the guiding style: pragmatic FP + ADTs + simple DSA when needed + boring design patterns at boundaries. Keep docs/journey/memory.md updated after major decisions, phase changes, validations, blockers, and user workflow preferences. Delegate implementation/test-writing/fix work to the user or specialist/external agents such as opencode once configured. Do not use Lavish for reports/UI artifacts; reserve Lavish only for debugging/testing if explicitly requested.
 ```
 
 ## Open Working Questions
 
 - Phase 3 needs an implementation guide before work begins.
+- External implementation-agent integration needs verification: investigate ACP and/or opencode spawning before coordinator delegates code/test-writing tasks to external agents.
+- ACP documentation was requested but not verified in this session because network fetch permission was denied.
 - Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
 - Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
 
 ## Latest Update
 
+- User clarified coordinator boundary: coordinator must orchestrate/manage/instruct only, not directly implement product code, write tests, or perform low-level coding tasks.
+- User preference recorded: implementation/test-writing/fix tasks should be delegated to specialized/external agents, preferably `opencode` via ACP or another verified external-agent mechanism once configured.
+- User preference recorded: do not use Lavish for reports or UI artifacts; Lavish is reserved only for debugging/testing if explicitly requested.
+- Added `docs/agents/external-agents.md` documenting external-agent policy, coordinator boundary, and unverified ACP status.
 - Completed Phase 1 Source-Aware Parser Foundation and Phase 2 Semantic Manifest Model on branch `ai-team-workflow-experiment`.
 - Implemented parser contracts and `@mvviewer/parser-json` source-aware JSON parser using `jsonc-parser` behind the parser boundary.
 - Phase 1 parser preserves source text, produces serializable syntax snapshots, deterministic syntax node IDs, key/value/object/array/item ranges and paths, parse errors for invalid JSON, JSON-only errors for comments/trailing commas, partial recovery where practical, and range-index lookup for smallest containing nodes.

@@ -116,6 +116,14 @@ Before adding a dependency:
 - [ ] It does not force a UI framework into shared UI components.
 - [ ] It is compatible with the current TypeScript/build setup.
 
+## AI Coordinator Boundary
+
+In coordinator-led workflows, the coordinator plans, delegates, reviews, synthesizes, updates memory/docs, and commits when appropriate.
+
+The coordinator should not directly implement product code, write tests, or perform low-level fixes. Agent-led implementation should be delegated to specialist/external agents, preferably `opencode` via ACP or another verified external-agent mechanism once configured.
+
+Do not use Lavish to create project reports or UI artifacts. Lavish is reserved only for debugging/testing if explicitly requested.
+
 ## Review Mindset
 
 Prefer simple, explicit, debuggable code.

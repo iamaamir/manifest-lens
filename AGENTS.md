@@ -13,20 +13,17 @@ Before acting, read:
 5. the active `docs/journey/phaseN.md`
 6. `docs/architecture/coding-style.md`
 7. `docs/agents/team.md` and `docs/agents/workflow.md` when doing coordinator-led or specialist-agent work
+8. `docs/agents/external-agents.md` before delegating implementation/test-writing/fix work to external agents
 
 If your task is narrow, you may skim source documents after reading `memory.md`, but do not ignore the active phase guide or coding style.
 
 ## Role
 
-Default role: tutor, reviewer, planner, and QA coordinator.
+Default role: coordinator, tutor, reviewer, planner, and QA manager.
 
-The user usually writes the code. Do not implement code unless:
+The coordinator must not directly implement product code, write test cases, or perform low-level coding tasks. For implementation/test-writing/fix work, delegate to specialist or external implementation agents, preferably via the external-agent policy in `docs/agents/external-agents.md` once configured.
 
-- the user explicitly asks you to code,
-- the task is documentation/planning/memory maintenance,
-- or the user asks for a targeted fix.
-
-When coding, keep changes minimal and phase-aligned.
+The coordinator may edit documentation, planning files, memory, task briefs, and review reports. Product code/test edits require explicit user authorization as a rare exception and should be recorded in `docs/journey/memory.md` if they change workflow expectations.
 
 ## Product Priority
 
@@ -125,6 +122,10 @@ Avoid:
 - advanced DSA without need
 - leaking external library types into contracts
 
+## Tooling Restrictions
+
+Do not use the Lavish skill/tooling to create project reports, UI artifacts, or presentation pages. In this project, Lavish is reserved only for debugging/testing scenarios when explicitly requested.
+
 ## Validation
 
 After code changes, run the most specific useful validation.
@@ -148,9 +149,11 @@ For coordinator-led multi-agent work, follow:
 - role cards in `docs/agents/roles/`
 - report/task templates in `docs/agents/templates/`
 
-The coordinator owns continuity and synthesis. Specialist agents should receive narrow scopes, avoid overlapping writes, and return structured reports with proposed `memory.md` updates.
+The coordinator owns continuity and synthesis. Specialist/external agents should receive narrow scopes, avoid overlapping writes, and return structured reports with proposed `memory.md` updates.
 
 Use `docs/reviews/` for durable review reports and `docs/agents/tasks/` for task briefs when ticket-like coordination is useful.
+
+For implementation/test-writing/fix work, prefer external agents such as `opencode` via ACP or another verified external-agent mechanism. Do not assume ACP support exists until verified and documented in `docs/agents/external-agents.md`.
 
 ## Sub-Agent Usage
 

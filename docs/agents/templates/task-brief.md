@@ -6,7 +6,7 @@
 
 ## Assigned Role
 
-<role>
+<role or external agent, e.g. opencode when configured>
 
 ## Goal
 
@@ -23,6 +23,8 @@
 ## Files / Write Scope
 
 - ...
+
+The coordinator must not edit these implementation/test files directly; assigned implementation agent owns this write scope.
 
 ## Acceptance Criteria
 

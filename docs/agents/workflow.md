@@ -21,7 +21,7 @@ Intake
 → Scope check
 → Specialist planning/review as needed
 → Task brief
-→ Implementation by user or assigned agent
+→ Implementation by user or external/specialist implementation agent
 → Code review
 → QA validation
 → Memory/docs update
@@ -53,15 +53,20 @@ docs/agents/tasks/active/phaseN-<topic>.md
 
 Default: user implements, coordinator tutors/reviews.
 
-If user asks an agent to implement:
+If the user asks for agent-led implementation, the coordinator must delegate implementation/test-writing/fix work to a specialist or external implementation agent. The coordinator should not directly write product code or tests.
+
+Preferred path for low-level coding tasks:
 
 1. Coordinator creates a narrow task brief.
-2. Implementation agent gets a disjoint write scope.
-3. Agent edits only assigned files.
-4. Agent reports validation and proposed memory updates.
-5. Coordinator reviews/synthesizes before broader changes.
+2. Coordinator delegates to an external implementation agent such as `opencode` once configured, preferably via ACP or another verified external-agent mechanism.
+3. Implementation agent gets a disjoint write scope.
+4. Implementation agent edits only assigned files.
+5. Implementation agent runs requested validation and reports results.
+6. Coordinator synthesizes the report, triggers code review/QA, updates memory, and commits if branch policy allows.
 
 Avoid multiple agents editing the same files simultaneously.
+
+See `docs/agents/external-agents.md` for external-agent policy and ACP status.
 
 ## Review Workflow
 
@@ -117,6 +122,8 @@ test(parser): add range lookup coverage
 ```
 
 Do not commit unless requested by the user or established branch policy says to keep committing experiment work.
+
+Coordinator commits should normally contain documentation, orchestration artifacts, memory updates, or completed implementation work produced by delegated agents. The coordinator should not create new product-code commits from direct coding work.
 
 Current experiment branch policy: commit meaningful AI-team workflow changes on `ai-team-workflow-experiment`.
 

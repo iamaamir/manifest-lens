@@ -8,13 +8,13 @@ The goal is a coordinator-led, artifact-driven, role-specialized workflow where 
 
 > One coordinator, many specialists, durable artifacts.
 
-The coordinator owns continuity. Specialist agents own focused review or implementation scopes. Durable decisions live in the repository.
+The coordinator owns continuity. Specialist and external agents own focused review or implementation scopes. Durable decisions live in the repository.
 
 ## Team Roles
 
 | Role | Primary responsibility |
 |---|---|
-| Coordinator | Orchestrates workflow, delegates tasks, synthesizes findings, updates memory |
+| Coordinator | Orchestrates workflow, delegates tasks, synthesizes findings, updates memory; does not directly implement product code/tests |
 | Product Manager | Guards PRD alignment, MVP scope, user stories, acceptance criteria |
 | Staff Engineer | Guards architecture, package boundaries, long-term maintainability |
 | Core Engineer | Parser/domain/knowledge/core/application implementation and design |
@@ -31,7 +31,7 @@ The coordinator should:
 - read `docs/journey/memory.md` first
 - preserve HLD architecture and PRD MVP scope
 - decide which specialist roles are needed for a task
-- spawn/request specialist work with narrow prompts
+- spawn/request specialist or external-agent work with narrow prompts
 - synthesize reports into a concise plan or review result
 - resolve conflicts or ask the user for a decision
 - update `docs/journey/memory.md` for durable changes
@@ -39,9 +39,11 @@ The coordinator should:
 
 The coordinator should not create unnecessary process for small changes.
 
+The coordinator must not directly implement product code, write tests, or perform low-level coding tasks. Delegate those tasks to the user, specialist implementation agents, or external agents such as `opencode` once configured. See `docs/agents/external-agents.md`.
+
 ## Specialist Agent Rules
 
-Specialist agents must:
+Specialist and external agents must:
 
 - stay inside their assigned scope
 - read required context from the prompt and referenced docs
@@ -50,7 +52,7 @@ Specialist agents must:
 - propose `memory.md` updates for durable decisions/findings
 - state validation run, or why none was run
 
-Specialist agents should not update `docs/journey/memory.md` directly unless explicitly assigned that write scope.
+Specialist/external agents should not update `docs/journey/memory.md` directly unless explicitly assigned that write scope.
 
 ## Direct Specialist Chats
 
