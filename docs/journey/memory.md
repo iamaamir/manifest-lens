@@ -233,6 +233,7 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Updated `docs/agents/roles/coordinator.md` to improve whole-team coordination: Product Manager should be used heavily as MVP/product-scope guardian, Core Engineer should review headless/shared API and UI-consumed core/application concerns, and default phase workflow now includes planning/review gates by role.
 - Staff Engineer and QA read-only reviews completed for architecture and quality through Phase 4 on branch `ai-team-workflow-experiment`; both passed with no blockers for starting Phase 5.
 - Staff review confirmed PRD/HLD alignment, clean dependency direction, pure serializable contracts/snapshots, no parser-library/DOM/host leakage into shared core packages, and no diagnostics/fixes/health-score/remote/AI scope creep in implemented packages.
 - QA review confirmed Phase 1–4 behavior coverage is strong across parser, semantic model, knowledge/core, and application state; QA ran `npm run test` and it passed locally (6 files, 90 tests).
