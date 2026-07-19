@@ -7,6 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mvviewer/ui-components": "0.0.0"
+    "@mvviewer/ui-components": "0.0.0",
+    "@mvviewer/core": "0.0.0",
+    "@mvviewer/contracts": "0.0.0"
   }
 }

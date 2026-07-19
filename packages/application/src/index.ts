@@ -1,6 +1,9 @@
 import type {
   AnalysisSnapshot,
+  Explanation,
+  SemanticNode,
   SemanticNodeId,
+  SourceRange,
 } from "@mvviewer/contracts";
 
 export type InspectorStatus =
@@ -228,4 +231,44 @@ export function moveFocus(
   return inspectorReducer(state, {
     type: direction === "next" ? "node/focusNext" : "node/focusPrevious",
   });
+}
+
+export function getSemanticNodeById(
+  snapshot: AnalysisSnapshot,
+  nodeId: SemanticNodeId,
+): SemanticNode | undefined {
+  return snapshot.semantic.nodes.find((node) => node.id === nodeId);
+}
+
+export function getActiveExplanation(
+  state: InspectorState,
+): Explanation | null {
+  if (!state.snapshot) return null;
+  const activeId = getActiveNodeId(state);
+  if (!activeId) return null;
+  return state.snapshot.explanationsByNodeId[activeId] ?? null;
+}
+
+function containsOffset(range: SourceRange, offset: number): boolean {
+  return range.start.offset <= offset && offset < range.end.offset;
+}
+
+function rangeLength(range: SourceRange): number {
+  return range.end.offset - range.start.offset;
+}
+
+export function findSmallestExplainableNodeAtOffset(
+  snapshot: AnalysisSnapshot,
+  offset: number,
+): SemanticNode | undefined {
+  const explainable = snapshot.semantic.nodes.filter(
+    (node) => node.id in snapshot.explanationsByNodeId,
+  );
+  const containing = explainable.filter((node) =>
+    containsOffset(node.sourceRange, offset),
+  );
+  const sorted = [...containing].sort(
+    (left, right) => rangeLength(left.sourceRange) - rangeLength(right.sourceRange),
+  );
+  return sorted[0];
 }

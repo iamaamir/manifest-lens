@@ -5,5 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mvviewer/application": "0.0.0",
+    "@mvviewer/contracts": "0.0.0"
   }
 }

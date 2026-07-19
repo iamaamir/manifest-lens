@@ -12,8 +12,11 @@ import type {
 } from "@mvviewer/contracts";
 import {
   createInitialInspectorState,
+  findSmallestExplainableNodeAtOffset,
+  getActiveExplanation,
   getActiveNodeId,
   getNavigableNodeIds,
+  getSemanticNodeById,
   inspectorReducer,
   moveFocus,
 } from "./index.js";
@@ -817,5 +820,68 @@ describe("error status", () => {
 
     expect(parsed.status.kind).toBe("error");
     expect(parsed.status.message).toBe("something went wrong");
+  });
+});
+
+describe("pure selectors", () => {
+  it("getSemanticNodeById finds a node by id", () => {
+    const snapshot = makeSnapshot();
+    expect(getSemanticNodeById(snapshot, nid("name"))?.kind).toBe("field");
+    expect(getSemanticNodeById(snapshot, nid("missing"))).toBeUndefined();
+  });
+
+  it("getActiveExplanation returns the root explanation for a fresh snapshot", () => {
+    const snapshot = makeSnapshot();
+    const state = inspectorReducer(
+      createInitialInspectorState(),
+      { type: "snapshot/set", snapshot },
+    );
+    const explanation = getActiveExplanation(state);
+    expect(explanation?.title).toBe("Manifest");
+  });
+
+  it("getActiveExplanation follows a pinned selection", () => {
+    const snapshot = makeSnapshot();
+    let state = inspectorReducer(
+      createInitialInspectorState(),
+      { type: "snapshot/set", snapshot },
+    );
+    state = inspectorReducer(state, { type: "node/select", nodeId: nid("name") });
+    expect(getActiveExplanation(state)?.title).toBe("Name");
+  });
+
+  it("getActiveExplanation returns null without a snapshot", () => {
+    expect(getActiveExplanation(createInitialInspectorState())).toBeNull();
+  });
+
+  it("findSmallestExplainableNodeAtOffset picks the narrowest explainable node", () => {
+    const outerRange: SourceRange = {
+      start: { line: 0, column: 0, offset: 0 },
+      end: { line: 0, column: 0, offset: 100 },
+    };
+    const innerRange: SourceRange = {
+      start: { line: 0, column: 0, offset: 10 },
+      end: { line: 0, column: 0, offset: 20 },
+    };
+    const outer: SemanticNode = {
+      ...makeNode("manifest", nid("manifest")),
+      sourceRange: outerRange,
+    };
+    const inner: SemanticNode = {
+      ...makeNode("field", nid("name"), { fieldName: "name" }),
+      sourceRange: innerRange,
+    };
+    const snapshot = makeSnapshot({
+      nodes: [outer, inner],
+      rootNodeId: nid("manifest"),
+    });
+
+    const hit = findSmallestExplainableNodeAtOffset(snapshot, 15);
+    expect(hit?.id).toBe(nid("name"));
+  });
+
+  it("findSmallestExplainableNodeAtOffset returns undefined outside explainable ranges", () => {
+    const snapshot = makeSnapshot();
+    expect(findSmallestExplainableNodeAtOffset(snapshot, 9999)).toBeUndefined();
   });
 });

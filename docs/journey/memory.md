@@ -53,7 +53,9 @@ Initial release priority is explanation and interaction clarity, not validation.
 
 ## Current Phase
 
-Phase 5 — Web Components UI MVP is active/planned.
+Phase 5 — Web Components UI MVP is complete, reviewed, validated, and accepted on branch `ai-team-workflow-experiment`.
+
+Next phase is not started yet.
 
 Phase 4 — Application State and Interaction Model is complete, reviewed, and validated.
 
@@ -235,6 +237,16 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Phase 5 Web Components UI MVP completed by external OpenCode implementation/fix agents and accepted after coordinator validation plus Product Manager, Core Engineer, Frontend Expert, Staff Engineer, QA Engineer, and Code Reviewer reviews/re-reviews.
+- Phase 5 now provides the first usable local web explainer UI: textarea Analyze flow, file picker, paste/drop handling, direct local `@mvviewer/core/analyzeManifest`, preserved source rendering, explanation panel, hover preview, click/tap pinning, keyboard navigation, unknown/custom fallback, partial-invalid graceful status, responsive split/stacked layout, and local-first privacy behavior.
+- `apps/web` is a thin composition root that mounts `<manifest-inspector>` and delegates controls to `@mvviewer/host-web`; `host-web` owns browser input adapters and parse-error-aware analysis outcomes; `ui-components` owns Web Components rendering and consumes `@mvviewer/application` reducer/selectors.
+- Package direction reviewed and accepted for Phase 5: `apps/web -> host-web`; `host-web -> contracts, core, ui-components`; `ui-components -> contracts, application`; `application -> contracts`. Package metadata, lockfile, and TypeScript project references match imports.
+- Source rendering preserves `snapshot.document.text` and uses DOM text APIs only; no production `innerHTML`, `outerHTML`, or `insertAdjacentHTML` source injection. Source segments have unique DOM IDs, deterministic representative IDs for `aria-activedescendant`, and stable source DOM after snapshot load while interactions update classes/ARIA and the explanation panel.
+- Keyboard access is reachable through a focusable source region with non-positive tabindex, instructions, Arrow navigation, Enter/Space selection, Escape clear, and visible focus. Hover/click/tap interactions use the Phase 4 application reducer semantics.
+- Tests now cover empty state, valid paste/source preservation, Analyze invalid JSON, file import, drop/paste flows, no-network privacy for text/import/drop, hover preview, click pinning, pin A -> hover B -> leave restore, keyboard navigation, unknown/custom fallback, partial-invalid calm status, source/explanation synchronization, unique source DOM IDs, package behavior, and fixture-backed high-risk cases.
+- Phase 5 validation passed locally: `npm run typecheck`, `npm run test` (8 files, 142 tests), `npm run build`, `npm run build --workspace=@mvviewer/web`, `git diff --check`, plus static greps for unsafe casts, production source injection, network APIs, and scope-creep terms.
+- Completed task briefs moved to `docs/agents/tasks/done/phase5-ui-mvp-slice1.md` and `docs/agents/tasks/done/phase5-ui-mvp-complete.md`; final review summary recorded in `docs/reviews/phase5-completion-report.md`.
+- Non-blocking Phase 5 follow-ups: optionally add host/UI smoke tests for `minimal-mv3.json` and `full-common-mv3.json`, improve visible file/drop affordance, consider one semantic option per explainable node for future accessibility polish, clear `representativeIdByNode` in `clear()` for lifecycle tidiness, remove unused/near-term-only helpers if they remain unused, and consider moving reusable source decoration selectors from `ui-components` into `application` if they grow.
 - Phase 5 Slice 1 completed by external OpenCode implementation/fix agents and accepted after coordinator validation plus Product Manager, Frontend Expert, Staff Engineer, QA Engineer, and Code Reviewer reviews/re-reviews.
 - Slice 1 added initial Web Components UI wiring: `apps/web` mounts through `@mvviewer/host-web`; `host-web` registers/mounts `@mvviewer/ui-components`; `ui-components` provides a real `<manifest-inspector>` Web Component with Shadow DOM and an accessible local-first empty state.
 - Slice 1 remains package-wiring/static-shell only: no paste/drop/file reading, manifest analysis, source rendering, explanation data rendering, hover/click/tap/keyboard source interaction, diagnostics, fixes, health scores, reports, audits, workers, remote analysis, AI behavior, browser extension, VS Code extension, or CLI.

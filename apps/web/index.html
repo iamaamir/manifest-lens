@@ -10,7 +10,28 @@
       <h1>Manifest Explainer</h1>
       <p>Understand every field of your web extension manifest.</p>
     </header>
-    <main id="app"></main>
+    <main id="app">
+      <section aria-label="Load a manifest">
+        <label for="manifest-input">Paste your manifest</label>
+        <textarea
+          id="manifest-input"
+          rows="8"
+          placeholder='{ "manifest_version": 3, "name": "Example", "version": "1.0.0" }'
+        ></textarea>
+        <div class="actions">
+          <button type="button" id="analyze-button">Analyze</button>
+          <input
+            type="file"
+            id="file-input"
+            accept="application/json,.json"
+            aria-label="Choose a manifest.json file"
+          />
+          <button type="button" id="clear-button">Clear</button>
+        </div>
+        <p id="status-message" role="status" aria-live="polite"></p>
+      </section>
+      <div id="inspector-host"></div>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
