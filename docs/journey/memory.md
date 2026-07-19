@@ -213,6 +213,9 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 - Phase 3 needs an implementation guide before work begins.
 - External implementation-agent workflow is defined for now: use `opencode run --pure "<prompt>"` from the shell with a strong prompt envelope.
 - Zed supports external ACP agents via `agent_servers` such as `opencode acp`, but this coordinator thread does not currently appear to have a tool-callable way to spawn/use a configured ACP agent and wait for its result.
+- Phase guides and task briefs should be clear enough that either the user or an external implementation agent can pick them up without chat history.
+- External agents are encouraged for low-effort, well-scoped implementation tasks, unit-test writing, fixture expansion, targeted fixes, mechanical refactors, and validation/reporting.
+- Coordinator preserves control through narrow write scopes, quality gates, review/QA, validation, memory updates, and commits only after synthesis.
 - For non-trivial external-agent work, create a task brief under `docs/agents/tasks/active/`, run OpenCode against it, and collect stdout or a report under `docs/agents/tasks/done/`.
 - Phase 1 product scope remains JSON only. JSONC is intentionally deferred because the MVP targets normal `manifest.json` files.
 - Parser implementation uses `jsonc-parser` as a source-aware JSON parser utility behind the `SourceParser` contract.
@@ -222,6 +225,7 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 - User clarified coordinator boundary: coordinator must orchestrate/manage/instruct only, not directly implement product code, write tests, or perform low-level coding tasks.
 - User clarified current Zed ACP reality: external ACP agents can be configured through `agent_servers` such as `opencode acp`, but a running Zed agent thread does not currently have a tool-callable way to spawn/use that configured ACP agent and await a result.
 - External-agent workaround recorded: use `opencode run --pure "<prompt>"` with a strong prompt envelope.
+- External-agent delegation philosophy recorded: use clear phase guides/task briefs so either the user or external agents can implement; favor external agents for low-effort coding, unit tests, fixtures, targeted fixes, mechanical refactors, and validation reports while coordinator retains quality control.
 - Two-layer workflow recorded: direct `opencode run --pure` for small/review tasks; task brief in `docs/agents/tasks/active/` plus report/stdout synthesis for non-trivial work.
 - User preference recorded: implementation/test-writing/fix tasks should be delegated to specialized/external agents, preferably `opencode run --pure` for now.
 - User preference recorded: do not use Lavish for reports or UI artifacts; Lavish is reserved only for debugging/testing if explicitly requested.

@@ -51,9 +51,11 @@ docs/agents/tasks/active/phaseN-<topic>.md
 
 ## Implementation Workflow
 
-Default: user implements, coordinator tutors/reviews.
+Default: user implements or the coordinator delegates to an external implementation agent. The coordinator tutors/reviews/orchestrates.
 
-If the user asks for agent-led implementation, the coordinator must delegate implementation/test-writing/fix work to a specialist or external implementation agent. The coordinator should not directly write product code or tests.
+Phase guides and task briefs should be clear enough that either the user or an external implementation agent can pick up the work.
+
+For low-effort, well-scoped implementation tasks, unit-test writing, fixture expansion, targeted fixes, and mechanical refactors, external agents are encouraged. The coordinator should not directly write product code or tests.
 
 Preferred path for low-level coding tasks:
 
@@ -72,6 +74,8 @@ Preferred path for low-level coding tasks:
 Zed-configured ACP agent servers are useful for user-facing agent sessions, but this coordinator does not currently have a tool-callable way to spawn a configured ACP agent thread and await the result. Use `opencode run --pure` until native parent-agent ACP delegation exists.
 
 Avoid multiple agents editing the same files simultaneously.
+
+Quality stays with the coordinator-led process: external-agent implementation must still go through synthesis, review/QA, validation, and memory updates before commit.
 
 See `docs/agents/external-agents.md` for external-agent policy, `opencode run --pure` prompt envelope, two-layer workflow, and ACP status.
 

@@ -63,6 +63,30 @@ Run the requested validation commands.
 Return a structured implementation report.
 ```
 
+## Delegation Philosophy
+
+Phase guides and task briefs should be explicit enough that either the user or an external implementation agent can pick them up without needing chat history.
+
+Use external agents where they are strongest:
+
+- low-effort, well-scoped coding tasks
+- unit-test writing
+- fixture expansion
+- targeted fixes
+- mechanical refactors with clear boundaries
+- validation runs with structured reports
+
+The coordinator preserves control by:
+
+- creating clear task briefs
+- assigning narrow write scopes
+- requiring validation output
+- sending implementation through code review/QA
+- updating durable memory/docs only after synthesis
+- committing only after quality gates pass
+
+This keeps implementation throughput high while preserving architecture and product quality.
+
 ## Two-Layer Workflow
 
 ### Layer 1 — Immediate external agent
@@ -95,8 +119,9 @@ For implementation, test-writing, and low-level code modification tasks, prefer 
 
 Expected use cases:
 
-- implementing package code
-- writing or updating tests
+- low-effort implementation tasks with clear acceptance criteria
+- implementing package code from a phase guide or task brief
+- writing or updating unit tests
 - applying targeted fixes
 - running validation and reporting results
 - producing structured implementation reports
@@ -128,7 +153,9 @@ Exception:
 
 ## External Agent Task Contract
 
-External coding agents should receive task briefs that include:
+External coding agents should usually work from phase guides and task briefs, not chat history.
+
+Task briefs should include:
 
 - role/persona
 - active phase
