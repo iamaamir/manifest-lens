@@ -12,6 +12,7 @@ Before acting, read:
 4. `docs/roadmap-v1.md`
 5. the active `docs/journey/phaseN.md`
 6. `docs/architecture/coding-style.md`
+7. `docs/agents/team.md` and `docs/agents/workflow.md` when doing coordinator-led or specialist-agent work
 
 If your task is narrow, you may skim source documents after reading `memory.md`, but do not ignore the active phase guide or coding style.
 
@@ -137,6 +138,19 @@ npm run build
 ```
 
 Report exactly what passed or failed. Do not claim validation passed unless it was run.
+
+## AI Team Workflow
+
+For coordinator-led multi-agent work, follow:
+
+- `docs/agents/team.md`
+- `docs/agents/workflow.md`
+- role cards in `docs/agents/roles/`
+- report/task templates in `docs/agents/templates/`
+
+The coordinator owns continuity and synthesis. Specialist agents should receive narrow scopes, avoid overlapping writes, and return structured reports with proposed `memory.md` updates.
+
+Use `docs/reviews/` for durable review reports and `docs/agents/tasks/` for task briefs when ticket-like coordination is useful.
 
 ## Sub-Agent Usage
 

@@ -42,6 +42,10 @@ Initial release priority is explanation and interaction clarity, not validation.
   - Required operating instructions for future agents.
 - Contributor guide: `CONTRIBUTING.md`
   - Human contributor checklist and review expectations.
+- AI team model: `docs/agents/team.md` and `docs/agents/workflow.md`
+  - Coordinator-led, artifact-driven, role-specialized agent workflow.
+- Agent role cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
+  - Specialist responsibilities and report/task formats.
 
 ## Current Phase
 
@@ -53,17 +57,26 @@ Phase 0 — Repository and Architecture Foundation is complete and reviewed.
 
 User:
 
-- Does most coding and setup.
+- Does most coding and setup unless explicitly asking agents to implement.
 - Follows phase guides.
-- Asks questions or requests implementation help when needed.
+- Can ask the coordinator to run planning/review/QA teams automatically.
+- Can interrupt, redirect, or guide any specialist role through the coordinator.
 
-Agent:
+Coordinator agent:
 
 - Maintains roadmap and journey docs.
 - Explains architecture and implementation steps.
 - Reviews user changes.
-- Uses sub-agents for focused review/QA where useful.
+- Uses specialist sub-agents for focused planning/review/QA when useful.
+- Synthesizes specialist reports and resolves conflicts.
 - Keeps this memory file updated after major milestones, phase changes, architecture decisions, scope changes, validated setup/test results, blockers, or important user preferences.
+
+Specialist agents:
+
+- Follow `docs/agents/team.md`, `docs/agents/workflow.md`, and role cards in `docs/agents/roles/`.
+- Receive narrow scopes from the coordinator.
+- Avoid overlapping writes.
+- Return structured reports with findings, validation, and proposed `memory.md` updates.
 
 Delegated/future agents:
 
@@ -178,7 +191,7 @@ Keep updates concise. Prefer editing existing sections over appending noisy logs
 If starting a fresh agent session, use this prompt:
 
 ```text
-We are building mvviewer, a local-first Web Extension Manifest Explainer. Read docs/journey/memory.md first, then web-extension-manifest-inspector-hld.md, docs/PRD.md, docs/roadmap-v1.md, the current docs/journey/phaseN.md, docs/architecture/coding-style.md, and AGENTS.md. Act as tutor/reviewer more than implementor. Preserve HLD architecture, but implement PRD priority: explainer-first MVP. Follow the guiding style: pragmatic FP + ADTs + simple DSA when needed + boring design patterns at boundaries. Keep docs/journey/memory.md updated after major decisions, phase changes, validations, blockers, and user workflow preferences. If using sub-agents, instruct them to report any durable memory updates. Do not code unless asked or unless creating/updating guide docs.
+We are building mvviewer, a local-first Web Extension Manifest Explainer. Read docs/journey/memory.md first, then AGENTS.md, web-extension-manifest-inspector-hld.md, docs/PRD.md, docs/roadmap-v1.md, the current docs/journey/phaseN.md, docs/architecture/coding-style.md, and, for multi-agent work, docs/agents/team.md and docs/agents/workflow.md. Act as tutor/reviewer/coordinator more than implementor. Preserve HLD architecture, but implement PRD priority: explainer-first MVP. Follow the guiding style: pragmatic FP + ADTs + simple DSA when needed + boring design patterns at boundaries. Keep docs/journey/memory.md updated after major decisions, phase changes, validations, blockers, and user workflow preferences. If using sub-agents, instruct them to report any durable memory updates. Do not code unless asked or unless creating/updating guide docs.
 ```
 
 ## Open Working Questions
@@ -188,6 +201,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Added repo-native AI team operating model: `docs/agents/team.md`, `docs/agents/workflow.md`, role cards, report/task templates, task queue README, and `docs/reviews/` directory.
+- Updated `AGENTS.md` with coordinator-led AI team workflow instructions.
 - Baseline committed on `main` with commit `6c4615b` (`chore: establish project baseline`).
 - Active experiment branch is `ai-team-workflow-experiment`, created from the baseline commit, for trying the coordinator-led AI team workflow.
 - Experiment branch policy: keep committing meaningful AI-team workflow changes on this branch so `main` remains a stable restore point.
