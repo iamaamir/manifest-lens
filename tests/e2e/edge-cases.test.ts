@@ -3,49 +3,65 @@ import {
   locators,
   readComprehensiveFixture,
   INVALID_JSON,
-  loadFixtureViaTextarea,
+  loadFixtureViaPaste,
   sourceNodeLabel,
   SCREENSHOT_DIR,
 } from "./helpers";
 
 const FIXTURE = readComprehensiveFixture();
 
-test.describe("8. Invalid-After-Valid Regression", () => {
+test.describe("14. Invalid-After-Valid Regression", () => {
   test("loading invalid JSON after valid clears stale content", async ({
     page,
   }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
 
     const sourceBefore = await l.sourcePre.textContent();
     expect(sourceBefore).toContain("manifest_version");
 
-    await l.manifestInput.fill(INVALID_JSON);
-    await l.analyzeButton.click();
-    await expect(l.statusMessage).toHaveAttribute("data-kind", "error", { timeout: 3000 });
+    await page.evaluate((invalidText) => {
+      const pasteEvent = new Event("paste", {
+        bubbles: true,
+        cancelable: true,
+      }) as ClipboardEvent;
+      Object.defineProperty(pasteEvent, "clipboardData", {
+        value: { getData: () => invalidText },
+      });
+      document.dispatchEvent(pasteEvent);
+    }, INVALID_JSON);
 
-    await expect(l.sourcePre).not.toBeAttached();
+    await expect(l.sourcePre).not.toBeAttached({ timeout: 3000 });
     await expect(l.emptyHeading).toBeVisible();
   });
 });
 
-test.describe("9. Mobile/Narrow Viewport", () => {
-  test("narrow viewport renders source and explanation without overflow", async ({
+test.describe("15. Mobile/Narrow Viewport", () => {
+  test("truly empty mobile viewport at 390x844 with no form dock, no side-by-side panel", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
 
     const l = locators(page);
 
-    await expect(l.sourceFrame).toBeVisible();
-    await expect(l.explanationPane).toBeVisible();
+    await expect(page.locator("textarea")).toHaveCount(0);
 
-    const sourceText = await l.sourcePre.textContent();
-    expect(sourceText).toContain("manifest_version");
+    await expect(l.emptyGlyph).toBeVisible();
+    await expect(l.emptyHeading).toHaveText("Drop a manifest.json");
+    await expect(l.emptyNote).toBeVisible();
+
+    await expect(l.explanationPane).not.toBeVisible();
+
+    const hasExplanationPane = await page.evaluate(() => {
+      const inspector = document.querySelector("manifest-inspector");
+      if (!inspector || !inspector.shadowRoot) return true;
+      const pane = inspector.shadowRoot.querySelector(".explanation-pane");
+      return pane !== null;
+    });
+    expect(hasExplanationPane).toBe(true);
 
     const hasHorizontalScroll =
       (await page.evaluate(() => document.documentElement.scrollWidth)) >
@@ -53,13 +69,43 @@ test.describe("9. Mobile/Narrow Viewport", () => {
     expect(hasHorizontalScroll).toBe(false);
 
     await page.screenshot({
-      path: `${SCREENSHOT_DIR}/mobile-viewport-390x844.png`,
-      fullPage: true,
+      path: `${SCREENSHOT_DIR}/mobile-empty-viewport-390x844.png`,
+    });
+  });
+
+  test("loaded mobile viewport shows inline card after tapping field", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+
+    await expect(l.sourcePre).toBeVisible();
+    await expect(l.explanationPane).not.toBeVisible();
+
+    const fieldNode = l.sourceNode(sourceNodeLabel("manifest_version"));
+    await fieldNode.click();
+    await expect(l.mobileInlineCard).toBeVisible();
+    await expect(l.mobileInlineCard.locator(".explanation-eyebrow")).toBeVisible();
+    await expect(l.mobileInlineCard.locator(".explanation-title")).toHaveText("Manifest Version", { timeout: 3000 });
+    await expect(l.mobileInlineCard.locator(".explanation-summary")).toBeVisible();
+
+    const fieldBox = await fieldNode.boundingBox();
+    const cardBox = await l.mobileInlineCard.boundingBox();
+    expect(fieldBox).not.toBeNull();
+    expect(cardBox).not.toBeNull();
+    expect(cardBox!.y).toBeGreaterThan(fieldBox!.y);
+    expect(cardBox!.y - fieldBox!.y).toBeLessThan(120);
+
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/mobile-loaded-selected-inline-card-390x844.png`,
     });
   });
 });
 
-test.describe("10. Local-Only Privacy Guard", () => {
+test.describe("16. Local-Only Privacy Guard", () => {
   test("no unexpected network requests contain manifest content", async ({
     page,
   }) => {
@@ -75,7 +121,7 @@ test.describe("10. Local-Only Privacy Guard", () => {
     });
 
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("manifest_version")).click();

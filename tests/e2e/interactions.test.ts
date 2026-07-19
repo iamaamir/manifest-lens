@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   locators,
   readComprehensiveFixture,
-  loadFixtureViaTextarea,
   loadFixtureViaPaste,
   sourceNodeLabel,
   FALLBACK_TITLE,
@@ -12,18 +11,18 @@ import {
 
 const FIXTURE = readComprehensiveFixture();
 
-test.describe("3. Known Field Interactions", () => {
+test.describe("5. Known Field Interactions", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
   });
 
   test("click manifest_version shows correct explanation", async ({ page }) => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("manifest_version")).click();
     await expect(l.explanationTitle).toHaveText("Manifest Version", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("manifest_version");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -31,8 +30,8 @@ test.describe("3. Known Field Interactions", () => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("permissions")).click();
     await expect(l.explanationTitle).toHaveText("Permissions", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("permissions");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -40,8 +39,8 @@ test.describe("3. Known Field Interactions", () => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("host_permissions")).click();
     await expect(l.explanationTitle).toHaveText("Host Permissions", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("host_permissions");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -49,8 +48,8 @@ test.describe("3. Known Field Interactions", () => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("content_scripts")).click();
     await expect(l.explanationTitle).toHaveText("Content Scripts", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("content_scripts");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -58,8 +57,8 @@ test.describe("3. Known Field Interactions", () => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("background")).click();
     await expect(l.explanationTitle).toHaveText("Background", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("background");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -67,8 +66,8 @@ test.describe("3. Known Field Interactions", () => {
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("action")).click();
     await expect(l.explanationTitle).toHaveText("Action (Toolbar Button)", { timeout: 3000 });
-    await expect(l.explanationBreadcrumb).toBeVisible();
-    await expect(l.explanationBreadcrumb).toHaveText("action");
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationEyebrow).toHaveText("TOP-LEVEL FIELD");
     await expect(l.explanationSummary).toBeVisible();
   });
 
@@ -88,12 +87,13 @@ test.describe("3. Known Field Interactions", () => {
   });
 });
 
-test.describe("4. Scroll and Deep-Field Behavior", () => {
-  test("scrolls to deep field and asserts explanation panel updates", async ({
+test.describe("6. Scroll and Deep-Field Behavior", () => {
+  test("scrolls source pane to deep field, explanation stays visible, selects deep field, page scrollY remains 0", async ({
     page,
   }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
 
@@ -106,24 +106,32 @@ test.describe("4. Scroll and Deep-Field Behavior", () => {
       if (sourcePane) sourcePane.scrollTop = sourcePane.scrollHeight;
     });
 
+    const pageScrollY = await page.evaluate(() => window.scrollY);
+    expect(pageScrollY).toBe(0);
+
     const deepNode = l.sourceNode(sourceNodeLabel("x_custom_metadata"));
     await deepNode.scrollIntoViewIfNeeded();
     await deepNode.click();
     await expect(l.explanationTitle).toHaveText(FALLBACK_TITLE, { timeout: 3000 });
 
+    const pageScrollYAfter = await page.evaluate(() => window.scrollY);
+    expect(pageScrollYAfter).toBe(0);
+
+    await expect(l.explanationPane).toBeVisible();
+    await expect(l.sourcePre).toBeVisible();
+
     await page.screenshot({
-      path: `${SCREENSHOT_DIR}/deep-field-scrolled.png`,
-      fullPage: true,
+      path: `${SCREENSHOT_DIR}/desktop-deep-source-scroll-viewport.png`,
     });
   });
 });
 
-test.describe("5. Unknown/Custom Fallback", () => {
+test.describe("7. Unknown/Custom Fallback", () => {
   test("x_custom_metadata shows unrecognized field fallback", async ({
     page,
   }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
     await l.sourceNode(sourceNodeLabel("x_custom_metadata")).click();
@@ -132,12 +140,56 @@ test.describe("5. Unknown/Custom Fallback", () => {
   });
 });
 
-test.describe("6. Pin/Preview/Restore", () => {
+test.describe("8. Explanation Panel Hierarchy", () => {
+  test("active field panel follows eyebrow -> field chip -> definition -> prose order by DOM order", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/");
+    await loadFixtureViaPaste(page, FIXTURE);
+
+    const l = locators(page);
+    await l.sourceNode(sourceNodeLabel("manifest_version")).click();
+
+    await expect(l.explanationEyebrow).toBeVisible();
+    await expect(l.explanationTitle).toBeVisible();
+    await expect(l.explanationSummary).toBeVisible();
+
+    const order = await page.evaluate(() => {
+      const inspector = document.querySelector("manifest-inspector");
+      if (!inspector || !inspector.shadowRoot) return [];
+      const pane = inspector.shadowRoot.querySelector(
+        '[part="explanation-panel"]',
+      );
+      if (!pane) return [];
+      const children = [...pane.children] as HTMLElement[];
+      const classes = children
+        .map((el) => el.className)
+        .filter((c) => c.startsWith("explanation-"));
+      return classes;
+    });
+
+    const eyebrowIdx = order.findIndex((c) => c === "explanation-eyebrow");
+    const titleIdx = order.findIndex((c) => c === "explanation-title");
+    const summaryIdx = order.findIndex((c) => c === "explanation-summary");
+    const detailsIdx = order.findIndex((c) => c.startsWith("explanation-details"));
+
+    expect(eyebrowIdx).toBeLessThan(titleIdx);
+    expect(titleIdx).toBeLessThan(summaryIdx);
+    if (detailsIdx >= 0) expect(summaryIdx).toBeLessThan(detailsIdx);
+
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/desktop-active-field-hierarchy.png`,
+    });
+  });
+});
+
+test.describe("9. Pin/Preview/Restore", () => {
   test("pin field A, hover field B, leave restores A's explanation", async ({
     page,
   }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
 
@@ -160,12 +212,12 @@ test.describe("6. Pin/Preview/Restore", () => {
   });
 });
 
-test.describe("7. Keyboard Path", () => {
+test.describe("10. Keyboard Path", () => {
   test("keyboard navigation selects and pins a field via Arrow+Enter", async ({
     page,
   }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
     await l.sourceRegion.focus();
@@ -179,7 +231,7 @@ test.describe("7. Keyboard Path", () => {
 
   test("Space pin and Escape clear works", async ({ page }) => {
     await page.goto("/");
-    await loadFixtureViaTextarea(page, FIXTURE);
+    await loadFixtureViaPaste(page, FIXTURE);
 
     const l = locators(page);
     await l.sourceRegion.focus();
@@ -194,7 +246,7 @@ test.describe("7. Keyboard Path", () => {
   });
 });
 
-test.describe("Paste flow", () => {
+test.describe("11. Paste Flow", () => {
   test("dispatched paste event loads the fixture", async ({ page }) => {
     await page.goto("/");
     await loadFixtureViaPaste(page, FIXTURE);

@@ -100,6 +100,7 @@ function statusKindFor(outcome: AnalyzeOutcome): HostStatusKind {
 
 export interface HostInputFlowOptions {
   readonly onStatus?: (message: string, kind: HostStatusKind) => void;
+  readonly onAnalyze?: () => void;
 }
 
 function isEditablePasteTarget(target: EventTarget | null): boolean {
@@ -121,6 +122,9 @@ export function wireManifestInputFlows(
   const analyze = (text: string): void => {
     const outcome = analyzeText(container, text);
     emitStatus(outcome.message, statusKindFor(outcome));
+    if (outcome.kind === "analyzed") {
+      options.onAnalyze?.();
+    }
   };
 
   const handleFiles = (files: FileList | null): void => {

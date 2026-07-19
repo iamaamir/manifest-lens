@@ -133,7 +133,7 @@ describe("@mvviewer/host-web local analysis flow", () => {
     const host = container.querySelector("manifest-inspector");
     expect(
       host?.shadowRoot?.textContent ?? "",
-    ).toContain("Paste or drop a manifest.json");
+    ).toContain("Drop a manifest.json");
   });
 
   it("imports a manifest from a File locally", async () => {

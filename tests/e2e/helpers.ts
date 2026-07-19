@@ -40,14 +40,9 @@ export function locators(page: Page) {
   return {
     header: page.locator("header"),
     brandName: page.locator(".brand-name"),
-    headerStatus: page.locator(".header-status"),
-    manifestInput: page.locator("#manifest-input"),
-    analyzeButton: page.locator("#analyze-button"),
     clearButton: page.locator("#clear-button"),
+    uploadButton: page.locator(".upload-button"),
     fileInput: page.locator("#file-input"),
-    statusMessage: page.locator("#status-message"),
-    controlDock: page.locator(".control-dock"),
-    inspectorShell: page.locator(".inspector-shell"),
 
     inspector: page.locator("manifest-inspector"),
     emptyGlyph: page.locator("manifest-inspector").locator(".empty-glyph"),
@@ -70,17 +65,14 @@ export function locators(page: Page) {
     explanationPane: page.locator("manifest-inspector").locator('[part="explanation-panel"]'),
     explanationTitle: page.locator("manifest-inspector").locator(".explanation-title"),
     explanationSummary: page.locator("manifest-inspector").locator(".explanation-summary"),
-    explanationBreadcrumb: page.locator("manifest-inspector").locator(".explanation-breadcrumb"),
+    explanationEyebrow: page.locator("manifest-inspector").locator(".explanation-eyebrow"),
+    explanationDetails: page.locator("manifest-inspector").locator(".explanation-details"),
+    explanationDocs: page.locator("manifest-inspector").locator(".explanation-docs"),
+    explanationExamples: page.locator("manifest-inspector").locator(".explanation-examples"),
     paneHeader: page.locator("manifest-inspector").locator(".pane-header"),
     paneTitle: page.locator("manifest-inspector").locator(".pane-title"),
+    mobileInlineCard: page.locator("manifest-inspector").locator(".mobile-inline-card"),
   };
-}
-
-export async function loadFixtureViaTextarea(page: Page, text: string) {
-  const l = locators(page);
-  await l.manifestInput.fill(text);
-  await l.analyzeButton.click();
-  await expect(l.sourcePre).toBeVisible({ timeout: 5000 });
 }
 
 export async function loadFixtureViaPaste(page: Page, text: string) {

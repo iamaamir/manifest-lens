@@ -24,6 +24,10 @@
         --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
       }
 
+      [hidden] {
+        display: none !important;
+      }
+
       * {
         box-sizing: border-box;
       }
@@ -31,37 +35,28 @@
       body {
         margin: 0;
         min-width: 320px;
-        min-height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
         color: var(--color-text-primary);
-        background:
-          radial-gradient(circle at 16% -10%, rgba(94, 234, 212, 0.08), transparent 30rem),
-          linear-gradient(180deg, #121214 0%, #0f0f12 100%);
+        background: var(--color-bg-canvas);
         font-family: var(--font-sans);
       }
 
       button,
-      textarea,
       input {
         font: inherit;
       }
 
-      button:focus-visible,
-      textarea:focus-visible,
-      input:focus-visible,
-      .upload-button:focus-within,
-      .upload-button:has(+ #file-input:focus-visible) {
+      button:focus-visible {
         outline: 2px solid var(--color-border-focus);
         outline-offset: 2px;
       }
 
-      #file-input:focus-visible {
-        outline: 0;
-      }
-
       .app-frame {
-        min-height: 100vh;
+        height: 100dvh;
         display: grid;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
       }
 
       .app-header {
@@ -104,13 +99,6 @@
         white-space: nowrap;
       }
 
-      .header-status {
-        margin: 0;
-        color: var(--color-text-secondary);
-        font-size: 13px;
-        line-height: 20px;
-      }
-
       .header-actions {
         display: inline-flex;
         align-items: center;
@@ -144,14 +132,12 @@
         text-underline-offset: 4px;
       }
 
-      .upload-button,
-      #analyze-button {
+      .upload-button {
         color: var(--color-bg-header);
         background: var(--color-accent-primary);
       }
 
-      .upload-button:hover,
-      #analyze-button:hover {
+      .upload-button:hover {
         filter: brightness(1.08);
       }
 
@@ -168,121 +154,31 @@
       }
 
       #app {
-        width: min(1440px, 100%);
-        min-height: calc(100vh - 56px);
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
         margin: 0 auto;
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
-        padding: 16px;
-      }
-
-      .control-dock {
-        display: grid;
-        grid-template-columns: minmax(18rem, 32rem) auto minmax(12rem, 1fr);
-        gap: 12px;
-        align-items: end;
-        padding: 12px;
-        background: var(--color-bg-panel);
-        border: 1px solid var(--color-border-hairline);
-        border-bottom: 0;
-        border-radius: 10px 10px 0 0;
-      }
-
-      .input-group {
-        display: grid;
-        gap: 6px;
-      }
-
-      label[for="manifest-input"] {
-        color: var(--color-text-tertiary);
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 16px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      #manifest-input {
-        width: 100%;
-        min-height: 72px;
-        max-height: 128px;
-        resize: vertical;
-        padding: 10px 12px;
-        color: var(--color-text-primary);
-        background: var(--color-bg-tree-pane);
-        border: 1px solid var(--color-border-hairline);
-        border-radius: 6px;
-        font-family: var(--font-mono);
-        font-size: 13px;
-        line-height: 20px;
-      }
-
-      #manifest-input::placeholder {
-        color: var(--color-text-tertiary);
-      }
-
-      .dock-copy {
-        margin: 0;
-        color: var(--color-text-secondary);
-        font-size: 13px;
-        line-height: 20px;
-      }
-
-      #status-message {
-        min-height: 20px;
-        margin: 0;
-        justify-self: end;
-        color: var(--color-text-secondary);
-        font-size: 13px;
-        line-height: 20px;
-      }
-
-      #status-message:not(:empty) {
-        max-width: 100%;
-        padding: 7px 10px;
-        background: var(--color-bg-elevated);
-        border: 1px solid var(--color-border-hairline);
-        border-radius: 6px;
-      }
-
-      #status-message[data-kind="error"] {
-        color: var(--color-accent-error);
+        width: min(1440px, 100%);
       }
 
       .inspector-shell {
+        height: 100%;
         min-height: 0;
-        background: var(--color-bg-tree-pane);
-        border: 1px solid var(--color-border-hairline);
-        border-radius: 0 0 10px 10px;
         overflow: hidden;
+        background: var(--color-bg-tree-pane);
+        border-left: 1px solid var(--color-border-hairline);
+        border-right: 1px solid var(--color-border-hairline);
       }
 
       #inspector-host,
       #inspector-host manifest-inspector {
-        min-height: calc(100vh - 176px);
+        height: 100%;
+        min-height: 0;
       }
 
       @media (max-width: 900px) {
         .app-header {
           padding: 0 16px;
-        }
-
-        .header-status {
-          display: none;
-        }
-
-        #app {
-          padding: 12px;
-        }
-
-        .control-dock {
-          grid-template-columns: 1fr auto;
-        }
-
-        .dock-copy,
-        #status-message {
-          grid-column: 1 / -1;
-          justify-self: start;
         }
       }
 
@@ -308,27 +204,8 @@
           padding-inline: 12px;
         }
 
-        #app {
-          min-height: calc(100vh - 48px);
-          padding: 8px;
-        }
-
-        .control-dock {
-          grid-template-columns: 1fr;
-          border-radius: 8px 8px 0 0;
-        }
-
-        #analyze-button {
-          width: 100%;
-        }
-
         .inspector-shell {
-          border-radius: 0 0 8px 8px;
-        }
-
-        #inspector-host,
-        #inspector-host manifest-inspector {
-          min-height: calc(100vh - 248px);
+          border: 0;
         }
       }
 
@@ -351,9 +228,8 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <p class="brand-name">Manifest Inspector</p>
         </div>
-        <p class="header-status">Local-first manifest explanations</p>
         <div class="header-actions">
-          <button type="button" id="clear-button">Clear</button>
+          <button type="button" id="clear-button" hidden>Clear</button>
           <label class="upload-button" for="file-input">Upload</label>
           <input
             class="visually-hidden"
@@ -367,26 +243,10 @@
 
       <main id="app" aria-labelledby="app-heading">
         <h1 id="app-heading" class="visually-hidden">Manifest Inspector</h1>
-        <section class="control-dock" aria-labelledby="input-heading">
-          <div class="input-group">
-            <h2 id="input-heading" class="visually-hidden">Load a manifest</h2>
-            <label for="manifest-input">Paste manifest JSON</label>
-            <textarea
-              id="manifest-input"
-              rows="3"
-              spellcheck="false"
-              placeholder='{ "manifest_version": 3, "name": "Example", "version": "1.0.0" }'
-            ></textarea>
-          </div>
-          <button type="button" id="analyze-button">Analyze locally</button>
-          <p class="dock-copy">Drop a manifest.json onto the inspector, paste here, or upload a local file.</p>
-          <p id="status-message" role="status" aria-live="polite"></p>
-        </section>
-
-        <section class="inspector-shell" aria-labelledby="inspector-heading">
+        <div class="inspector-shell" aria-labelledby="inspector-heading">
           <h2 id="inspector-heading" class="visually-hidden">Manifest inspector workspace</h2>
           <div id="inspector-host"></div>
-        </section>
+        </div>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

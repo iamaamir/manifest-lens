@@ -7,11 +7,15 @@ import {
 
 const FIXTURE = readComprehensiveFixture();
 
-test.describe("11. File Upload", () => {
-  test("uploads fixture via hidden file input", async ({ page }) => {
+test.describe("12. File Upload", () => {
+  test("uploads fixture via hidden file input, native input not visible", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
 
     const l = locators(page);
+
+    await expect(l.uploadButton).toBeVisible();
+    await expect(l.fileInput).toHaveClass(/visually-hidden/);
 
     await l.fileInput.setInputFiles({
       name: "manifest.json",
@@ -20,19 +24,19 @@ test.describe("11. File Upload", () => {
     });
 
     await expect(l.sourcePre).toBeVisible({ timeout: 5000 });
+    await expect(l.clearButton).toBeVisible();
 
     const sourceText = await l.sourcePre.textContent();
     expect(sourceText).toContain("manifest_version");
     expect(sourceText).toContain("x_custom_metadata");
 
     await page.screenshot({
-      path: `${SCREENSHOT_DIR}/upload-file-input.png`,
-      fullPage: true,
+      path: `${SCREENSHOT_DIR}/desktop-upload-state-no-native-input.png`,
     });
   });
 });
 
-test.describe("12. Drag-and-Drop Text", () => {
+test.describe("13. Drag-and-Drop Text", () => {
   test("drop text onto manifest-inspector loads fixture", async ({ page }) => {
     await page.goto("/");
 
@@ -55,10 +59,5 @@ test.describe("12. Drag-and-Drop Text", () => {
     const sourceText = await l.sourcePre.textContent();
     expect(sourceText).toContain("manifest_version");
     expect(sourceText).toContain("x_custom_metadata");
-
-    await page.screenshot({
-      path: `${SCREENSHOT_DIR}/dragdrop-text.png`,
-      fullPage: true,
-    });
   });
 });

@@ -224,9 +224,8 @@ describe("manifest-inspector empty state", () => {
     const text = shadow?.textContent ?? "";
     expect(text).toContain("Drop a manifest.json");
     expect(text).toContain(
-      "Paste or drop a manifest.json here, or use Upload above.",
+      "Or paste it anywhere on this page, or click Upload above.",
     );
-    expect(text).toContain("Processing stays local to this browser.");
     expect(text).not.toMatch(/diagnos|fix|health score|report|audit/i);
     host.remove();
   });

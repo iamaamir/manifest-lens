@@ -1,5 +1,6 @@
 import type {
   AnalysisSnapshot,
+  SemanticNode,
   SemanticNodeId,
 } from "@mvviewer/contracts";
 import {
@@ -16,7 +17,7 @@ const MANIFEST_INSPECTOR_TAG = "manifest-inspector";
 
 const EMPTY_STATE_PROMPT = "Drop a manifest.json";
 const EMPTY_STATE_LOCAL_NOTE =
-  "Paste or drop a manifest.json here, or use Upload above. Processing stays local to this browser.";
+  "Or paste it anywhere on this page, or click Upload above.";
 const SOURCE_KEYBOARD_INSTRUCTIONS =
   "Use arrow keys to move between explainable fields, Enter or Space to pin an explanation, and Escape to clear.";
 
@@ -229,6 +230,21 @@ function nodeLabel(snapshot: AnalysisSnapshot, nodeId: SemanticNodeId): string {
   return `${fieldText} (${pathText})`;
 }
 
+function nodeKindToEyebrow(kind: SemanticNode["kind"]): string {
+  switch (kind) {
+    case "manifest": return "MANIFEST";
+    case "field": return "TOP-LEVEL FIELD";
+    case "unknownField": return "UNRECOGNIZED FIELD";
+    case "permission": return "PERMISSION";
+    case "hostPermission": return "HOST PERMISSION";
+    case "contentScript": return "CONTENT SCRIPT";
+    case "contentScriptField": return "CONTENT SCRIPT FIELD";
+    case "contentScriptMatch": return "MATCH PATTERN";
+    case "contentScriptFile": return "SCRIPT FILE";
+    case "arrayItem": return "ARRAY ITEM";
+  }
+}
+
 function isStructuralSourceSegment(segment: SourceSegment): boolean {
   return segment.tokenKind === "whitespace" || segment.tokenKind === "bracket";
 }
@@ -305,6 +321,7 @@ const STYLE = `
 
   .inspector {
     display: grid;
+    height: 100%;
     min-height: inherit;
     grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
     background: var(--color-border-hairline);
@@ -380,6 +397,7 @@ const STYLE = `
   .source-frame {
     display: grid;
     grid-template-columns: 48px minmax(0, 1fr);
+    position: relative;
     min-height: 100%;
     overflow: auto;
     color: var(--color-text-secondary);
@@ -423,9 +441,12 @@ const STYLE = `
     box-shadow: 0 0 0 1px var(--color-border-focus);
   }
 
-  .source-gutter-line.is-active::before,
   .source-gutter-line.is-pinned::before {
     background: var(--color-accent-primary);
+  }
+
+  .source-gutter-line.is-focused::before {
+    box-shadow: 0 0 0 2px var(--color-accent-primary);
   }
 
   .source-gutter-line.is-pinned::after {
@@ -626,6 +647,59 @@ const STYLE = `
     border-radius: var(--mi-radius-sm);
   }
 
+  .explanation-eyebrow {
+    margin: 0 0 16px;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .explanation-examples {
+    margin: 0 0 20px;
+  }
+
+  .explanation-examples pre {
+    margin: 8px 0 0;
+    padding: 16px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: 6px;
+    font-family: var(--mi-font-code);
+    font-size: 13px;
+    line-height: 20px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .explanation-related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .explanation-related li {
+    margin: 0;
+  }
+
+  .explanation-related-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 16px;
+    cursor: default;
+  }
+
   .explanation-empty {
     display: grid;
     min-height: 240px;
@@ -690,6 +764,128 @@ const STYLE = `
     }
   }
 
+  .mobile-inline-card {
+    display: none;
+    margin: 0;
+    padding: 16px 20px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    color: var(--color-text-explanation);
+  }
+
+  .mobile-inline-card.is-visible {
+    display: block;
+  }
+
+  .mobile-inline-card .explanation-eyebrow {
+    margin: 0 0 12px;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mobile-inline-card .explanation-title {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0 0 12px;
+    padding: 4px 8px;
+    color: var(--color-text-primary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--mi-radius-sm);
+    font-family: var(--mi-font-code);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-inline-card .explanation-summary {
+    margin: 0 0 12px;
+    color: var(--color-text-explanation);
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .mobile-inline-card .explanation-details {
+    margin: 0 0 12px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .mobile-inline-card .explanation-section-label {
+    margin: 0 0 8px;
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .mobile-inline-card .explanation-docs {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .mobile-inline-card .explanation-docs a {
+    color: var(--color-accent-primary);
+    text-underline-offset: 3px;
+  }
+
+  .mobile-inline-card .explanation-docs a:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: var(--mi-radius-sm);
+  }
+
+  .mobile-inline-card .explanation-related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-inline-card .explanation-related li {
+    margin: 0;
+  }
+
+  .mobile-inline-card .explanation-related-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-hairline);
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 16px;
+    cursor: default;
+  }
+
+  @media (max-width: 767px) {
+    .explanation-pane {
+      display: none !important;
+    }
+
+    .mobile-inline-card.is-visible {
+      position: absolute;
+      z-index: 10;
+      left: 48px;
+      right: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .source-node {
       transition-duration: 0.01ms;
@@ -728,6 +924,7 @@ export class ManifestInspectorElement extends HTMLElement {
   private sourceRegion: HTMLElement | null = null;
   private sourceGutter: HTMLElement | null = null;
   private explanationPane: HTMLElement | null = null;
+  private mobileInlineCard: HTMLElement | null = null;
   private representativeIdByNode = new Map<SemanticNodeId, string>();
 
   constructor() {
@@ -750,6 +947,7 @@ export class ManifestInspectorElement extends HTMLElement {
     this.snapshot = null;
     this.sourceRegion = null;
     this.explanationPane = null;
+    this.mobileInlineCard = null;
     this.representativeIdByNode = new Map();
     this.state = inspectorReducer(this.state, { type: "snapshot/clear" });
     this.renderEmptyState();
@@ -764,6 +962,7 @@ export class ManifestInspectorElement extends HTMLElement {
     if (!this.snapshot) return;
     if (this.sourceRegion) this.updateSourceHighlight(this.sourceRegion);
     this.updateExplanationPane();
+    this.updateMobileCard();
   }
 
   private renderEmptyState(): void {
@@ -940,6 +1139,12 @@ export class ManifestInspectorElement extends HTMLElement {
     this.sourceGutter = gutter;
     sourceFrame.append(gutter, pre);
     pane.append(sourceFrame);
+
+    const mobileCard = document.createElement("div");
+    mobileCard.className = "mobile-inline-card";
+    sourceFrame.append(mobileCard);
+    this.mobileInlineCard = mobileCard;
+
     return pane;
   }
 
@@ -1091,6 +1296,54 @@ export class ManifestInspectorElement extends HTMLElement {
     }
   }
 
+  private updateMobileCard(): void {
+    const card = this.mobileInlineCard;
+    if (!card) return;
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobile) {
+      card.classList.remove("is-visible");
+      return;
+    }
+
+    const showCard =
+      this.state.selection.kind === "pinned" ||
+      this.state.selection.kind === "hoverPreview";
+    if (!showCard) {
+      card.classList.remove("is-visible");
+      return;
+    }
+
+    const explanation = getActiveExplanation(this.state);
+    if (!explanation) {
+      card.classList.remove("is-visible");
+      return;
+    }
+
+    const content = this.buildExplanationContent();
+    card.replaceChildren(content);
+    card.classList.add("is-visible");
+
+    const sourceFrame = card.parentElement;
+    if (sourceFrame) {
+      const activeId = getActiveNodeId(this.state);
+      if (activeId) {
+        const representativeId = this.representativeIdByNode.get(activeId);
+        if (representativeId) {
+          const span = this.root.getElementById(representativeId);
+          if (span) {
+            const frameRect = sourceFrame.getBoundingClientRect();
+            const spanRect = span.getBoundingClientRect();
+            const gap = 8;
+            card.style.top = `${spanRect.bottom - frameRect.top + gap}px`;
+          }
+        }
+      }
+    }
+
+    card.scrollIntoView({ block: "nearest" });
+  }
+
   private buildExplanationContent(): DocumentFragment {
     const fragment = document.createDocumentFragment();
 
@@ -1104,13 +1357,13 @@ export class ManifestInspectorElement extends HTMLElement {
       return fragment;
     }
 
+    const eyebrow = this.renderEyebrow();
+    if (eyebrow) fragment.append(eyebrow);
+
     const title = document.createElement("h2");
     title.className = "explanation-title";
     title.textContent = explanation.title;
     fragment.append(title);
-
-    const breadcrumb = this.renderBreadcrumb();
-    if (breadcrumb) fragment.append(breadcrumb);
 
     const summary = document.createElement("p");
     summary.className = "explanation-summary";
@@ -1118,14 +1371,44 @@ export class ManifestInspectorElement extends HTMLElement {
     fragment.append(summary);
 
     if (explanation.details.length > 0) {
-      const list = document.createElement("ul");
-      list.className = "explanation-details";
       for (const detail of explanation.details) {
+        const paragraph = document.createElement("p");
+        paragraph.className = "explanation-details";
+        paragraph.textContent = detail;
+        fragment.append(paragraph);
+      }
+    }
+
+    if (explanation.examples.length > 0) {
+      const label = document.createElement("p");
+      label.className = "explanation-section-label";
+      label.textContent = "Example";
+      const container = document.createElement("div");
+      container.className = "explanation-examples";
+      container.append(label);
+      for (const example of explanation.examples) {
+        const pre = document.createElement("pre");
+        pre.textContent = example.code;
+        container.append(pre);
+      }
+      fragment.append(container);
+    }
+
+    if (explanation.relatedFields.length > 0) {
+      const label = document.createElement("p");
+      label.className = "explanation-section-label";
+      label.textContent = "Related Fields";
+      const list = document.createElement("ul");
+      list.className = "explanation-related";
+      for (const field of explanation.relatedFields) {
         const item = document.createElement("li");
-        item.textContent = detail;
+        const pill = document.createElement("span");
+        pill.className = "explanation-related-pill";
+        pill.textContent = field;
+        item.append(pill);
         list.append(item);
       }
-      fragment.append(list);
+      fragment.append(label, list);
     }
 
     if (explanation.docsLinks.length > 0) {
@@ -1150,20 +1433,20 @@ export class ManifestInspectorElement extends HTMLElement {
     return fragment;
   }
 
-  private renderBreadcrumb(): HTMLElement | null {
+  private renderEyebrow(): HTMLElement | null {
     if (!this.snapshot) return null;
     const activeId = getActiveNodeId(this.state);
     if (!activeId) return null;
     const node = this.snapshot.semantic.nodes.find((n) => n.id === activeId);
     if (!node) return null;
 
-    const text = node.breadcrumb.map((segment) => segment.label).join(" › ");
-    if (!text) return null;
+    const label = nodeKindToEyebrow(node.kind);
+    if (!label) return null;
 
-    const paragraph = document.createElement("p");
-    paragraph.className = "explanation-breadcrumb";
-    paragraph.textContent = text;
-    return paragraph;
+    const element = document.createElement("p");
+    element.className = "explanation-eyebrow";
+    element.textContent = label;
+    return element;
   }
 
   private handleSourceKeydown = (event: KeyboardEvent): void => {

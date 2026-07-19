@@ -1,5 +1,40 @@
 # Task Brief — Phase 5 Structural Observatory Reset
 
+## Completion
+
+Completed by external OpenCode Frontend Engineer and accepted structurally by Product Designer on 2026-07-19.
+
+Delivered:
+
+- Removed visible paste/analyze form dock.
+- Rebuilt shell as viewport-bound Observatory surface.
+- Kept source/explanation contained in independently visible panes.
+- Simplified header chrome and hid `Clear` until content exists.
+- Preserved upload, page-level paste, drag/drop, clear, invalid-after-valid, hover/pin/keyboard, and local-only privacy behavior.
+- Improved explanation hierarchy to eyebrow → field chip → definition/prose → secondary context.
+- Hid native file input chrome.
+- Added mobile single-column inline explanation card.
+- Updated E2E coverage and promoted viewport screenshots to `docs/reviews/ui-screenshots/latest/`.
+
+Coordinator validation passed:
+
+```sh
+npm run typecheck
+npm run test                    # 8 files, 151 tests
+npm run build
+npm run build --workspace=@mvviewer/web
+npm run e2e                     # 26 passed
+git diff --check
+```
+
+Accepted review:
+
+```text
+docs/reviews/phase5-structural-reset-accepted-review.md
+```
+
+Remaining follow-up: `Phase 5 Observatory Tree Craft Slice` for guide lines, disclosure controls, default depth collapse, large-array truncation, and quieter active/focus/pin treatment.
+
 ## Context
 
 The user still dislikes the current UI structure. The latest screenshot-backed Product Designer review is:
