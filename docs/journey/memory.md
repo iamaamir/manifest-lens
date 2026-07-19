@@ -44,8 +44,10 @@ Initial release priority is explanation and interaction clarity, not validation.
   - Human contributor checklist and review expectations.
 - AI team model: `docs/agents/team.md` and `docs/agents/workflow.md`
   - Coordinator-led, artifact-driven, role-specialized agent workflow.
-- Agent role cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
-  - Specialist responsibilities and report/task formats.
+- Agent role/persona cards/templates: `docs/agents/roles/` and `docs/agents/templates/`
+  - Specialist responsibilities, persona prompts, and report/task formats.
+- Persona loading guide: `docs/agents/persona-loading.md`
+  - How to start a separate specialist agent by loading a single role/persona file.
 
 ## Current Phase
 
@@ -71,10 +73,11 @@ Coordinator agent:
 - Synthesizes specialist reports and resolves conflicts.
 - Keeps this memory file updated after major milestones, phase changes, architecture decisions, scope changes, validated setup/test results, blockers, or important user preferences.
 
-Specialist agents:
+- Specialist agents:
 
-- Follow `docs/agents/team.md`, `docs/agents/workflow.md`, and role cards in `docs/agents/roles/`.
-- Receive narrow scopes from the coordinator.
+- Follow `docs/agents/team.md`, `docs/agents/workflow.md`, and role/persona cards in `docs/agents/roles/`.
+- Can be coordinator-spawned or manually started by the user with a persona file.
+- Receive narrow scopes from the coordinator when part of coordinated work.
 - Avoid overlapping writes.
 - Return structured reports with findings, validation, and proposed `memory.md` updates.
 
@@ -201,6 +204,8 @@ We are building mvviewer, a local-first Web Extension Manifest Explainer. Read d
 
 ## Latest Update
 
+- Upgraded `docs/agents/roles/*` from short role cards into self-contained specialist persona files suitable for direct specialist chats.
+- Added `docs/agents/persona-loading.md` with instructions for starting a new specialist agent from a single persona file.
 - Added repo-native AI team operating model: `docs/agents/team.md`, `docs/agents/workflow.md`, role cards, report/task templates, task queue README, and `docs/reviews/` directory.
 - Updated `AGENTS.md` with coordinator-led AI team workflow instructions.
 - Baseline committed on `main` with commit `6c4615b` (`chore: establish project baseline`).

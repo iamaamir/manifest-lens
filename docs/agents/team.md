@@ -22,7 +22,7 @@ The coordinator owns continuity. Specialist agents own focused review or impleme
 | QA Engineer | Test strategy, fixtures, regression coverage, validation matrix |
 | Code Reviewer | Implementation review, style enforcement, risk finding, maintainability |
 
-Role cards live in `docs/agents/roles/`.
+Role/persona cards live in `docs/agents/roles/`. They are designed for both coordinator-spawned specialists and direct specialist chats started by the user. See `docs/agents/persona-loading.md`.
 
 ## Coordinator Authority
 
@@ -51,6 +51,21 @@ Specialist agents must:
 - state validation run, or why none was run
 
 Specialist agents should not update `docs/journey/memory.md` directly unless explicitly assigned that write scope.
+
+## Direct Specialist Chats
+
+The default workflow is: user → coordinator → specialists.
+
+If the user wants to chat directly with a specialist, they can start a new agent and point it at a persona file in `docs/agents/roles/`.
+
+Example:
+
+```text
+You are joining mvviewer as the Frontend Expert.
+Load and follow docs/agents/roles/frontend-expert.md.
+```
+
+Direct specialist chats are advisory unless explicitly assigned implementation authority. Durable findings should return to the coordinator for synthesis and memory updates.
 
 ## User Interaction
 
