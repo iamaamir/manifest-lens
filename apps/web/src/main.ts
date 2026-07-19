@@ -1,3 +1,4 @@
+import comprehensiveSampleManifest from "../../../fixtures/manifests/comprehensive-all-browsers.json?raw";
 import {
   loadManifestText,
   mountWebManifestInspector,
@@ -6,24 +7,7 @@ import {
   importManifestFile,
 } from "@manifest-lens/host-web";
 
-const SAMPLE_MANIFEST = JSON.stringify(
-  {
-    manifest_version: 3,
-    name: "Example Extension",
-    version: "1.0.0",
-    description: "A sample extension for preview.",
-    permissions: ["storage", "activeTab"],
-    host_permissions: ["https://*/*"],
-    action: {
-      default_popup: "popup.html",
-    },
-    background: {
-      service_worker: "background.js",
-    },
-  },
-  null,
-  2,
-);
+const SAMPLE_MANIFEST = comprehensiveSampleManifest;
 
 const app = document.querySelector<HTMLElement>("#app");
 const inspectorHost = document.querySelector<HTMLElement>("#inspector-host");
