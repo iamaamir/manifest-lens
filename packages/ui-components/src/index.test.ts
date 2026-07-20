@@ -326,7 +326,7 @@ describe("manifest-inspector empty state", () => {
     const host = mountInspector();
     const glyphContainer = host.shadowRoot?.querySelector(".empty-glyph");
     const svg = glyphContainer?.querySelector("svg");
-    
+
     expect(glyphContainer).not.toBeNull();
     expect(svg).not.toBeNull();
     expect(glyphContainer?.textContent).not.toContain("{ }");
@@ -336,7 +336,7 @@ describe("manifest-inspector empty state", () => {
   it("SVG glyph has correct viewBox and stroke attributes", () => {
     const host = mountInspector();
     const svg = host.shadowRoot?.querySelector(".empty-glyph svg") as SVGSVGElement | null;
-    
+
     expect(svg).not.toBeNull();
     expect(svg?.getAttribute("viewBox")).toBe("0 0 48 48");
     expect(svg?.getAttribute("stroke")).toBe("currentColor");
@@ -351,23 +351,23 @@ describe("manifest-inspector empty state", () => {
     const host = mountInspector();
     const svg = host.shadowRoot?.querySelector(".empty-glyph svg") as SVGSVGElement | null;
     const lines = svg?.querySelectorAll("line");
-    
+
     expect(svg).not.toBeNull();
-    expect(lines?.length).toBe(6); // 3 for left bracket, 3 for right bracket
+    expect(lines?.length).toBe(6);
     host.remove();
   });
 
   it("empty-glyph CSS class allows SVG to scale with container", () => {
     const host = mountInspector();
-    const glyphContainer = host.shadowRoot?.querySelector(".empty-glyph") as HTMLElement | null;
-    const svg = glyphContainer?.querySelector("svg") as SVGSVGElement | null;
-    
-    expect(glyphContainer?.style.width).toBe("48px");
-    expect(glyphContainer?.style.height).toBe("48px");
-    // SVG should have width/height 100% to fill container
-    expect(svg?.style.width).toBe("");
-    expect(svg?.style.height).toBe("");
-    // The CSS rule handles sizing, so we verify the element is present
+    const styleText = host.shadowRoot?.querySelector("style")?.textContent ?? "";
+    const svg = host.shadowRoot?.querySelector(".empty-glyph svg") as SVGSVGElement | null;
+
+    expect(styleText).toContain(".empty-glyph {");
+    expect(styleText).toContain("width: 48px;");
+    expect(styleText).toContain("height: 48px;");
+    expect(styleText).toContain(".empty-glyph svg {");
+    expect(styleText).toContain("width: 100%;");
+    expect(styleText).toContain("height: 100%;");
     expect(svg).not.toBeNull();
     host.remove();
   });

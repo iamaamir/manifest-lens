@@ -288,7 +288,6 @@ function createBracketGlyph(): SVGSVGElement {
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
 
-  // Left bracket: two perpendicular lines forming "{"
   const leftVertical = document.createElementNS("http://www.w3.org/2000/svg", "line");
   leftVertical.setAttribute("x1", "10");
   leftVertical.setAttribute("y1", "8");
@@ -307,7 +306,6 @@ function createBracketGlyph(): SVGSVGElement {
   leftBottomHoriz.setAttribute("x2", "18");
   leftBottomHoriz.setAttribute("y2", "40");
 
-  // Right bracket: two perpendicular lines forming "}"
   const rightVertical = document.createElementNS("http://www.w3.org/2000/svg", "line");
   rightVertical.setAttribute("x1", "38");
   rightVertical.setAttribute("y1", "8");
