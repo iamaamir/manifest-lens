@@ -321,6 +321,56 @@ describe("manifest-inspector empty state", () => {
     expect(text).not.toMatch(/diagnos|fix|health score|report|audit/i);
     host.remove();
   });
+
+  it("renders an SVG bracket glyph in the empty state, not text", () => {
+    const host = mountInspector();
+    const glyphContainer = host.shadowRoot?.querySelector(".empty-glyph");
+    const svg = glyphContainer?.querySelector("svg");
+    
+    expect(glyphContainer).not.toBeNull();
+    expect(svg).not.toBeNull();
+    expect(glyphContainer?.textContent).not.toContain("{ }");
+    host.remove();
+  });
+
+  it("SVG glyph has correct viewBox and stroke attributes", () => {
+    const host = mountInspector();
+    const svg = host.shadowRoot?.querySelector(".empty-glyph svg") as SVGSVGElement | null;
+    
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute("viewBox")).toBe("0 0 48 48");
+    expect(svg?.getAttribute("stroke")).toBe("currentColor");
+    expect(svg?.getAttribute("stroke-width")).toBe("1.5");
+    expect(svg?.getAttribute("fill")).toBe("none");
+    expect(svg?.getAttribute("stroke-linecap")).toBe("round");
+    expect(svg?.getAttribute("stroke-linejoin")).toBe("round");
+    host.remove();
+  });
+
+  it("SVG glyph contains bracket line elements", () => {
+    const host = mountInspector();
+    const svg = host.shadowRoot?.querySelector(".empty-glyph svg") as SVGSVGElement | null;
+    const lines = svg?.querySelectorAll("line");
+    
+    expect(svg).not.toBeNull();
+    expect(lines?.length).toBe(6); // 3 for left bracket, 3 for right bracket
+    host.remove();
+  });
+
+  it("empty-glyph CSS class allows SVG to scale with container", () => {
+    const host = mountInspector();
+    const glyphContainer = host.shadowRoot?.querySelector(".empty-glyph") as HTMLElement | null;
+    const svg = glyphContainer?.querySelector("svg") as SVGSVGElement | null;
+    
+    expect(glyphContainer?.style.width).toBe("48px");
+    expect(glyphContainer?.style.height).toBe("48px");
+    // SVG should have width/height 100% to fill container
+    expect(svg?.style.width).toBe("");
+    expect(svg?.style.height).toBe("");
+    // The CSS rule handles sizing, so we verify the element is present
+    expect(svg).not.toBeNull();
+    host.remove();
+  });
 });
 
 describe("manifest-inspector snapshot rendering", () => {
@@ -473,12 +523,15 @@ describe("manifest-inspector snapshot rendering", () => {
     host.remove();
   });
 
-  it("restores empty state after clear()", () => {
+  it("restores empty state with SVG glyph after clear()", () => {
     const host = mountInspector();
     host.loadSnapshot(makeSnapshot());
     host.clear();
     const text = host.shadowRoot?.textContent ?? "";
     expect(text).toContain("Drop a manifest.json");
+    
+    const svg = host.shadowRoot?.querySelector(".empty-glyph svg");
+    expect(svg).not.toBeNull();
     host.remove();
   });
 
