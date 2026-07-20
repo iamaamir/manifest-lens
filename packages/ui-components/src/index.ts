@@ -277,6 +277,65 @@ function sourceTokenClass(kind: SourceTokenKind): string {
   }
 }
 
+function createBracketGlyph(): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 48 48");
+  svg.setAttribute("width", "48");
+  svg.setAttribute("height", "48");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.5");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+
+  const leftVertical = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  leftVertical.setAttribute("x1", "10");
+  leftVertical.setAttribute("y1", "8");
+  leftVertical.setAttribute("x2", "10");
+  leftVertical.setAttribute("y2", "40");
+
+  const leftTopHoriz = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  leftTopHoriz.setAttribute("x1", "10");
+  leftTopHoriz.setAttribute("y1", "8");
+  leftTopHoriz.setAttribute("x2", "18");
+  leftTopHoriz.setAttribute("y2", "8");
+
+  const leftBottomHoriz = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  leftBottomHoriz.setAttribute("x1", "10");
+  leftBottomHoriz.setAttribute("y1", "40");
+  leftBottomHoriz.setAttribute("x2", "18");
+  leftBottomHoriz.setAttribute("y2", "40");
+
+  const rightVertical = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  rightVertical.setAttribute("x1", "38");
+  rightVertical.setAttribute("y1", "8");
+  rightVertical.setAttribute("x2", "38");
+  rightVertical.setAttribute("y2", "40");
+
+  const rightTopHoriz = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  rightTopHoriz.setAttribute("x1", "38");
+  rightTopHoriz.setAttribute("y1", "8");
+  rightTopHoriz.setAttribute("x2", "30");
+  rightTopHoriz.setAttribute("y2", "8");
+
+  const rightBottomHoriz = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  rightBottomHoriz.setAttribute("x1", "38");
+  rightBottomHoriz.setAttribute("y1", "40");
+  rightBottomHoriz.setAttribute("x2", "30");
+  rightBottomHoriz.setAttribute("y2", "40");
+
+  svg.append(
+    leftVertical,
+    leftTopHoriz,
+    leftBottomHoriz,
+    rightVertical,
+    rightTopHoriz,
+    rightBottomHoriz,
+  );
+
+  return svg;
+}
+
 const STYLE = `
   :host {
     display: block;
@@ -805,9 +864,11 @@ const STYLE = `
     place-items: center;
     margin-bottom: 16px;
     color: var(--color-text-tertiary);
-    font-family: var(--mi-font-code);
-    font-size: 20px;
-    line-height: 1;
+  }
+
+  .empty-glyph svg {
+    width: 100%;
+    height: 100%;
   }
 
   .empty-state h2 {
@@ -1210,7 +1271,7 @@ export class ManifestInspectorElement extends HTMLElement {
     const glyph = document.createElement("div");
     glyph.className = "empty-glyph";
     glyph.setAttribute("aria-hidden", "true");
-    glyph.textContent = "{ }";
+    glyph.append(createBracketGlyph());
 
     const heading = document.createElement("h2");
     heading.textContent = EMPTY_STATE_PROMPT;

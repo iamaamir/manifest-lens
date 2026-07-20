@@ -25,6 +25,13 @@ test.describe("1. Empty Observatory Shell", () => {
     await expect(l.clearButton).toHaveAttribute("hidden", "");
 
     await expect(l.emptyGlyph).toBeVisible();
+    await expect(l.emptyGlyph.locator("svg")).toHaveAttribute("viewBox", "0 0 48 48");
+    await expect(l.emptyGlyph).not.toContainText("{ }");
+
+    const emptyGlyphBox = await l.emptyGlyph.boundingBox();
+    expect(emptyGlyphBox?.width).toBeCloseTo(48, 0);
+    expect(emptyGlyphBox?.height).toBeCloseTo(48, 0);
+
     await expect(l.emptyHeading).toHaveText("Drop a manifest.json");
     await expect(l.emptyNote).toBeVisible();
     await expect(l.explanationEmpty).toBeVisible();
