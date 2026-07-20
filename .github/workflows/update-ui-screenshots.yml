@@ -1,0 +1,59 @@
+name: Update UI screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-ui-screenshots-main
+  cancel-in-progress: true
+
+jobs:
+  update-screenshots:
+    name: Regenerate and commit UI screenshots
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run end-to-end tests and generate screenshots
+        run: npm run e2e
+
+      - name: Promote generated screenshots
+        run: |
+          mkdir -p docs/reviews/ui-screenshots/latest
+          cp test-results/screenshots/*.png docs/reviews/ui-screenshots/latest/
+
+      - name: Commit screenshot updates
+        run: |
+          if git diff --quiet -- docs/reviews/ui-screenshots/latest; then
+            echo "UI screenshots are already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/reviews/ui-screenshots/latest/*.png
+          git commit -m "docs(reviews): update ui screenshots"
+          git push
